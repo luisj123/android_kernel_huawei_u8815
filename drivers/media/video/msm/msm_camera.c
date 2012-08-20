@@ -39,6 +39,7 @@
 #include <mach/msm_battery.h>
 #endif
 #include <linux/ion.h>
+
 DEFINE_MUTEX(ctrl_cmd_lock);
 
 #define CAMERA_STOP_VIDEO 58
@@ -2902,8 +2903,7 @@ static long msm_ioctl_config(struct file *filep, unsigned int cmd,
 			rc = -EFAULT;
 		} else
 		{
-            /*Condition that the flash is tps61310 */
-			if(machine_is_msm8255_u8680())
+			if(machine_is_msm8255_u8680() || machine_is_msm7x27a_U8815())
 			{
 				if(LED_FLASH == flash_info.flashtype)
 				{
