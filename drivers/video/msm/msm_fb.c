@@ -3531,6 +3531,7 @@ static int msm_fb_ioctl(struct fb_info *info, unsigned int cmd,
 #endif
 	struct mdp_page_protection fb_page_protection;
 	struct msmfb_mdp_pp mdp_pp;
+	struct msmfb_metadata mdp_metadata;
 	int ret = 0;
 
 	switch (cmd) {
@@ -3896,6 +3897,12 @@ static int msm_fb_ioctl(struct fb_info *info, unsigned int cmd,
         }
         break;
 #endif
+	case MSMFB_METADATA_SET:
+		ret = copy_from_user(&mdp_metadata, argp, sizeof(mdp_metadata));
+		if (ret)
+			return ret;
+		ret = msmfb_handle_metadata_ioctl(mfd, &mdp_metadata);
+		break;
 
 	default:
 		MSM_FB_INFO("MDP: unknown ioctl (cmd=%x) received!\n", cmd);
