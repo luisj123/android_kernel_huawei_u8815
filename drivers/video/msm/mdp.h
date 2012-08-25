@@ -100,6 +100,7 @@ struct vsync {
 	struct device *dev;
 	struct work_struct vsync_work;
 	int vsync_irq_enabled;
+	struct completion vsync_wait;
 };
 
 extern struct vsync vsync_cntrl;
@@ -743,6 +744,9 @@ unsigned long mdp_perf_level2clk_rate(uint32 perf_level);
 #ifdef CONFIG_MSM_BUS_SCALING
 int mdp_bus_scale_update_request(uint32_t index);
 #endif
+void mdp_dma_vsync_ctrl(int enable);
+void mdp_dma_video_vsync_ctrl(int enable);
+void mdp_dma_lcdc_vsync_ctrl(int enable);
 
 #ifdef MDP_HW_VSYNC
 void mdp_hw_vsync_clk_enable(struct msm_fb_data_type *mfd);
