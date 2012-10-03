@@ -105,7 +105,7 @@ static long hw_camera_led_ioctl(struct file *filep ,unsigned int cmd, unsigned l
 			}
 			else
 			{
-#if defined CONFIG_HUAWEI_FEATURE_TPS61310
+#ifdef CONFIG_HUAWEI_FEATURE_TPS61310
 				ret = tps61310_set_flash(camera_led_state);
 #else
 				ret = msm_camera_flash_set_led_state(&hw_camera_led_data,camera_led_state);

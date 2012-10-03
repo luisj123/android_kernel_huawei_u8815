@@ -2902,7 +2902,7 @@ static long msm_ioctl_config(struct file *filep, unsigned int cmd,
 			rc = -EFAULT;
 		} else
 		{
-#if defined CONFIG_HUAWEI_FEATURE_TPS61310
+#ifdef CONFIG_HUAWEI_FEATURE_TPS61310
 			if(LED_FLASH == flash_info.flashtype)
 			{
 				CDBG("tps61310_set_flash enter");
