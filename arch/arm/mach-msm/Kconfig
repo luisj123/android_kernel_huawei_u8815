@@ -2337,5 +2337,3 @@ config HUAWEI_BT_WCN2243
 	default n
 	help
 	  Select Y to use Qualcomm's BlueZ stack. Used by WCN2243. Not used in Huawei devices.
-
-endif
