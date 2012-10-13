@@ -1976,37 +1976,24 @@ static int set_touch_interrupt_gpio(void)
 	return ret;
 }
 
-/*this function return reset gpio at 7x30 platform */
-static int get_touch_reset_gpio(void)
+/*we use this to detect the probe is detected*/
+void set_touch_probe_flag(int detected)
 {
-	return MSM_7x27A_TOUCH_RESET_PIN;
-}
-
-/*this function get the tp  resolution*/
-static int get_touch_resolution(struct tp_resolution_conversion *tp_resolution_type)
-{	
-	if (machine_is_msm7x27a_U8815())
+	if(detected >= 0)
 	{
-		tp_resolution_type->lcd_x = LCD_X_WVGA;
-		tp_resolution_type->lcd_y = LCD_Y_WVGA;   
-		tp_resolution_type->lcd_all = LCD_ALL_WVGA_4INCHTP;
+		atomic_set(&touch_detected_yet, 1);
 	}
 	else
 	{
-	    tp_resolution_type->lcd_x = LCD_X_WVGA;
-		tp_resolution_type->lcd_y = LCD_Y_WVGA;   
-		tp_resolution_type->lcd_all = LCD_ALL_WVGA_4INCHTP;
+		atomic_set(&touch_detected_yet, 0);
 	}
-	return 1;
+	
+	return;
 }
 
-int touch_gpio_config_interrupt(void)
-{
-	gpio_request(MSM_7X27A_TOUCH_INT_PIN, "TOUCH_INT");
-	
-	return gpio_tlmm_config(GPIO_CFG(MSM_7X27A_TOUCH_INT_PIN, 
-						0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, 
-						GPIO_CFG_2MA), GPIO_CFG_ENABLE);
+int read_touch_probe_flag(void)
+{	
+	return atomic_read(&touch_detected_yet);
 }
 
 int touch_reset(void)
@@ -2029,33 +2016,14 @@ int touch_reset(void)
 	return ret;
 }
 
-int get_touch_reset_pin(void)
+/*this function return reset gpio at 7x30 platform */
+static int get_touch_reset_gpio(void)
 {
-	int ret = MSM_7x27A_TOUCH_RESET_PIN;
-	
-	return ret;
+	return MSM_7x27A_TOUCH_RESET_PIN;
 }
 
-void set_touch_probe_flag(int detected)
-{
-	if(detected >= 0)
-	{
-		atomic_set(&touch_detected_yet, 1);
-	}
-	else
-	{
-		atomic_set(&touch_detected_yet, 0);
-	}
-	
-	return;
-}
-
-int read_touch_probe_flag(void)
-{	
-	return atomic_read(&touch_detected_yet);
-}
-
-static int get_phone_version(struct tp_resolution_conversion *tp_resolution_type)
+/*this function get the tp  resolution*/
+static int get_touch_resolution(struct tp_resolution_conversion *tp_resolution_type)
 {	
 	if (machine_is_msm7x27a_U8815() ||
 	    machine_is_msm7x27a_C8820() ||
