@@ -1,3 +1,4 @@
+/*< DTS2012020400396 zhangyu 20120206 begin */
 /* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,6 +25,8 @@ struct s5k4e1_i2c_reg_conf s5k4e1_mipi_settings[] = {
 
 /* PLL Configuration */
 struct s5k4e1_i2c_reg_conf s5k4e1_pll_preview_settings[] = {
+/*< DTS2012021006236 zhangyu 20120210 begin */
+/*< DTS2012011301770   songxiaoming 20120204 begin */
 	// PLL setting ...
 	// input clock 24MHz
 	// (3) MIPI 2-lane Serial(TST = 0000b or TST = 0010b), 15 fps
@@ -33,6 +36,7 @@ struct s5k4e1_i2c_reg_conf s5k4e1_pll_preview_settings[] = {
 	{0x30B5,0x01},//PLL S = 1 
 	{0x30E2,0x02},//num lanes[1:0] = 2
 	{0x30F1,0x70},//DPHY BANDCTRL 404MHz=40.4MHz
+/* DTS2012011301770  songxiaoming 20120204 end > */
 };
 
 struct s5k4e1_i2c_reg_conf s5k4e1_pll_snap_settings[] = {
@@ -82,6 +86,7 @@ struct s5k4e1_i2c_reg_conf s5k4e1_prev_settings[] = {
 	{0x0341, 0xE0},
 	{0x0342, 0x0A},/* 2738  Line Length */
 	{0x0343, 0xB2},
+/*< DTS2012011301770   songxiaoming 20120204 begin */
 
     /*preview lens shading*/
     {0x3096, 0x40},
@@ -105,6 +110,7 @@ struct s5k4e1_i2c_reg_conf s5k4e1_prev_settings[] = {
     {0x30a5, 0x01},
     {0x30a6, 0x00},
 
+/* DTS2012011301770  songxiaoming 20120204 end > */
 };
 
 struct s5k4e1_i2c_reg_conf s5k4e1_snap_settings[] = {
@@ -129,6 +135,7 @@ struct s5k4e1_i2c_reg_conf s5k4e1_snap_settings[] = {
 	{0x0341, 0xB4},
 	{0x0342, 0x0A},/* 2738 Line Length */
 	{0x0343, 0xB2},
+/*< DTS2012011301770   songxiaoming 20120204 begin */ 
 
     {0x3096, 0x40},
     {0x3097, 0x52},
@@ -197,7 +204,9 @@ struct s5k4e1_i2c_reg_conf s5k4e1_recommend_settings[] = {
 	{0x3081, 0x38},
 
 };
+/* <DTS2011122208447  zhouqiwei 20111222 begin > */	
 struct s5k4e1_i2c_reg_conf s5k4e1_lc_tbl[] = {
+/* DTS2012011301770  songxiaoming 20120204 end > */
 	{0x3096, 0x40},
 	
 	{0x3097, 0x52}, 	
@@ -655,12 +664,16 @@ struct s5k4e1_i2c_reg_conf s5k4e1_lc_tbl[] = {
 	{0x33af, 0xf4},
 	
 	{0x3096, 0x60},
+	/*< DTS2012013103283   songxiaoming 20120201 begin */ 
 	{0x3096, 0x40},
 	
 	{0x0101, 0x03}, //mirror and flip
+	/* DTS2012013103283  songxiaoming 20120201 end > */
 };
 
+/*< DTS2012013103283   songxiaoming 20120201 begin */
 /* delete snapshot lc tab */
+/* < DTS2011122208447  zhouqiwei 20111222 end > */	
 struct s5k4e1_reg s5k4e1_regs = {
 	.reg_mipi = &s5k4e1_mipi_settings[0],
 	.reg_mipi_size = ARRAY_SIZE(s5k4e1_mipi_settings),
@@ -668,8 +681,11 @@ struct s5k4e1_reg s5k4e1_regs = {
 	.rec_size = ARRAY_SIZE(s5k4e1_recommend_settings),
 
 	
+	/* <DTS2011122208447  zhouqiwei 20111222 begin > */
 	.reg_lc = &s5k4e1_lc_tbl[0],
 	.reg_lc_size = ARRAY_SIZE(s5k4e1_lc_tbl),	
+	/* < DTS2011122208447  zhouqiwei 20111222 end > */
+	/* DTS2012011301770  songxiaoming 20120204 end > */
 	.reg_pll_p = &s5k4e1_pll_preview_settings[0],
 	.reg_pll_p_size = ARRAY_SIZE(s5k4e1_pll_preview_settings),
 	.reg_pll_s = &s5k4e1_pll_snap_settings[0],
@@ -679,3 +695,5 @@ struct s5k4e1_reg s5k4e1_regs = {
 	.reg_snap = &s5k4e1_snap_settings[0],
 	.reg_snap_size = ARRAY_SIZE(s5k4e1_snap_settings),
 };
+/* DTS2012021006236 zhangyu 20120210 end > */
+/* DTS2012020400396 zhangyu 20120206 end > */

@@ -1,3 +1,4 @@
+/* < DTS2010061100003 luojianhong 201000612 begin*/
 /*
  * include/linux/tpa2028d1_i2c.h - platform data structure for tpa2028d1
  *
@@ -20,9 +21,12 @@
 struct amplifier_platform_data {
 	void (*amplifier_on)(void);	
     void (*amplifier_off)(void);	
+    /*< DTS2010120204486 dongchen 20101223 begin */
     #ifdef CONFIG_HUAWEI_KERNEL
     void (*amplifier_4music_on)(void);
     #endif
+    /* DTS2010120204486 dongchen 20101223 end >*/
 };
 
 #endif /* _LINUX_AUDIO_AMPLIFIER_H */
+/*  DTS2010061100003 luojianhong 201000612 end > */

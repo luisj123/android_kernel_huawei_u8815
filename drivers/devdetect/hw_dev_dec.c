@@ -1,3 +1,5 @@
+/* < DTS2011052606009 jiaxianghong 20110527 begin */
+/* <DTS2011032104626 shenjinming 20110321 begin */
 
 
 #include <linux/uaccess.h>
@@ -193,3 +195,5 @@ MODULE_DESCRIPTION("I2C Device Detect Driver");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("platform:i2c_dev_dct");
 
+/* <DTS2011032104626 shenjinming 20110321 end> */
+/* < DTS2011052606009 jiaxianghong 20110527 end */

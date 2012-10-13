@@ -37,9 +37,12 @@
 #include <mach/msm_smd.h>
 #include <asm/atomic.h>
 #include "phudiagfwd.h"
+/*< DTS2011041700393 lijianzhao 20110417 begin */
 /* modify for 4125 baseline */
 #include <linux/slab.h>
+/* DTS2011041700393 lijianzhao 20110417 end >*/
 //#define PHUDIAG_DEBUG
+/* < DTS2011011300706 liuhongfei 20110113 begin */
 struct phudiag_dev {
 
 	/* State for the char driver */
@@ -71,6 +74,7 @@ struct phudiag_dev {
 	struct phudiag_ring_buf *out_buf;
 	
 };
+/* DTS2011011300706 liuhongfei 20110113 end > */ 
 
 extern struct phudiag_dev *phudriver;
 

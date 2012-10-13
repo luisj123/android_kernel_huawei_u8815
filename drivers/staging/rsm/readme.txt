@@ -1,3 +1,4 @@
+/* < DTS2011090704268 jiaxianghong 20110914 begin */
 
 仅支持手工加载此检测功能。
 1.用adb shell连接手机，并使用insmod命令加载rsm.ko模块，加载完后，rsm默认会对所有进程进行监控，默认监控时间间隔为120s。
@@ -9,3 +10,4 @@ echo xx > timeout 设置监控的间隔时间
 echo rpcrotuer_smd_x，krmt_storagecln，krmt_storagecln，krtcclntd，krtcclntcbd，kbatteryclntd，kbatteryclntcbd > pname
 echo 60 > timeout
 
+/* DTS2011090704268 jiaxianghong 20110914 end > */

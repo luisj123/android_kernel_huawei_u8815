@@ -1,3 +1,5 @@
+/*< DTS2012020400396 zhangyu 20120206 begin */
+/*< DTS2011092106898   yuguangcai 20110924 begin */
 
 /* Copyright (c) 2010, Code Aurora Forum. All rights reserved.
  *
@@ -28,9 +30,11 @@
 #include <mach/gpio.h>
 #include <mach/camera.h>
 #include "mt9p017.h"
+/* <DTS2011112400871 sunwenyong 20111124 begin */
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
 #include <linux/hw_dev_dec.h>
 #endif
+/* DTS2011112400871 sunwenyong 20111124 end> */
 #undef CDBG
 #define CDBG(fmt, args...) printk(KERN_INFO "mt9p017.c: " fmt, ## args)
 
@@ -388,7 +392,7 @@ static int32_t mt9p017_lens_shading_enable(uint8_t is_enable)
     CDBG("%s: exiting. rc = %d\n", __func__, rc);
     return rc;
 }
-
+/*<DTS2012051702530 wangqing 20120523 begin*/
 #ifndef MT9P017_OTP_SUPPORT
 static int32_t mt9p017_set_lc(void)
 {
@@ -402,10 +406,10 @@ static int32_t mt9p017_set_lc(void)
 #else
 #define TRUE    1
 #define FALSE   0
-// for reading lens shading from eeprom 
+//for read lens shading from eeprom 
 #define LC_TABLE_SIZE 106//equal to the size of mt9p017_lc_tbl - 1.
 static const unsigned short mt9p017_eeprom_table[LC_TABLE_SIZE] = {
-    0x3800,
+	0x3800,
     0x3802,
     0x3804,
     0x3806,
@@ -695,7 +699,7 @@ OTPERR:
     return rc;
 }
 #endif
-
+/*DTS2012051702530  wangqing 20120523 end>*/
 static int32_t mt9p017_load_pixel_timing(void)
 {
     int32_t rc;
@@ -1478,11 +1482,13 @@ static int mt9p017_probe_init_done(const struct msm_camera_sensor_info *data)
     CDBG("probe done\n");
     gpio_free(data->sensor_reset);
 
+    /*< DTS2012012901317 yuguangcai 20120131 begin */
     /*disable the power*/
     if (data->vreg_disable_func)
     {
         data->vreg_disable_func(0);
     }
+    /* DTS2012012901317 yuguangcai 20120131 end > */
     return 0;
 }
 
@@ -1512,12 +1518,14 @@ static int mt9p017_probe_init_sensor(const struct msm_camera_sensor_info *data)
             goto init_probe_fail;
         }
 
+        /*< DTS2012012901317 yuguangcai 20120131 begin */
         /*enable the power*/
         mdelay(10);
         if (data->vreg_enable_func)
         {
             data->vreg_enable_func(1);
         }  
+        /* DTS2012012901317 yuguangcai 20120131 end > */
         mdelay(20);
         rc = gpio_direction_output(data->sensor_reset, 1);
         if (rc < 0)
@@ -1868,11 +1876,13 @@ int mt9p017_sensor_release(void)
     gpio_direction_output(mt9p017_ctrl->sensordata->vcm_pwd, 0);
     gpio_free(mt9p017_ctrl->sensordata->vcm_pwd);
 
+    /*< DTS2012012901317 yuguangcai 20120131 begin */
     /*disable the power*/
     if (mt9p017_ctrl->sensordata->vreg_disable_func)
     {
         mt9p017_ctrl->sensordata->vreg_disable_func(0);
     }
+    /* DTS2012012901317 yuguangcai 20120131 end > */
     kfree(mt9p017_ctrl);
     mt9p017_ctrl = NULL;
 
@@ -1958,21 +1968,33 @@ static int mt9p017_sensor_probe(const struct msm_camera_sensor_info *info,
     }
     else
     {
+        /* <DTS2012041003722 sibingsong 20120410 begin */
+        /* < DTS2012031904303 zhouqiwei 20130319 begin */
+        /* camera name for project menu to display */
+        strncpy((char *)info->sensor_name, "23060069FA-MT-S", strlen("23060069FA-MT-S"));
+        /* DTS2012031904303 zhouqiwei 20130319 end > */
+        /* DTS2012041003722 sibingsong 20120410 end> */
         CDBG("camera sensor mt9p017 probe is succeed!!!\n");
     }
+/* <DTS2011112400871 sunwenyong 20111124 begin */
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
     /* detect current device successful, set the flag as present */
     set_hw_dev_flag(DEV_I2C_CAMERA_MAIN);
 #endif
+/* DTS2011112400871 sunwenyong 20111124 end> */
     s->s_init = mt9p017_sensor_open_init;
     s->s_release = mt9p017_sensor_release;
     s->s_config = mt9p017_sensor_config;
+/* <DTS2012032603420 sibingsong 20120326 begin */
 #ifdef CONFIG_ARCH_MSM7X27A
+    /*<  DTS2011101301987   yuguangcai 20111013 begin */
     /*set the s_mount_angle value of sensor*/
     s->s_mount_angle = info->sensor_platform_info->mount_angle;
+    /* DTS2011101301987   yuguangcai 20111013 end > */
 #else
     s->s_mount_angle = 0 ;
 #endif
+/* DTS2012032603420 sibingsong 20120326 end> */
     mt9p017_probe_init_done(info);
 
 probe_done:
@@ -2002,3 +2024,5 @@ static int __init mt9p017_init(void)
 
 module_init(mt9p017_init);
 
+/* DTS2011092106898   yuguangcai 20110924 end > */
+/* DTS2012020400396 zhangyu 20120206 end > */

@@ -22,22 +22,34 @@
 #include <mach/camera.h>
 #include <mach/gpio.h>
 
+/*<BU5D07741 liqingshan 20100408 begin*/
 /*BU5D07741 descpription: camera flash light*/
+#ifdef CONFIG_HUAWEI_KERNEL
 
 #include <linux/mfd/pmic8058.h>
 #include <linux/gpio.h>
 
+/* <DTS2010081400556 shenjinming 20100814 begin */
+/*< DTS2010071902252 shenjinming 20100719 begin */
 #ifdef CONFIG_HUAWEI_EVALUATE_POWER_CONSUMPTION 
 #include <mach/msm_battery.h>
 #define CAMERA_FLASH_CUR_DIV 10
 #endif
+/* DTS2010071902252 shenjinming 20100719 end >*/
+/* DTS2010081400556 shenjinming 20100814 end> */
 
 struct i2c_client *sx150x_client;
 
+/* < DTS2011072705129    xiangxu 20110728 begin */
 #define CAMERA_LED_TORCH_MA 50
+/* DTS2011072705129    xiangxu 20110728 end > */
+/* < DTS2012031301616 tangying 20120313 begin */
 #define CAMERA_LED_TORCH_LOW_MA    50
 #define CAMERA_LED_TORCH_MIDDLE_MA 100
 #define CAMERA_LED_TORCH_HIGH_MA   150
+/* DTS2012031301616 tangying 20120313 end > */
+/*DTS2010052800141 liqingshan 20100527 begin>*/
+/*DTS2010052800141 liqingshan delete the hw_msm_camera_flash_light function and 
 #define PM8058_GPIO_PM_TO_SYS(pm_gpio)     (pm_gpio + NR_GPIO_IRQS)*/
 static struct  pm_gpio camera_flash = {
 		.direction      = PM_GPIO_DIR_OUT,
@@ -49,6 +61,8 @@ static struct  pm_gpio camera_flash = {
 		.function       = PM_GPIO_FUNC_2,
 		.inv_int_pol 	= 1,
 	};
+/*DTS2010052800141 liqingshan 20100527 end>*/
+#endif
 
 struct timer_list timer_flash;
 static struct msm_camera_sensor_info *sensor_data;
@@ -56,10 +70,6 @@ enum msm_cam_flash_stat{
 	MSM_CAM_FLASH_OFF,
 	MSM_CAM_FLASH_ON,
 };
-
-#if defined CONFIG_HUAWEI_FEATURE_TPS61310
-static struct i2c_client *tps61310_client;
-#endif
 
 #if defined CONFIG_MSM_CAMERA_FLASH_SC628A
 static struct i2c_client *sc628a_client;
@@ -354,6 +364,8 @@ static int msm_camera_flash_pwm(
 	int rc = 0;
 	int PWM_PERIOD = USEC_PER_SEC / pwm->freq;
 
+	/*< DTS2012021006236 zhangyu 20120210 begin */
+	/*<DTS2010052800141 liqingshan 20100527 begin*/
 	/*description:pwm camera flash*/
 	#ifdef CONFIG_HUAWEI_KERNEL
 	static struct pwm_device *flash_pwm = NULL;
@@ -363,7 +375,9 @@ static int msm_camera_flash_pwm(
 	/*If it is the first time to enter the function*/
 	if (!flash_pwm) {
 		#ifdef CONFIG_HUAWEI_KERNEL
+		/*<DTS2011121404946 penghai 20111220 begin*/
 		rc = pm8xxx_gpio_config( 205, &camera_flash);
+		/*DTS2011121404946 penghai 20111220 end>*/
 		if (rc)  {
 			pr_err("%s PMIC GPIO 24 write failed\n", __func__);
 			return rc;
@@ -377,6 +391,8 @@ static int msm_camera_flash_pwm(
 			return -ENXIO;
 		}
 	}
+	/*DTS2010052800141 liqingshan 20100527 end>*/
+	/* DTS2012021006236 zhangyu 20120210 end > */
 
 	switch (led_state) {
 	case MSM_CAMERA_LED_LOW:
@@ -394,6 +410,7 @@ static int msm_camera_flash_pwm(
 		if (rc >= 0)
 			rc = pwm_enable(flash_pwm);
 		break;
+	/* < DTS2011072705129    xiangxu 20110728 begin */
 	case MSM_CAMERA_LED_TORCH:
 		rc = pwm_config(flash_pwm,
 			(PWM_PERIOD/pwm->max_load)*CAMERA_LED_TORCH_MA,
@@ -401,6 +418,8 @@ static int msm_camera_flash_pwm(
 		if (rc >= 0)
 			rc = pwm_enable(flash_pwm);
 		break;
+	/* DTS2011072705129    xiangxu 20110728 end > */
+    /* < DTS2012031301616 tangying 20120313 begin */
     case MSM_CAMERA_LED_TORCH_LOW:
         rc = pwm_config(flash_pwm,
 			(PWM_PERIOD/pwm->max_load)*CAMERA_LED_TORCH_LOW_MA,
@@ -422,6 +441,7 @@ static int msm_camera_flash_pwm(
 		if (rc >= 0)
 			rc = pwm_enable(flash_pwm);
         break;
+    /* DTS2012031301616 tangying 20120313 end > */
 	case MSM_CAMERA_LED_OFF:
 		pwm_disable(flash_pwm);
 		break;
@@ -514,6 +534,8 @@ int32_t msm_camera_flash_set_led_state(
 		break;
 	}
 
+/* <DTS2010081400556 shenjinming 20100814 begin */
+/*< DTS2010071902252 shenjinming 20100719 begin */
 #ifdef CONFIG_HUAWEI_EVALUATE_POWER_CONSUMPTION 
     /* start calculate flash consume */
 	switch (led_state) {
@@ -535,6 +557,8 @@ int32_t msm_camera_flash_set_led_state(
 		break;
 	}
 #endif
+/* DTS2010071902252 shenjinming 20100719 end >*/
+/* DTS2010081400556 shenjinming 20100814 end> */
 	return rc;
 }
 

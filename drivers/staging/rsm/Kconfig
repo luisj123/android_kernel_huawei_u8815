@@ -1,3 +1,4 @@
+# /* < DTS2011090704268 jiaxianghong 20110914 begin */
 
 #
 # RSM configuration.
@@ -14,3 +15,4 @@ config HUAWEI_HUNGTASK
 	  if [ nvcsw + nivcsw ] in task_struct is equal to last switch count,
 	  RSM module will treat it as a proccess in deadlock.
 	  
+#/* DTS2011090704268 jiaxianghong 20110914 end > */

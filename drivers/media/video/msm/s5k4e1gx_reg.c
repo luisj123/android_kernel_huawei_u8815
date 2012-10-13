@@ -1,3 +1,4 @@
+/* < DTS2011071802246 zhangyu 20110718 BEGIN */
 /* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -175,3 +176,4 @@ struct s5k4e1_reg s5k4e1_regs =
     .reg_snap		= &s5k4e1_snap_settings[0],
     .reg_snap_size	= ARRAY_SIZE(s5k4e1_snap_settings),
 };
+/* DTS2011071802246 zhangyu 20110718 END > */ 

@@ -28,9 +28,12 @@
 #include <mach/camera.h>
 #include <asm/mach-types.h>
 #include "mt9t013.h"
+/* < DTS2011052606009 jiaxianghong 20110527 begin */
+/* <DTS2011032104626 shenjinming 20110321 begin */
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
 #include <linux/hw_dev_dec.h>
 #endif
+/* <DTS2011032104626 shenjinming 20110321 end> */
 
 /*=============================================================
 	SENSOR REGISTER DEFINES
@@ -1480,10 +1483,13 @@ static int mt9t013_sensor_probe(
 		goto probe_done;
 	}
 
+    /* <DTS2011032104626 shenjinming 20110321 begin */
     #ifdef CONFIG_HUAWEI_HW_DEV_DCT
     /* detect current device successful, set the flag as present */
     set_hw_dev_flag(DEV_I2C_CAMERA_MAIN);
     #endif
+    /* <DTS2011032104626 shenjinming 20110321 end> */  
+/* < DTS2011052606009 jiaxianghong 20110527 end */
 	s->s_init = mt9t013_sensor_open_init;
 	s->s_release = mt9t013_sensor_release;
 	s->s_config  = mt9t013_sensor_config;

@@ -1,3 +1,4 @@
+/*< DTS2012020306500 lijianzhao 20120204 begin */
 /*
  * Copyright (C) 2007 Google, Inc.
  * Copyright (c) 2008-2009, Code Aurora Forum. All rights reserved.
@@ -19,8 +20,13 @@
 
 #include <asm/mach-types.h>
 
+/* < DTS2011121201768  xiewen 20111212 begin */
 /* del umts_surf keypad configure  */
+/* DTS2011121201768  xiewen 20111212 end> */
 
+/* < DTS2011083103865  niguodong 20110831 begin */
+/* <DTS2011102601993 niguodong 20111025 begin */
+/* < DTS2011121201768  xiewen 20111212 begin */
 /* change array name form hw_u8815_keypad_col_gpios to default_keypad_col_gpios,
  * form hw_u8815_keypad_row_gpios to default_keypad_row_gpios,
  * form KEYMAP_U8815_INDEX to KEYMAP_DEFAULT_INDEX,
@@ -78,12 +84,18 @@ struct platform_device keypad_device_default = {
 	},
 };
 /* default keypad end */
+/* DTS2011121201768  xiewen 20111212 end> */
+/* DTS2011102601993 niguodong 201101025 end> */
+/* DTS2011083103865  niguodong 20110831 end > */
+/* < DTS2011121201768  xiewen 20111212 begin */
 /* because all production KEY_VOLUMEUP and KEY_VOLUMEDOWN sameness,
  * so use keypad_device_default ,
  * del keypad_device_u8655, del 36 row,
  * for tending to promote code unity.
  */
+/* DTS2011121201768  xiewen 20111212 end> */
 
+/* < DTS2011111603552  dingzhipeng 20111116 begin */
 /* U8185 keypad begin*/
 
 static unsigned int u8185_keypad_col_gpios[] = { 42, 41, 40 };
@@ -132,4 +144,6 @@ struct platform_device keypad_device_u8185 = {
 	},
 };
 /* U8185 keypad end */
+/* DTS2011111603552  dingzhipeng 20111116 end > */
+/* DTS2012020306500 lijianzhao 20120204 end >*/
 

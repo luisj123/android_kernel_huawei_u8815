@@ -71,6 +71,7 @@ int oem_rapi_client_streaming_function(
 
 int oem_rapi_client_close(void);
 
+/*< DTS2012011801998 chenxi 20120203 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 /*  Returned status codes for requested operation.                         */
   typedef enum {
@@ -104,6 +105,7 @@ nv_stat_enum_type oem_rapi_write_nv(u16 nv, void *buf, u8 size);
  */
 nv_stat_enum_type oem_rapi_read_nv(u16 nv, void *buf, u8 size);
 #endif
+/* DTS2012011801998 chenxi 20120203 end >*/
 
 struct msm_rpc_client *oem_rapi_client_init(void);
 

@@ -1,3 +1,4 @@
+/*< DTS2010122802758 lijianzhao 20101229 begin */
 /* kernel\drivers\video\msm\lcd_hw_debug.c
  * this file is used by the driver team to change the 
  * LCD init parameters by putting a config file in the mobile,
@@ -6,6 +7,7 @@
  * Copyright (C) 2010 HUAWEI Technology Co., ltd.
  * 
  * Date: 2010/12/10
+ * By genghua
  * 
  */
 
@@ -167,3 +169,4 @@ bool lcd_debug_free_para(void *para_table)
 	printk("The new LCD config region has been freed\n");
     return TRUE;
 }
+/* DTS2010122802758 lijianzhao 20101229 end >*/

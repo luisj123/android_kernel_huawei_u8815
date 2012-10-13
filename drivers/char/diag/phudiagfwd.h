@@ -19,6 +19,7 @@ struct phudiag_buf{
 	uint8_t buf[0];
 };
 
+/* < DTS2011011300706 liuhongfei 20110113 begin */
 struct phudiag_ring_buf{
 	uint8_t * start;
 	uint8_t * end;
@@ -26,6 +27,7 @@ struct phudiag_ring_buf{
 	int buf_size;
 	uint8_t buf[0];
 };
+/* DTS2011011300706 liuhongfei 20110113 end > */ 
 
 
 struct phudiag_ring_buf * phudiag_ring_buf_malloc(int buf_size);

@@ -1,3 +1,5 @@
+/* <DTS2011112601189 sunkai 20111128 begin */
+/* <DTS2011112101249 sunkai 20111121 begin */
 /* Copyright (c) 2009, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +59,9 @@
 #include <linux/delay.h>
 #include <mach/gpio.h>
 #include "msm_fb.h"
+/*< DTS2012020700924 lijianzhao 20120207 begin */
 #include "hw_lcd_common.h"
+/* DTS2012020700924 lijianzhao 20120207 end >*/
 
 #define LCD_DRIVER_NAME "lcdc_hx8347d_qvga"
 
@@ -235,6 +239,7 @@ static int hx8347d_qvga_panel_off(struct platform_device *pdev)
     return 0;
 }
 
+/*< DTS2011122306018 fengwei 20111224 begin */
 static struct sequence hx8347d_pwm_set_table[] =
 {
 	//CABC pwm 
@@ -247,6 +252,7 @@ void hx8347d_set_cabc_backlight(struct msm_fb_data_type *mfd,uint32 bl_level)
 
 	process_lcdc_table((struct sequence*)&hx8347d_pwm_set_table, ARRAY_SIZE(hx8347d_pwm_set_table),lcd_panel_qvga);
 }
+/* DTS2011122306018 fengwei 20111224 end >*/
 
 static int __devinit hx8347d_qvga_probe(struct platform_device *pdev)
 {
@@ -269,8 +275,10 @@ static struct platform_driver this_driver = {
 static struct msm_fb_panel_data hx8347d_qvga_panel_data = {
     .on = hx8347d_qvga_panel_on,
     .off = hx8347d_qvga_panel_off,
+/*< DTS2011122306018 fengwei 20111224 begin */
     .set_backlight = pwm_set_backlight,
     .set_cabc_brightness = hx8347d_set_cabc_backlight,
+/* DTS2011122306018 fengwei 20111224 end >*/
 };
 
 static struct platform_device this_device = {
@@ -286,7 +294,9 @@ static int __init hx8347d_qvga_panel_init(void)
     int ret;
     struct msm_panel_info *pinfo;
 
+	/*< DTS2011122306018 fengwei 20111224 begin */
     lcd_panel_qvga = get_lcd_panel_type();
+	/* DTS2011122306018 fengwei 20111224 end >*/
 	
     if((LCD_HX8347D_CHIMEI_QVGA!= lcd_panel_qvga) && (LCD_HX8347D_TRULY_QVGA!= lcd_panel_qvga) && (msm_fb_detect_client(LCD_DRIVER_NAME)) )
     {
@@ -329,3 +339,5 @@ static int __init hx8347d_qvga_panel_init(void)
 }
 
 module_init(hx8347d_qvga_panel_init);
+/* DTS2011112101249 sunkai 20111121 end> */
+/* DTS2011112601189 sunkai 20111128 end> */

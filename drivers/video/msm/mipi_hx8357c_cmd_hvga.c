@@ -1,3 +1,4 @@
+/*< DTS2011100500223 fengwei 20111005 begin */
 /* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -9,7 +10,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/*< DTS2011101701779 zhongjinrong 20111017 begin */
 #include<linux/gpio.h>
+/* DTS2011101701779 zhongjinrong 20111017 end >*/
 #include "msm_fb.h"
 #include "mipi_dsi.h"
 #include "hw_lcd_common.h"
@@ -47,14 +50,19 @@ static struct sequence * hx8357c_lcd_init_table_debug = NULL;
 static const struct sequence hx8357c_hvga_standby_enter_table[]= 
 {
 	/*set the delay time 100ms*/
+	/*< DTS2012011800226 houming 20120307 begin */
 	/* Fixed LCD Flicker */
 	{0x0021,MIPI_DCS_COMMAND,0},
+	/* DTS2012011800226 houming 20120307 end >*/
 	{0x00028,MIPI_DCS_COMMAND,0}, //28h
 	{0x0010,MIPI_DCS_COMMAND,20},
 
 
+	/*< DTS2011101701779 zhongjinrong 20111017 begin */
 	{0x00029,MIPI_TYPE_END,120}, // add new command for 
+	/* DTS2011101701779 zhongjinrong 20111017 end >*/
 };
+/*< DTS2011112507066 zhongjinrong 20111125 begin */
 /* let the reset go ,so remove this code */
 
 static const struct sequence hx8357c_hvga_standby_exit_table[]= 
@@ -62,8 +70,10 @@ static const struct sequence hx8357c_hvga_standby_exit_table[]=
 	/*set the delay time 100ms*/
 	{0x00011,MIPI_DCS_COMMAND,0}, //29h
 	{0x0029,MIPI_DCS_COMMAND,120},
+    /*< DTS2012011800226 houming 20120307 begin */
 	/* Fixed LCD Flicker */
 	{0x0020,MIPI_DCS_COMMAND,20},
+	/* DTS2012011800226 houming 20120307 end >*/
 	{0x00029,MIPI_TYPE_END,20}, // add new command for 
 };
 /*lcd resume function*/
@@ -107,6 +117,7 @@ static int mipi_hx8357c_lcd_on(struct platform_device *pdev)
 	pr_info("leave mipi_hx8357c_lcd_on \n");
 	return 0;
 }
+/* DTS2011112507066 zhongjinrong 20111125 end >*/
 /*lcd suspend function*/
 static int mipi_hx8357c_lcd_off(struct platform_device *pdev)
 {
@@ -131,6 +142,7 @@ static int __devinit mipi_hx8357c_lcd_probe(struct platform_device *pdev)
 	return 0;
 }
 
+/*< DTS2011122306018 fengwei 20111224 begin */
 static struct sequence hx8357c_cabc_enable_table[] =
 {	
 	{0x00051,MIPI_DCS_COMMAND,0}, 		
@@ -145,6 +157,7 @@ void hx8357c_set_cabc_backlight(struct msm_fb_data_type *mfd,uint32 bl_level)
 	process_mipi_table(mfd,&hx8357c_tx_buf,(struct sequence*)&hx8357c_cabc_enable_table,
 		 ARRAY_SIZE(hx8357c_cabc_enable_table), lcd_panel_hvga);
 }
+/* DTS2011122306018 fengwei 20111224 end >*/
 
 static struct platform_driver this_driver = {
 	.probe  = mipi_hx8357c_lcd_probe,
@@ -155,9 +168,11 @@ static struct platform_driver this_driver = {
 static struct msm_fb_panel_data hx8357c_panel_data = {
 	.on		= mipi_hx8357c_lcd_on,
 	.off	= mipi_hx8357c_lcd_off,
+/*< DTS2011122306018 fengwei 20111224 begin */
 	.set_backlight = pwm_set_backlight,
 	/*add cabc control backlight*/
 	.set_cabc_brightness = hx8357c_set_cabc_backlight,
+/* DTS2011122306018 fengwei 20111224 end >*/
 };
 static struct platform_device this_device = {
 	.name   = LCD_DEVICE_NAME,
@@ -172,11 +187,17 @@ static int __init mipi_cmd_hx8357c_hvga_init(void)
 	int ret = 0;
 	struct msm_panel_info *pinfo = NULL;
 
+	/*< DTS2011122306018 fengwei 20111224 begin */
 	lcd_panel_hvga = get_lcd_panel_type();
+	/* DTS2011122306018 fengwei 20111224 end >*/
+	/*< DTS2011121606280 fengwei 20111216 begin */
+	/* <DTS2012022501992 liguosheng 20120229 begin */
 	if ((MIPI_HX8357C_CHIMEI_HVGA != lcd_panel_hvga )
 		&& (MIPI_HX8357C_CHIMEI_IPS_HVGA != lcd_panel_hvga )
 		&& (MIPI_HX8357C_TIANMA_HVGA != lcd_panel_hvga )
 		&& (MIPI_HX8357C_TIANMA_IPS_HVGA != lcd_panel_hvga))
+	/* DTS2012022501992 liguosheng 20120229 end> */
+	/* DTS2011121606280 fengwei 20111216 end >*/
 	{
 		return 0;
 	}
@@ -193,8 +214,10 @@ static int __init mipi_cmd_hx8357c_hvga_init(void)
 		pinfo->pdest = DISPLAY_1;
 		pinfo->wait_cycle = 0;
 		pinfo->bpp = 24;
+		/*< DTS2011111100746 fengwei 20111111 begin */
 		pinfo->bl_max = 255;
 		pinfo->bl_min = 30;
+		/* DTS2011111100746 fengwei 20111111 end >*/
 		pinfo->fb_num = 2;
         /*< DTS2011110706222 qitongliang 20111201 begin */
         pinfo->clk_rate = 250000000;/* 60fps */
@@ -211,9 +234,11 @@ static int __init mipi_cmd_hx8357c_hvga_init(void)
 		pinfo->mipi.stream = 0; /* dma_p */
 		pinfo->mipi.mdp_trigger = DSI_CMD_TRIGGER_SW;
 		pinfo->mipi.dma_trigger = DSI_CMD_TRIGGER_SW;
+		/*< DTS2011110801827 fengwei 20111207 begin */
 		/*set hw te sync*/
 		pinfo->lcd.hw_vsync_mode = TRUE;
 		pinfo->lcd.vsync_enable = TRUE;
+		/* DTS2011110801827 fengwei 20111207 end >*/
 		pinfo->mipi.te_sel = 1; /* TE from vsync gpio */
 		pinfo->mipi.interleave_max = 1;
 		pinfo->mipi.insert_dcs_cmd = TRUE;
@@ -234,3 +259,4 @@ static int __init mipi_cmd_hx8357c_hvga_init(void)
 }
 
 module_init(mipi_cmd_hx8357c_hvga_init);
+/* DTS2011100500223 fengwei 20111005 end >*/

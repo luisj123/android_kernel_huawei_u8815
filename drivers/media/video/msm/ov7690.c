@@ -24,9 +24,12 @@
 #include <media/msm_camera.h>
 #include <mach/gpio.h>
 #include "ov7690.h"
+/* < DTS2011052606009 jiaxianghong 20110527 begin */
+/* <DTS2011032104626 shenjinming 20110321 begin */
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
 #include <linux/hw_dev_dec.h>
 #endif
+/* <DTS2011032104626 shenjinming 20110321 end> */
 
 #define SENSOR_DEBUG 1
 #undef CDBG
@@ -348,7 +351,9 @@ static int ov7690_sensor_init_done(const struct msm_camera_sensor_info *data)
 
      if (data->vreg_disable_func)
     {
+        /*< DTS2012020400396 zhangyu 20120206 begin */
         data->vreg_disable_func(0);
+        /* DTS2012020400396 zhangyu 20120206 end > */
     }
 
     return rc;
@@ -375,7 +380,9 @@ static int ov7690_sensor_init_probe(const struct msm_camera_sensor_info *data)
 
     if (data->vreg_enable_func)
     {
+        /*< DTS2012020400396 zhangyu 20120206 begin */
         data->vreg_enable_func(1);
+        /* DTS2012020400396 zhangyu 20120206 end > */
     }
 
     mdelay(OV7690_RESET_DELAY_MSECS);
@@ -606,15 +613,20 @@ int ov7690_sensor_probe(const struct msm_camera_sensor_info *info,
     }
 
     CDBG("ov7690_sensor_init_probe rc=%d! \n", rc);
+    /* <DTS2011032104626 shenjinming 20110321 begin */
     #ifdef CONFIG_HUAWEI_HW_DEV_DCT
     /* detect current device successful, set the flag as present */
     set_hw_dev_flag(DEV_I2C_CAMERA_SLAVE);
     #endif
+    /* <DTS2011032104626 shenjinming 20110321 end> */
+/* < DTS2011052606009 jiaxianghong 20110527 end */
     s->s_init = ov7690_sensor_init;
     s->s_release = ov7690_sensor_release;
     s->s_config = ov7690_sensor_config;
+	/*<DTS2011042704563 penghai 20110427 begin*/
 	s->s_camera_type = FRONT_CAMERA_2D;
 	s->s_mount_angle = 0;
+	/*DTS2011042704563 penghai 20110427 end>*/
 
     ov7690_sensor_init_done(info);
 

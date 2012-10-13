@@ -393,6 +393,7 @@ int msm_dmov_exec_cmd(unsigned id, unsigned int cmdptr)
 }
 EXPORT_SYMBOL(msm_dmov_exec_cmd);
 
+/* <DTS2012021001488 yuanjintao 20120210 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 #include <asm/delay.h>
 static int flag_dma_done = 0;
@@ -450,6 +451,7 @@ int msm_dmov_exec_cmd_apanic(unsigned id, unsigned int cmdptr)
 }
 EXPORT_SYMBOL(msm_dmov_exec_cmd_apanic);
 #endif
+/* DTS2012021001488 yuanjintao 20120210 end> */
 
 static void fill_errdata(struct msm_dmov_errdata *errdata, int ch, int adm)
 {

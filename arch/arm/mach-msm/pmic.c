@@ -133,10 +133,12 @@
 #define GPIO_SET_VOLTAGE_SOURCE_PROC 112
 #define GPIO_SET_OUTPUT_BUFFER_DRIVE_STRENGTH_PROC 113
 
+/*< DTS2011061001175 jiaoshuangwei 20110725 begin */
 /*set the 203 for key rpc interface*/
 #ifdef CONFIG_HUAWEI_KERNEL
 #define SET_KEYLED_INTENSITY_PROC 203
 #endif
+/* DTS2011061001175 jiaoshuangwei 20110725 end >*/
 /* < DTS2010092701499  zhangtao 20100927 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 #define PMIC_SET_MPP6_CURRENT_PROC 201
@@ -1045,6 +1047,7 @@ int pmic_set_led_intensity(enum ledtype type, int level)
 	return pmic_rpc_set_only(type, level, 0, 0, 2, SET_LED_INTENSITY_PROC);
 }
 EXPORT_SYMBOL(pmic_set_led_intensity);
+/*<BU5D08276 sibingsong 20100419 begin*/
 #ifdef CONFIG_HUAWEI_KERNEL
 int pmic_set_low_current_led_intensity(pm_low_current_led_type type, int level)
 {
@@ -1054,6 +1057,8 @@ int pmic_set_low_current_led_intensity(pm_low_current_led_type type, int level)
 
 EXPORT_SYMBOL(pmic_set_low_current_led_intensity);
 #endif
+/*BU5D08276 sibingsong 20100419 end>*/
+/*< DTS2011061001175 jiaoshuangwei 20110725 begin*/
 /*use this function to contrl keyled brightness*/
 #ifdef CONFIG_HUAWEI_KERNEL
 int pmic_set_keyled_intensity(enum ledtype type, int level)
@@ -1062,6 +1067,7 @@ int pmic_set_keyled_intensity(enum ledtype type, int level)
 }
 EXPORT_SYMBOL(pmic_set_keyled_intensity);
 #endif
+/* DTS2011061001175jiaoshuangwei 20110725 end >*/
 
 /* < DTS2010092701499  zhangtao 20100927 begin */
 #ifdef CONFIG_HUAWEI_KERNEL

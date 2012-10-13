@@ -1596,6 +1596,7 @@ static int msm_hs_startup(struct uart_port *uport)
 			return ret;
 	}
 
+	/* < DTS2011050302722  xuhui 20110503  begin */
 	/*  Qualcomm changes following codes for It's Atheros AR300x bluetooth chip, 
 	*   But we use Broadcomm's bluetooth chip with U8860.
 	*   So change following codes back to Android's default GingerBread, that is our MSM7x27's Gingerbread codes. 
@@ -1603,16 +1604,19 @@ static int msm_hs_startup(struct uart_port *uport)
 	ret = set_irq_wake(uport->irq, 1);
 	if (unlikely(ret))
 		return ret;
+	/* DTS2011050302722  xuhui 20110503 end > */
 
 	ret = request_irq(uport->irq, msm_hs_isr, IRQF_TRIGGER_HIGH,
 			  "msm_hs_uart", msm_uport);
 	if (unlikely(ret))
 		return ret;
 	if (use_low_power_wakeup(msm_uport)) {
+  /* < DTS2011041200623 xuhui 20110412 begin */
   /*disable QC's In Band Sleep mode with BCM4329 bluetooth chip*/
   #ifdef CONFIG_HUAWEI_KERNEL
   printk(KERN_ERR "msm_serial_hs --enable use_lowpoer_wakeup\n");
   #endif
+  /* DTS2011041200623 xuhui 20110412 end > */
 		ret = request_irq(msm_uport->wakeup.irq, msm_hs_wakeup_isr,
 				  IRQF_TRIGGER_FALLING,
 				  "msm_hs_wakeup", msm_uport);
@@ -1826,11 +1830,13 @@ static int __init msm_hs_probe(struct platform_device *pdev)
 	uport->iotype = UPIO_MEM;
 	uport->fifosize = 64;
 	uport->ops = &msm_hs_ops;
+/* <DTS2010061100603 qinwei 20100619 begin */
 #ifndef CONFIG_HUAWEI_KERNEL
 	uport->flags = UPF_BOOT_AUTOCONF;
 #else
 	uport->flags = UPF_BOOT_AUTOCONF|UPF_LOW_LATENCY;
 #endif
+/* DTS2010061100603 qinwei 20100619 end > */	
 	uport->uartclk = 7372800;
 	msm_uport->imr_reg = 0x0;
 
@@ -1963,11 +1969,13 @@ static void msm_hs_shutdown(struct uart_port *uport)
 
 	if (use_low_power_wakeup(msm_uport))
 		set_irq_wake(msm_uport->wakeup.irq, 0);
+	/* < DTS2011050302722  xuhui 20110503  begin */
 	/*  Qualcomm changes following codes for It's Atheros AR300x bluetooth chip, 
 	*   But we use Broadcomm's bluetooth chip with U8860.
 	*   So change following codes back to Android's default GingerBread, that is our MSM7x27's Gingerbread codes. 
 	*/
 	set_irq_wake(uport->irq, 0);
+	/* DTS2011050302722  xuhui 20110503 end > */
 
 	/* Free the interrupt */
 	free_irq(uport->irq, msm_uport);

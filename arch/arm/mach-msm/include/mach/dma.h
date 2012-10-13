@@ -215,6 +215,7 @@ int msm_dmov_exec_cmd(unsigned id, unsigned int cmdptr);
 #define DMOV_NAND_CRCI_CMD    5
 #define DMOV_NAND_CRCI_DATA   4
 
+/*< DTS2012052308313 chendeng 20120621 begin */
 /* 
  * Separate the DMA channel of eMMC, sd card and WIFI.
  * Fix the DMA flushing destroy ext4 file system issue.
@@ -264,6 +265,7 @@ int msm_dmov_exec_cmd(unsigned id, unsigned int cmdptr);
 #define DMOV_SDC4_CHAN        8
 #define DMOV_SDC4_CRCI        13
 #endif
+/* DTS2012052308313 chendeng 20120621 end>*/
 
 #define DMOV_TSIF_CHAN        10
 #define DMOV_TSIF_CRCI        10

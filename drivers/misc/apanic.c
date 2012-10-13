@@ -38,6 +38,7 @@
 #include <linux/workqueue.h>
 #include <linux/preempt.h>
 
+/* <DTS2011091401566 jiaxianghong 20110914 begin */
 /* Add meminfo head files */
 #ifdef CONFIG_HUAWEI_APANIC_EXTEND
 #include <linux/hugetlb.h>
@@ -70,7 +71,9 @@
 #include <linux/vmalloc.h>
 #include <linux/kallsyms.h>
 #endif
+/* DTS2011091401566 jiaxianghong 20110914 end> */
 
+/* <DTS2010080901139 hufeng 20100821 begin */
         /** 增加apanic功能，保存死机log - 马振华 **/
 /**
 MMC APANIC
@@ -80,6 +83,8 @@ mtd->erasesize_shift = 9 : every erase block  = 512 Byte
 mtd->write_size = 512 : this is a flash param ,  flash support size of every writing
 ctx->bounce : temp buffer, and must larger than mtd->write_size
 */
+/* DTS2010080901139 hufeng 20100821 end> */
+/*< DTS2011090300255 genghua 20110903 begin */
 /* 2 macros are here to define a block number region
  * that can be marked as bad block, to make sure that 
  * the data in the block region can be protected from 
@@ -92,6 +97,7 @@ ctx->bounce : temp buffer, and must larger than mtd->write_size
 #define HUAWEI_PROTECT_BLOCK_NUMBER_BEGIN 0
 #define HUAWEI_PROTECT_BLOCK_NUMBER_END 15
 #endif	
+/* DTS2011090300255 genghua 20110903 end >*/
 extern void ram_console_enable_console(int);
 
 struct panic_header {
@@ -107,10 +113,12 @@ struct panic_header {
 	u32 threads_offset;
 	u32 threads_length;
 
+/* <DTS2011091401566 jiaxianghong 20110914 begin */
 #ifdef CONFIG_HUAWEI_APANIC_EXTEND
 	u32 sysinfo_offset;
 	u32 sysinfo_length;
 #endif
+/* DTS2011091401566 jiaxianghong 20110914 end> */
 };
 
 struct apanic_data {
@@ -119,15 +127,19 @@ struct apanic_data {
 	void			*bounce;
 	struct proc_dir_entry	*apanic_console;
 	struct proc_dir_entry	*apanic_threads;
+/* <DTS2011091401566 jiaxianghong 20110914 begin */
 #ifdef CONFIG_HUAWEI_APANIC_EXTEND
 	struct proc_dir_entry	*apanic_sysinfo;
 #endif
+/* DTS2011091401566 jiaxianghong 20110914 end> */
 	
+/*<DTS2010111703624 renjun 20101117 begin*/
 #ifdef CONFIG_HUAWEI_KERNEL
 	struct proc_dir_entry   *modem_panic;	
 	char *modem_panic_ptr;
 	int modem_panic_len;
 #endif	
+/*DTS2010111703624 renjun 20101117 end>*/		
 };
 
 static struct apanic_data drv_ctx;
@@ -138,6 +150,7 @@ static unsigned int *apanic_bbt;
 static unsigned int apanic_erase_blocks;
 static unsigned int apanic_good_blocks;
 
+/*< DTS2011090300255 genghua 20110903 begin */
 #ifdef CONFIG_HUAWEI_APANIC
 /*
  * Function block_isprotected
@@ -166,6 +179,7 @@ static int block_isprotected(int block_number)
     }
 }
 #endif	
+/* DTS2011090300255 genghua 20110903 end >*/
 static void set_bb(unsigned int block, unsigned int *bbt)
 {
 	unsigned int flag = 1;
@@ -202,6 +216,7 @@ static void scan_bbt(struct mtd_info *mtd, unsigned int *bbt)
 	int i;
 
 	for (i = 0; i < apanic_erase_blocks; i++) {
+    /*< DTS2011090300255 genghua 20110903 begin*/
     #ifndef CONFIG_HUAWEI_APANIC
 		if (mtd->block_isbad(mtd, i*mtd->erasesize))
 			set_bb(i, apanic_bbt);
@@ -211,6 +226,7 @@ static void scan_bbt(struct mtd_info *mtd, unsigned int *bbt)
 			set_bb(i, apanic_bbt);
         }
     #endif	
+    /* DTS2011090300255 genghua 20110903 end >*/
 	}
 }
 
@@ -266,12 +282,14 @@ static int apanic_proc_read(char *buffer, char **start, off_t offset,
 		file_length = ctx->curr.threads_length;
 		file_offset = ctx->curr.threads_offset;
 		break;        
+/* <DTS2011091401566 jiaxianghong 20110914 begin */
 #ifdef CONFIG_HUAWEI_APANIC_EXTEND
 	case 3:	/* apanic_sysinfo */ 
 		file_length = ctx->curr.sysinfo_length;
 		file_offset = ctx->curr.sysinfo_offset;
 		break;
 #endif
+/* DTS2011091401566 jiaxianghong 20110914 end> */
 	default:
 		pr_err("Bad dat (%d)\n", (int) dat);
 		mutex_unlock(&drv_mutex);
@@ -306,7 +324,9 @@ static int apanic_proc_read(char *buffer, char **start, off_t offset,
 		count -= page_offset;
 	memcpy(buffer, ctx->bounce + page_offset, count);
 
+    /* <DTS2012021001488 yuanjintao 20120210 begin */
 	*start = (char*)count;
+    /* DTS2012021001488 yuanjintao 20120210 end> */
 	
 	if ((offset + count) == file_length)
 		*peof = 1;
@@ -370,6 +390,7 @@ static void mtd_panic_erase(void)
 		remove_wait_queue(&wait_q, &wait);
 	}
 
+    /* <DTS2012021001488 yuanjintao 20120210 begin */
     /* write the erased mtd virtual flash to the mmc panic partition */
 #ifdef CONFIG_HUAWEI_KERNEL
     if (ctx->mtd->sync)
@@ -377,6 +398,7 @@ static void mtd_panic_erase(void)
         ctx->mtd->sync(ctx->mtd);
     }
 #endif
+    /* DTS2012021001488 yuanjintao 20120210 end> */
 	
 	printk(KERN_DEBUG "apanic: %s partition erased\n",
 	       CONFIG_APANIC_PLABEL);
@@ -400,12 +422,14 @@ static void apanic_remove_proc_work(struct work_struct *work)
 		ctx->apanic_threads = NULL;
 	}
 
+/* <DTS2011091401566 jiaxianghong 20110914 begin */
 #ifdef CONFIG_HUAWEI_APANIC_EXTEND
 	if (ctx->apanic_sysinfo) {
 		remove_proc_entry("apanic_sysinfo", NULL);
 		ctx->apanic_sysinfo = NULL;
 	}
 #endif
+/* DTS2011091401566 jiaxianghong 20110914 end> */
 	
 	mutex_unlock(&drv_mutex);
 }
@@ -417,6 +441,7 @@ static int apanic_proc_write(struct file *file, const char __user *buffer,
 	return count;
 }
 
+/*<DTS2010111703624 renjun 20101117 begin*/
 #ifdef CONFIG_HUAWEI_KERNEL
 static ssize_t modem_proc_read(struct file *file, char __user *buf,
 			size_t len, loff_t *offset)
@@ -443,6 +468,7 @@ static struct file_operations modem_crash_log_fops = {
 };
 extern int detect_modem_crash_log(void **ppcrash_log,int *plog_len);
 #endif
+/*DTS2010111703624 renjun 20101117 end>*/
 	
 static void mtd_panic_notify_add(struct mtd_info *mtd)
 {
@@ -455,6 +481,7 @@ static void mtd_panic_notify_add(struct mtd_info *mtd)
 	if (strcmp(mtd->name, CONFIG_APANIC_PLABEL))
 		return;
 
+/*<DTS2010111703624 renjun 20101117 begin*/
 #ifdef CONFIG_HUAWEI_KERNEL
 	if(detect_modem_crash_log((void **)&ctx->modem_panic_ptr,&ctx->modem_panic_len)) {
 		ctx->modem_panic= create_proc_entry("modem_panic",
@@ -467,6 +494,7 @@ static void mtd_panic_notify_add(struct mtd_info *mtd)
 		}	
 	}
 #endif	
+/*DTS2010111703624 renjun 20101117 end>*/
 
 	ctx->mtd = mtd;
 
@@ -544,6 +572,7 @@ static void mtd_panic_notify_add(struct mtd_info *mtd)
 		}
 	}
     
+/* <DTS2011091401566 jiaxianghong 20110914 begin */
 #ifdef CONFIG_HUAWEI_APANIC_EXTEND
 	if (hdr->sysinfo_length) {
 		ctx->apanic_sysinfo = create_proc_entry("apanic_sysinfo",
@@ -561,6 +590,7 @@ static void mtd_panic_notify_add(struct mtd_info *mtd)
 		}
 	}
 #endif
+/* DTS2011091401566 jiaxianghong 20110914 end> */
 
 	if (!proc_entry_created)
 		mtd_panic_erase();
@@ -668,6 +698,7 @@ static int apanic_write_console(struct mtd_info *mtd, unsigned int off)
 	return idx;
 }
 
+/* <DTS2011091401566 jiaxianghong 20110914 begin */
 #ifdef CONFIG_HUAWEI_APANIC_EXTEND
 
 #define DATA_BUF_LEN (64*1024)/* 64KB */
@@ -1053,8 +1084,10 @@ static int apanic_s_show(void *p)
 	if (v->nr_pages)
 		data_end += sprintf(&data_buf[data_end]," pages=%d", v->nr_pages);
 
+    /* <DTS2012021001488 yuanjintao 20120210 begin */
     if (v->phys_addr)
 		data_end += sprintf(&data_buf[data_end]," phys=%lx", (unsigned long)v->phys_addr);
+    /* DTS2012021001488 yuanjintao 20120210 end> */
 
 	if (v->flags & VM_IOREMAP)
 		data_end += sprintf(&data_buf[data_end],"%s"," ioremap");
@@ -1295,6 +1328,7 @@ static int apanic_slabinfo_proc_get(void)
     return 0;
 }
 #endif
+/* DTS2011091401566 jiaxianghong 20110914 end> */
 
 static int apanic(struct notifier_block *this, unsigned long event,
 			void *ptr)
@@ -1306,10 +1340,12 @@ static int apanic(struct notifier_block *this, unsigned long event,
 	int threads_offset = 0;
 	int threads_len = 0;
 
+/* <DTS2011091401566 jiaxianghong 20110914 begin */
 #ifdef CONFIG_HUAWEI_APANIC_EXTEND
 	int sysinfo_offset = 0;
 	int sysinfo_len = 0;
 #endif
+/* DTS2011091401566 jiaxianghong 20110914 end> */
 	
 	int rc;
 
@@ -1322,10 +1358,12 @@ static int apanic(struct notifier_block *this, unsigned long event,
 #endif
 	touch_softlockup_watchdog();
 
+    /* <DTS2012021001488 yuanjintao 20120210 begin */
 	if (!ctx->mtd) {
         printk(KERN_EMERG "No mtd partition in use!\n");
         goto out;
     }
+    /* DTS2012021001488 yuanjintao 20120210 end> */
 
 	if (ctx->curr.magic) {
 		printk(KERN_EMERG "Crash partition in use!\n");
@@ -1362,6 +1400,7 @@ static int apanic(struct notifier_block *this, unsigned long event,
 		threads_len = 0;
 	}
 
+/* <DTS2011091401566 jiaxianghong 20110914 begin */
 #ifdef CONFIG_HUAWEI_APANIC_EXTEND
     memset(data_buf,0x00,sizeof(data_buf));
 	data_end = 0;
@@ -1391,6 +1430,7 @@ static int apanic(struct notifier_block *this, unsigned long event,
 		sysinfo_len = 0;
 	}
 #endif
+/* DTS2011091401566 jiaxianghong 20110914 end> */
 
 	/*
 	 * Finally write the panic header
@@ -1405,11 +1445,13 @@ static int apanic(struct notifier_block *this, unsigned long event,
 	hdr->threads_offset = threads_offset;
 	hdr->threads_length = threads_len;
 
+/* <DTS2011091401566 jiaxianghong 20110914 begin */
 /* add sysinfo file header */
 #ifdef CONFIG_HUAWEI_APANIC_EXTEND
 	hdr->sysinfo_offset = sysinfo_offset;
 	hdr->sysinfo_length = sysinfo_len;
 #endif
+/* DTS2011091401566 jiaxianghong 20110914 end> */
 
 	rc = apanic_writeflashpage(ctx->mtd, 0, ctx->bounce);
 	if (rc <= 0) {
@@ -1418,6 +1460,7 @@ static int apanic(struct notifier_block *this, unsigned long event,
 		goto out;
 	}
 
+    /* <DTS2012021001488 yuanjintao 20120210 begin */
 	/*we should sync the log to mmc*/
 #ifdef CONFIG_HUAWEI_KERNEL
     if (ctx->mtd->sync)
@@ -1425,6 +1468,7 @@ static int apanic(struct notifier_block *this, unsigned long event,
         ctx->mtd->sync(ctx->mtd);
     }
 #endif
+    /* DTS2012021001488 yuanjintao 20120210 end> */
 	printk(KERN_EMERG "apanic: Panic dump sucessfully written to flash\n");
 
  out:

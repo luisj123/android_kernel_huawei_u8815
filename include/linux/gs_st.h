@@ -137,8 +137,10 @@ enum  gs_st_reg_click_src {
 #define GS_ST_F_INPUT_OPEN 	0x0040  /* Set if input device is opened */
 #define GS_ST_F_IRQ_WAKE 		0x0080  /* IRQ is setup in wake mode */
 
+/* <BU5D07680 liujinggang 20100413 begin */
 #define     GPIO_INT1                         51
 #define     GPIO_INT2                         87
+/* BU5D07680 liujinggang 20100413 end> */
 
 /*BK4D01075, add delay time, dingxifeng KF14049, 2009-6-10  begin*/
 
@@ -163,7 +165,9 @@ enum  gs_st_reg_click_src {
 
 /*BK4D01075, add  delay ioctl command, dingxifeng KF14049, 2009-6-10 end*/
 
+/* <BU5D01928 zhangxiangdang 20100316 begin */
 #define ECS_IOCTL_READ_DEVICEID				_IOR(0xA1, 0x31, char[20])
+/* BU5D01928 zhangxiangdang 20100316 end> */ 
 
 #endif /* _LINUX_GS_ST_H */
 

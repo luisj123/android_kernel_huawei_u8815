@@ -29,9 +29,12 @@
 
 #include <asm/ioctls.h>
 
+/*< DTS2011092603497 mazhenhua user log on/off 20110927 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
+/* < DTS2012033007472  yuanjintao 20120331 begin */
 /* for logcat nv control */
 #include <mach/oem_rapi_client.h>
+/* DTS2012033007472  yuanjintao 20120331 end > */
 
 #define LOG_CTL_INFO_ITEM	   60008/*modem nv item: NV_LOG_CTL_INFO_I*/
 #define USER_LOG_ON 1
@@ -42,6 +45,7 @@ struct log_ctl{
 	char reserve[3];
 };
 #endif
+/*DTS2011092603497 mazhenhua user log on/off 20110927 end >*/
 
 /*
  * struct logger_log - represents a specific log, such as 'main' or 'radio'
@@ -569,6 +573,7 @@ static struct logger_log VAR = { \
 	.size = SIZE, \
 };
 
+/* < DTS2012031903751 lizhigang 20120319 begin */
 /* save 0.5M memory */
 #ifndef CONFIG_HUAWEI_KERNEL
 DEFINE_LOGGER_DEVICE(log_main, LOGGER_LOG_MAIN, 256*1024)
@@ -581,6 +586,7 @@ DEFINE_LOGGER_DEVICE(log_events, LOGGER_LOG_EVENTS, 256*1024)
 DEFINE_LOGGER_DEVICE(log_radio, LOGGER_LOG_RADIO, 64*1024)
 DEFINE_LOGGER_DEVICE(log_system, LOGGER_LOG_SYSTEM, 64*1024)
 #endif
+/* DTS2012031903751 lizhigang 20120319 end > */
 
 static struct logger_log *get_log_from_minor(int minor)
 {
@@ -615,6 +621,7 @@ static int __init init_log(struct logger_log *log)
 static int __init logger_init(void)
 {
 	int ret;
+/* < DTS2012033007472  yuanjintao 20120331 begin */
 /* for logcat control by nv */
 #ifdef CONFIG_HUAWEI_FEATURE_NV_LOG_CONTROL
     u16 nv_item = LOG_CTL_INFO_ITEM;
@@ -629,6 +636,7 @@ static int __init logger_init(void)
     if((rval != 0) || (ctl_info.on_off_flag != USER_LOG_ON))
         return 0;	
 #endif
+/* DTS2012033007472  yuanjintao 20120331 end > */
 	
 	ret = init_log(&log_main);
 	if (unlikely(ret))

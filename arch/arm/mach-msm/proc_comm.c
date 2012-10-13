@@ -62,6 +62,7 @@ static int msm_proc_comm_disable;
  */
 static int proc_comm_wait_for(unsigned addr, unsigned value)
 {
+	/*< DTS2011082200901 genghua 20110822 begin */
 	/* merge qcom DEBUG_CODE for RPC crashes */
 #ifndef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 	while (1) {
@@ -106,6 +107,7 @@ static int proc_comm_wait_for(unsigned addr, unsigned value)
 		}
 	}
 #endif
+	/* DTS2011082200901 genghua 20110822 end >*/
 }
 
 void msm_proc_comm_reset_modem_now(void)

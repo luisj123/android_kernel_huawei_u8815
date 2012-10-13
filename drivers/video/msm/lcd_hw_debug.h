@@ -1,3 +1,4 @@
+/*< DTS2010122802758 lijianzhao 20101229 begin */
 /* kernel\drivers\video\msm\lcd_hw_debug.h
  * this file is used by the driver team to change the 
  * LCD init parameters by putting a config file in the mobile,
@@ -6,6 +7,7 @@
  * Copyright (C) 2010 HUAWEI Technology Co., ltd.
  * 
  * Date: 2010/12/10
+ * By genghua
  * 
  */
 
@@ -13,8 +15,10 @@
 #define __HW_LCD_DEBUG__
 
 #include <linux/syscalls.h>
+/*< DTS2011041700393 lijianzhao 20110417 begin */
 /* modify for 4125 baseline */
 #include <linux/slab.h>
+/* DTS2011041700393 lijianzhao 20110417 end >*/
 #ifndef TRUE
 #define TRUE 1
 #endif
@@ -38,3 +42,4 @@ bool lcd_debug_free_para(void *para_table);
 
 #endif 
 
+/* DTS2010122802758 lijianzhao 20101229 end >*/

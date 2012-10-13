@@ -312,10 +312,12 @@ static const char fsg_string_interface[] = "Mass Storage";
 
 #include "storage_common.c"
 
+/* < DTS2012022400909 chenxi 20120224 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 static int nluns = USB_MAX_LUNS;
 static int cdrom_index = 0;
 #endif
+/* DTS2012022400909 chenxi 20120224 end > */
 
 #ifdef CONFIG_USB_CSW_HACK
 static int write_error_after_csw_sent;
@@ -575,13 +577,12 @@ static void bulk_in_complete(struct usb_ep *ep, struct usb_request *req)
 	struct fsg_common	*common = ep->driver_data;
 	struct fsg_buffhd	*bh = req->context;
 
+    /* < DTS2012040606618 yanzhijun 20120407 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
     if (!common)
     {
         if (req->status == -ECONNRESET)		/* Request was cancelled */
-        {
-            usb_ep_fifo_flush(ep);
-        }
+		usb_ep_fifo_flush(ep);
 
 	    /* Hold the lock while we update the request and buffer states */
 	    smp_wmb();
@@ -591,6 +592,7 @@ static void bulk_in_complete(struct usb_ep *ep, struct usb_request *req)
         return;
     }
 #endif
+    /* DTS2012040606618 yanzhijun 20120407 end > */ 
     
 	if (req->status || req->actual != req->length)
 		DBG(common, "%s --> %d, %u/%u\n", __func__,
@@ -612,13 +614,12 @@ static void bulk_out_complete(struct usb_ep *ep, struct usb_request *req)
 	struct fsg_common	*common = ep->driver_data;
 	struct fsg_buffhd	*bh = req->context;
 
+    /* < DTS2012040606618 yanzhijun 20120407 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
     if (!common)
     {
         if (req->status == -ECONNRESET)		/* Request was cancelled */
-        {
-            usb_ep_fifo_flush(ep);
-        }
+		usb_ep_fifo_flush(ep);
 
 	    /* Hold the lock while we update the request and buffer states */
 	    smp_wmb();
@@ -628,6 +629,7 @@ static void bulk_out_complete(struct usb_ep *ep, struct usb_request *req)
         return;
     }
 #endif
+    /* DTS2012040606618 yanzhijun 20120407 end > */
 
 	dump_msg(common, "bulk-out", req->buf, req->actual);
 	if (req->status || req->actual != bh->bulk_out_intended_length)
@@ -685,6 +687,7 @@ static int fsg_setup(struct usb_function *f,
 			break;
 		if (w_value != 0)
 			return -EDOM;
+        /* < DTS2012022400909 chenxi 20120224 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
         VDBG(fsg, "get max LUN=%d\n", nluns);
         *(u8 *) req->buf = nluns - 1;
@@ -692,6 +695,7 @@ static int fsg_setup(struct usb_function *f,
 		VDBG(fsg, "get max LUN\n");
 		*(u8 *)req->buf = fsg->common->nluns - 1;
 #endif
+        /* DTS2012022400909 chenxi 20120224 end > */
 
 		/* Respond with data/status */
 		req->length = min((u16)1, w_length);
@@ -1322,9 +1326,11 @@ static int do_inquiry(struct fsg_common *common, struct fsg_buffhd *bh)
 		return 36;
 	}
 	
+    /* < DTS2012022400909 chenxi 20120224 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
     curlun->cdrom = (common->lun == cdrom_index)? 1 : 0;
 #endif
+    /* DTS2012022400909 chenxi 20120224 end > */
 	buf[0] = curlun->cdrom ? TYPE_ROM : TYPE_DISK;
 	buf[1] = curlun->removable ? 0x80 : 0;
 	buf[2] = 2;		/* ANSI SCSI level 2 */
@@ -1431,6 +1437,7 @@ static int do_read_header(struct fsg_common *common, struct fsg_buffhd *bh)
 	return 8;
 }
 
+/*< DTS2012011801998 chenxi 20120203 begin */
 /* import DTS2011082403937 to support cdrom in mac system */
 #ifndef CONFIG_HUAWEI_KERNEL
 static int do_read_toc(struct fsg_common *common, struct fsg_buffhd *bh)
@@ -1571,6 +1578,7 @@ static int do_read_toc(struct fsg_common *common, struct fsg_buffhd *bh)
     return response_length;
 }
 #endif
+/* DTS2012011801998 chenxi 20120203 end >*/
 
 
 static int do_mode_sense(struct fsg_common *common, struct fsg_buffhd *bh)
@@ -1620,6 +1628,7 @@ static int do_mode_sense(struct fsg_common *common, struct fsg_buffhd *bh)
 	 * The mode pages, in numerical order.  The only page we support
 	 * is the Caching page.
 	 */
+    /* < DTS2012032004277 chenxi 20120328 begin */
     /* to support multiple disks */
 #ifndef CONFIG_HUAWEI_KERNEL
 	if (page_code == 0x08 || all_pages) {
@@ -1645,6 +1654,7 @@ static int do_mode_sense(struct fsg_common *common, struct fsg_buffhd *bh)
 #else
 	valid_page=1;
 #endif
+    /* DTS2012032004277 chenxi 20120328 end > */
 
 	/*
 	 * Check that a valid page was requested and the mode data length
@@ -1825,6 +1835,7 @@ static int wedge_bulk_in_endpoint(struct fsg_dev *fsg)
 	return rc;
 }
 
+/* < DTS2012032004277 chenxi 20120329 begin */
 /* to solve the problem that some host reset usb ports continuously 
  * when there is cdrom
  */
@@ -1860,6 +1871,7 @@ static int pad_with_zeros(struct fsg_dev *fsg)
 	return 0;
 }
 #endif
+/* DTS2012032004277 chenxi 20120329 end > */
 
 static int throw_away_data(struct fsg_common *common)
 {
@@ -1945,6 +1957,7 @@ static int finish_reply(struct fsg_common *common)
 
 	/* All but the last buffer of data must have already been sent */
 	case DATA_DIR_TO_HOST:
+        /* < DTS2012032004277 chenxi 20120329 begin */        
         /* to solve the problem that some host reset usb ports continuously 
          * when there is cdrom
          */
@@ -2010,6 +2023,7 @@ static int finish_reply(struct fsg_common *common)
 				rc = halt_bulk_in_endpoint(common->fsg);
 		}
 #endif
+        /* DTS2012032004277 chenxi 20120329 end > */
 		break;
 
 	/*
@@ -2397,12 +2411,14 @@ static int do_scsi_command(struct fsg_common *common)
 		common->data_size_from_cmnd =
 			get_unaligned_be16(&common->cmnd[7]);
 		reply = check_command(common, 10, DATA_DIR_TO_HOST,
+                      /*< DTS2012011801998 chenxi 20120203 begin */
                       /* to support cdrom in mac system */
 #ifndef CONFIG_HUAWEI_KERNEL
 				      (7<<6) | (1<<1), 1,
 #else
 				      (3<<1) | (7<<7), 1,
 #endif
+                      /* DTS2012011801998 chenxi 20120203 end >*/
 				      "READ TOC");
 		if (reply == 0)
 			reply = do_read_toc(common, bh);
@@ -2495,6 +2511,8 @@ static int do_scsi_command(struct fsg_common *common)
 			reply = do_write(common);
 		break;
 
+    /*< DTS2012022706082 chenxi 20120302 begin */
+    /*< DTS2012011801998 chenxi 20120203 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
     case SC_REWIND:
     case SC_REWIND_11:
@@ -2512,6 +2530,8 @@ static int do_scsi_command(struct fsg_common *common)
     	}
 		break;
 #endif
+    /* DTS2012011801998 chenxi 20120203 end >*/
+    /* DTS2012022706082 chenxi 20120302 end >*/
 
 	/*
 	 * Some mandatory commands that we recognize but don't implement.
@@ -3457,6 +3477,7 @@ fsg_add(struct usb_composite_dev *cdev, struct usb_configuration *c,
 	return fsg_bind_config(cdev, c, common);
 }
 
+/* < DTS2012022400909 chenxi 20120224 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 /*
  * fsg_close_all_file: close all stored file in each lun
@@ -3482,6 +3503,7 @@ static void fsg_close_all_file(struct fsg_common *common)
     up_write(&common->filesem);
 }
 #endif
+/* DTS2012022400909 chenxi 20120224 end > */
 
 /************************* Module parameters *************************/
 

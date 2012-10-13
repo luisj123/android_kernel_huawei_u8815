@@ -11,6 +11,7 @@ struct phudiag_data
 
 
 
+/* < DTS2011011300706 liuhongfei 20110113 begin */
 struct phudiag_ring_buf * phudiag_ring_buf_malloc(int buf_size)
 
 {
@@ -32,6 +33,7 @@ struct phudiag_ring_buf * phudiag_ring_buf_malloc(int buf_size)
 	}
 	return ring_buf;
 }
+/* DTS2011011300706 liuhongfei 20110113 end > */ 
 
 
 
@@ -44,6 +46,7 @@ void phudiag_ring_buf_free(struct phudiag_ring_buf *ring_buf)
 	}
 }
 
+/* < DTS2011011300706 liuhongfei 20110113 begin */
 void phudiag_ring_buf_clear(struct phudiag_ring_buf *ring_buf)
 {
 	if(ring_buf)
@@ -52,6 +55,7 @@ void phudiag_ring_buf_clear(struct phudiag_ring_buf *ring_buf)
 		ring_buf->edge = ring_buf->buf + ring_buf->buf_size;
 	}
 }
+/* DTS2011011300706 liuhongfei 20110113 end > */ 
 
 int phudiagfwd_ring_buf_is_empty(struct phudiag_ring_buf *ring_buf)
 {
@@ -186,6 +190,7 @@ int phudiagfwd_ring_buf_get_data_after_process(struct phudiag_ring_buf *ring_buf
 }
 
 
+/* < DTS2011011300706 liuhongfei 20110113 begin */
 int phudiagfwd_user_get_data(char __user *buf, int buf_size)
 {
 
@@ -210,9 +215,11 @@ int phudiagfwd_user_get_data(char __user *buf, int buf_size)
 	return count;
 
 }
+/* DTS2011011300706 liuhongfei 20110113 end > */ 
 
 
 
+/* < DTS2011011300706 liuhongfei 20110113 begin */
 void phudiagfwd_read_data_from_smd(void)
 {
 	int r = smd_read_avail(phudriver->ch);
@@ -240,8 +247,10 @@ void phudiagfwd_read_data_from_smd(void)
 	}
 
 }
+/* DTS2011011300706 liuhongfei 20110113 end > */ 
 
 
+/* < DTS2011011300706 liuhongfei 20110113 begin */
 int phudiagfwd_user_set_data(const char __user * data,int data_length)
 {
 	struct phudiag_data *pdata;
@@ -279,8 +288,10 @@ int phudiagfwd_user_set_data(const char __user * data,int data_length)
 
 	return data_length;
 }
+/* DTS2011011300706 liuhongfei 20110113 end > */ 
 
 
+/* < DTS2011011300706 liuhongfei 20110113 begin */
 void phudiagfwd_write_to_smd_work_fn(struct work_struct *work)
 
 {
@@ -346,3 +357,4 @@ void phudiagfwd_write_to_smd_work_fn(struct work_struct *work)
 	mutex_unlock(&phudriver->diagchar_mutex);
 	
 }
+/* DTS2011011300706 liuhongfei 20110113 end > */ 

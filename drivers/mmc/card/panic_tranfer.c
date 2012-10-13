@@ -1,7 +1,9 @@
+/* <DTS2010080901139 hufeng 20100821 begin */
 /*
 	panic transfer.c
 
 */
+/* <DTS2010091301566 hufeng 20100913 begin */
 #include <linux/mmc/card.h>
 #include <linux/mmc/core.h>
 #include <linux/scatterlist.h>
@@ -12,11 +14,15 @@
 
 /* PANIC_MAGIC definition from kernel/drivers/misc/apanic.c */
 #define PANIC_MAGIC 0xdeadf00d
+/* DTS2010091301566 hufeng 20100913 end> */
+/*<DTS2010122400624 liyuping 20101224 begin */ 
 //panic info start from 1048582,avoid overriding flags info.
 #define SECTOR_INDEX 1048582	/* the starting sector of the MISC partition(mmcblk0p7) */
+/* DTS2010122400624 liyuping 20101224 end >*/
 
 
 static struct mmc_card *panic_card;
+/* <DTS2010091301566 hufeng 20100913 begin */
 
 int mmc_panic_save_card(void *card)
 {
@@ -29,6 +35,7 @@ int mmc_panic_save_card(void *card)
 	return 0;
 }
 EXPORT_SYMBOL(mmc_panic_save_card);
+/* DTS2010091301566 hufeng 20100913 end> */
 
 /*
  * Fill in the mmc_request structure given a set of transfer parameters.
@@ -102,6 +109,7 @@ static int mmc_panic_wait_busy(struct mmc_card *card)
 }
 
 
+/* <DTS2010091301566 hufeng 20100913 begin */
 static int mmc_panic_buffer_transfer(struct mmc_card *card,
 	u8 *buffer, unsigned addr, unsigned blksz, int write, int in_panic)
 {
@@ -136,6 +144,7 @@ static int mmc_panic_buffer_transfer(struct mmc_card *card,
 	mmc_panic_prepare_mrq(card, &mrq, &sg, 1, addr, blocks, blksz, write);
 
 	mmc_panic_start_req(card->host, &mrq);
+/* DTS2010091301566 hufeng 20100913 end> */
 	if (cmd.error){
 		ret = cmd.error;
 		goto error_out;
@@ -148,11 +157,13 @@ static int mmc_panic_buffer_transfer(struct mmc_card *card,
 	ret = mmc_panic_wait_busy(card);
 
 error_out:
+/* <DTS2010091301566 hufeng 20100913 begin */
     if (in_panic) {
         card->host->claimed = 0;
     } else {
         mmc_release_host(card->host);
     }
+/* DTS2010091301566 hufeng 20100913 end> */
 
 	return ret;
 }
@@ -181,6 +192,7 @@ mmc_panic_log_transfer
 description: transfer buffer to logging partion
 
 */
+/* <DTS2010091301566 hufeng 20100913 begin */
 static int mmc_panic_log_transfer(u8 *buffer, int write, int in_panic)
 {
 	int ret;
@@ -199,14 +211,17 @@ static int mmc_panic_log_transfer(u8 *buffer, int write, int in_panic)
     } else {
         mmc_release_host(panic_card->host);
     }
+/* DTS2010091301566 hufeng 20100913 end> */
 	
 	printk("mmc_panic_set_blksize\n");
 	
 	if (ret)
 		return ret;
 
+/* <DTS2010091301566 hufeng 20100913 begin */
 	ret = mmc_panic_buffer_transfer(panic_card, buffer, sector, 512, write, in_panic);
 	
+/* DTS2010091301566 hufeng 20100913 end> */
 	return 0;
 }
 
@@ -219,6 +234,7 @@ unsigned log_len:  this length of buffer must equal to logging partion len
 u8* buffer: log buffer
 
 */
+/* <DTS2010091301566 hufeng 20100913 begin */
 int mmc_panic_write(u8* buffer, unsigned int length)
 {
     u32 panic_magic = *(u32*)buffer;
@@ -256,5 +272,7 @@ int mmc_panic_read(u8* buffer, unsigned int length)
 	return 0;
 }
 EXPORT_SYMBOL(mmc_panic_read);
+/* DTS2010091301566 hufeng 20100913 end> */
 
 
+/* DTS2010080901139 hufeng 20100821 end> */

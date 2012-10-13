@@ -1,3 +1,4 @@
+/*<DTS2011062400849 fengwei 20110624 begin*/
 /* Copyright (c) 2009, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,7 +59,9 @@
 #include <linux/delay.h>
 #include <mach/gpio.h>
 #include "msm_fb.h"
+/*< DTS2012020700924 lijianzhao 20120207 begin */
 #include "hw_lcd_common.h"
+/* DTS2012020700924 lijianzhao 20120207 end >*/
 #include <mach/gpio.h>
 #include <linux/io.h>
 #include <linux/gpio.h>
@@ -90,11 +93,13 @@ static const struct sequence hx8357b_tianma_hvga_standby_enter_table[]=
 
 };
 
+/* <DTS2011123001280 liguosheng 20111230 begin */
 static struct sequence hx8357b_cabc_enable_table[] =
 {	
 	{0x00051,TYPE_COMMAND,0}, 		
 	{0x000ff,TYPE_PARAMETER,0},
 };
+/* DTS2011123001280 liguosheng 20111230 end> */
 
 static void hx8357b_hvga_disp_powerup(void)
 {
@@ -205,6 +210,7 @@ static int hx8357b_hvga_panel_off(struct platform_device *pdev)
     return 0;
 }
 
+/* <DTS2011123001280 liguosheng 20111230 begin */
 void hx8357b_lcdc_set_cabc_backlight(struct msm_fb_data_type *mfd,uint32 bl_level)
 {	
 	hx8357b_cabc_enable_table[1].reg = bl_level; // 1 will be changed if modify init code
@@ -212,6 +218,7 @@ void hx8357b_lcdc_set_cabc_backlight(struct msm_fb_data_type *mfd,uint32 bl_leve
 	process_lcdc_table((struct sequence*)&hx8357b_cabc_enable_table,
 		 ARRAY_SIZE(hx8357b_cabc_enable_table), lcd_panel_hvga);
 }
+/* DTS2011123001280 liguosheng 20111230 end> */
 
 static int __devinit hx8357b_hvga_probe(struct platform_device *pdev)
 {
@@ -233,9 +240,13 @@ static struct platform_driver this_driver = {
 static struct msm_fb_panel_data hx8357b_hvga_panel_data = {
     .on = hx8357b_hvga_panel_on,
     .off = hx8357b_hvga_panel_off,
+/*< DTS2011122306018 fengwei 20111224 begin */
     .set_backlight = pwm_set_backlight,
+/* <DTS2011123001280 liguosheng 20111230 begin */    
     /*add cabc control backlight*/
 	.set_cabc_brightness = hx8357b_lcdc_set_cabc_backlight,
+/* DTS2011123001280 liguosheng 20111230 end> */
+/* DTS2011122306018 fengwei 20111224 end >*/
 };
 
 static struct platform_device this_device = {
@@ -251,7 +262,9 @@ static int __init hx8357b_hvga_panel_init(void)
     int ret;
     struct msm_panel_info *pinfo;
 
+/*< DTS2011122306018 fengwei 20111224 begin */
     lcd_panel_hvga = get_lcd_panel_type();
+/* DTS2011122306018 fengwei 20111224 end >*/
     if((LCD_HX8357B_TIANMA_HVGA != lcd_panel_hvga) &&  \
        (msm_fb_detect_client(lCD_DRIVER_NAME))
       )
@@ -284,9 +297,13 @@ static int __init hx8357b_hvga_panel_init(void)
     {
         pinfo->clk_rate = 8192000;    /*for HVGA pixel clk*/
     }
-    pinfo->lcdc.h_back_porch = 7;
-    pinfo->lcdc.h_front_porch = 5;
-    pinfo->lcdc.h_pulse_width = 4;
+	/*< DTS2012042605475 zhongjinrong 20120426 begin  */
+    /* <DTS2012013102105 liguosheng 20120301 begin */
+    pinfo->lcdc.h_back_porch = 3;
+    pinfo->lcdc.h_front_porch = 3;
+    pinfo->lcdc.h_pulse_width = 3;
+    /* DTS2012013102105 liguosheng 20120301 end> */
+	/* DTS2012042605475 zhongjinrong 20120426 end >*/
     pinfo->lcdc.v_back_porch = 2;
     pinfo->lcdc.v_front_porch = 4;
     pinfo->lcdc.v_pulse_width = 2;
@@ -303,4 +320,5 @@ static int __init hx8357b_hvga_panel_init(void)
 }
 
 module_init(hx8357b_hvga_panel_init);
+/*DTS2011062400849 fengwei 20110624 end>*/
 

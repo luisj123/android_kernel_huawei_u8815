@@ -1,9 +1,11 @@
+/*< DTS2010120703279 lijianzhao 20101207 begin */
 /* drivers\video\msm\mddi_nt35510.c
  * NT35510 LCD driver for 7x30 platform
  *
  * Copyright (C) 2010 HUAWEI Technology Co., ltd.
  * 
  * Date: 2010/12/07
+ * By lijianzhao
  * 
  */
 
@@ -20,10 +22,12 @@
 #include <mach/pmic.h>
 #include "hw_backlight.h"
 #include "hw_lcd_common.h"
+/*< DTS2010122802758 lijianzhao 20101229 begin */
 #include "lcd_hw_debug.h"
 struct sequence* nt35510_wvga_init_table = NULL;
 static lcd_panel_type lcd_panel_wvga = LCD_NONE;
 
+/*< DTS2011061101137 jiaoshuangwei 20110611 begin */
 static const struct sequence nt35510_wvga_standby_exit_table[] = 
 {
    /*set the delay time 100ms*/
@@ -35,6 +39,7 @@ static const struct sequence nt35510_wvga_standby_enter_table[]=
   /*set the delay time 100ms*/
 	{0x1000,0,100}
 };
+/* DTS2011061101137 jiaoshuangwei 20110611 end >*/
 static int nt35510_lcd_on(struct platform_device *pdev)
 {
 	boolean para_debug_flag = FALSE;
@@ -82,6 +87,7 @@ static int nt35510_lcd_off(struct platform_device *pdev)
     LCD_DEBUG("%s: nt35510_lcd enter sleep mode ,off_ret=%d\n",__func__,ret);
 	return ret;
 }
+/* DTS2010122802758 lijianzhao 20101229 end >*/
 
 static int __devinit nt35510_probe(struct platform_device *pdev)
 {
@@ -113,6 +119,7 @@ static int __init nt35510_init(void)
 {
 	int ret = 0;
 	struct msm_panel_info *pinfo = NULL;
+/*< DTS2010122802758 lijianzhao 20101229 begin */
 	bpp_type bpp = MDDI_OUT_16BPP;		
 	hw_lcd_interface_type mddi_port_type = get_hw_lcd_interface_type();
 
@@ -122,6 +129,7 @@ static int __init nt35510_init(void)
 	{
 		return 0;
 	}
+/* DTS2010122802758 lijianzhao 20101229 end >*/
 	LCD_DEBUG("%s:------nt35510_init------\n",__func__);
 	/* Select which bpp accroding MDDI port type */
 	if(LCD_IS_MDDI_TYPE1 == mddi_port_type)
@@ -153,7 +161,9 @@ static int __init nt35510_init(void)
 	    pinfo->clk_min = 192000000;
 	    pinfo->clk_max = 192000000;
         pinfo->lcd.vsync_enable = TRUE;
-        pinfo->lcd.refx100 = 6000;
+		/*< DTS2012021007223 lijianzhao 20120211 begin */
+        pinfo->lcd.refx100 = 3000;
+		/* DTS2012021007223 lijianzhao 20120211 end >*/
 		pinfo->lcd.v_back_porch = 0;
 		pinfo->lcd.v_front_porch = 0;
 		pinfo->lcd.v_pulse_width = 22;
@@ -171,3 +181,4 @@ static int __init nt35510_init(void)
 	return ret;
 }
 module_init(nt35510_init);
+/* DTS2010120703279 lijianzhao 20101207 end >*/

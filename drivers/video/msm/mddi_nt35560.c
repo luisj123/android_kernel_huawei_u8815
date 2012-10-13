@@ -1,9 +1,11 @@
+/*< DTS2011042601502  jiaoshuangwei 20110308 begin*/
 /* drivers\video\msm\mddi_nt35560.c
  * NT35560 LCD driver for 7x30 platform
  *
  * Copyright (C) 2010 HUAWEI Technology Co., ltd.
  * 
  * Date: 2011/03/08
+ * By jiaoshuangwei
  * 
  */
 
@@ -21,10 +23,13 @@
 #include "hw_backlight.h"
 #include "hw_lcd_common.h"
 #include "lcd_hw_debug.h"
+/*<DTS2011081002714 jiaoshuangwei 20110810 begin*/
 #include <asm/mach-types.h> 
+/*DTS2011081002714 jiaoshuangwei 20110810 end >*/
 struct sequence* nt35560_fwvga_init_table = NULL;
 static lcd_panel_type lcd_panel_fwvga = LCD_NONE;
 
+/*< DTS2011081800466 pengyu 20110818 begin */
 #ifdef CONFIG_FB_AUTO_CABC
 /* NT35560 CABC registers default value */
 #define DEFAULT_VAL_ABC_CTRL2           0x0080
@@ -92,7 +97,9 @@ static struct sequence nt35560_fwvga_write_cabc_brightness_table[] =
     {0x5100,0x00,0}
 };
 
+/* DTS2011081800466 pengyu 20110818 end >*/
 
+/*<DTS2011081002714 jiaoshuangwei 20110810 begin*/
 /* reload CABC frequency register ,because sleep out ,it recover default value 
  * U8860 and C8860 use 300Hz
  */
@@ -109,19 +116,28 @@ static const struct sequence nt35560_fwvga_standby_exit_tablelp[] =
 	{0x1100,0x00,120},
 	{0x22C0,0x04,0},
 };
+/*DTS2011081002714 jiaoshuangwei 20110810 end >*/
 
 static const struct sequence nt35560_fwvga_standby_enter_table[]= 
 {
 	{0x1000,0x00,120}
 };
+/*< DTS2011072500979 jiaoshuangwei 20110725 begin */
 /* add the code for dynamic gamma function  */
 #ifdef CONFIG_FB_DYNAMIC_GAMMA
 //gamma 2.2
+/*< DTS2011081601583 pengyu 20110816 begin */
 /* Revise some spelling mistake */
 static const struct sequence nt35560_fwvga_dynamic_gamma22_table[] = 
+/* DTS2011081601583 pengyu 20110816 end >*/
 {          
     {0XC980,0X01,0},
-    {0x5500,0x00,0},
+	/*< DTS2012052303745 zhongjinrong 20120523 begin */
+    /*< DTS2011112403478 pengyu 20111124 begin */
+    /* No need to config cabc mode in dynamic gamma settings */
+    /*{0x5500,0x00,0},*/
+    /* DTS2011112403478 pengyu 20111124 end >*/
+	/* DTS2012052303745 zhongjinrong 20120523 end >*/
     {0X0180,0X14,0},
     {0X0280,0X00,0},
     {0X0380,0X33,0},
@@ -272,21 +288,33 @@ static const struct sequence nt35560_fwvga_dynamic_gamma22_table[] =
     {0XF380,0XCC,0},
     {0XFB80,0X00,0},
     {0X3500,0X00,0},
+/*<DTS2011081002714 jiaoshuangwei 20110810 begin*/
 /* delete two lines */
+/*DTS2011081002714 jiaoshuangwei 20110810 end >*/
 };
 //gamma1.9
+/*< DTS2011081601583 pengyu 20110816 begin */
 /* Revise some spelling mistake */
 static const struct sequence nt35560_fwvga_dynamic_gamma19_table[] = 
+/* DTS2011081601583 pengyu 20110816 end >*/
 {
 	{0x1100,0x00,120}
 };
 //gamma2.5
+/*< DTS2011081601583 pengyu 20110816 begin */
 /* Revise some spelling mistake */
 static const struct sequence nt35560_fwvga_dynamic_gamma25_table[] = 
+/* DTS2011081601583 pengyu 20110816 end >*/
 {
+/*<DTS2011081002714 jiaoshuangwei 20110810 begin*/
 /*there is 2.5 GAMA initialization sequence */
 	{0XC980,0X01,0},
-	{0x5500,0x00,0},
+	/*< DTS2012052303745 zhongjinrong 20120523 begin */
+    /*< DTS2011112403478 pengyu 20111124 begin */
+    /* No need to config cabc mode in dynamic gamma settings */
+    /*{0x5500,0x00,0},*/
+    /* DTS2011112403478 pengyu 20111124 end >*/
+	/* DTS2012052303745 zhongjinrong 20120523 end >*/
 	{0X0180,0X14,0},
 	{0X0280,0X00,0},
 	{0X0380,0X33,0},
@@ -437,8 +465,10 @@ static const struct sequence nt35560_fwvga_dynamic_gamma25_table[] =
 	{0XF380,0XCC,0},
 	{0XFB80,0X00,0},
     {0X3500,0X00,0},
+/*DTS2011081002714 jiaoshuangwei 20110810 end >*/
 };
 /* add the function  to set different gama by different mode */
+/*< DTS2011081601583 pengyu 20110816 begin */
 /* Revise some spelling mistakes */
 int nt35560_set_dynamic_gamma(enum danymic_gamma_mode  gamma_mode)
 {
@@ -468,8 +498,11 @@ int nt35560_set_dynamic_gamma(enum danymic_gamma_mode  gamma_mode)
     LCD_DEBUG("%s: change gamma mode to %d\n",__func__,gamma_mode);
     return ret;
 }
+/* DTS2011081601583 pengyu 20110816 end >*/
 #endif
+/* DTS2011072500979 jiaoshuangwei 20110725 end >*/
 
+/*< DTS2011081800466 pengyu 20110818 begin */
 #ifdef CONFIG_FB_AUTO_CABC
 /***************************************************************
 Function: nt35560_set_cabc_moving_detect
@@ -624,6 +657,7 @@ static void nt35560_set_cabc_brightness(struct msm_fb_data_type *mfd,uint32 bl_l
     process_mddi_table((struct sequence*)&nt35560_fwvga_write_cabc_brightness_table,
                     ARRAY_SIZE(nt35560_fwvga_write_cabc_brightness_table), lcd_panel_fwvga);
 }
+/* DTS2011081800466 pengyu 20110818 end >*/
 
 static int nt35560_lcd_on(struct platform_device *pdev)
 {
@@ -648,9 +682,14 @@ static int nt35560_lcd_on(struct platform_device *pdev)
     }
     else
     {
+/*<DTS2011081002714 jiaoshuangwei 20110810 begin*/
 		if(machine_is_msm8255_u8860lp()
+        /* < DTS2012022905490 ganfan 20120301 begin */
         || machine_is_msm8255_u8860_r()
+        /* DTS2012022905490 ganfan 20120301 end > */
+/*<DTS2011091502092 liyuping 20110915 begin */
 	    || machine_is_msm8255_u8860_51())
+/* DTS2011091502092 liyuping 20110915 end> */
         {
 			/* Exit Standby Mode */
 			ret = process_mddi_table((struct sequence*)&nt35560_fwvga_standby_exit_tablelp, 
@@ -663,6 +702,7 @@ static int nt35560_lcd_on(struct platform_device *pdev)
 			ret = process_mddi_table((struct sequence*)&nt35560_fwvga_standby_exit_table, 
 				ARRAY_SIZE(nt35560_fwvga_standby_exit_table), lcd_panel_fwvga);
        	}
+/*DTS2011081002714 jiaoshuangwei 20110810 end >*/
 	}
        
 	/* Must malloc before,then you can call free */
@@ -701,14 +741,20 @@ static struct platform_driver this_driver = {
 static struct msm_fb_panel_data nt35560_panel_data = {
 	.on = nt35560_lcd_on,
 	.off = nt35560_lcd_off,
+    /*< DTS2011070504600  sunhonghui 20110706 begin */
 	.set_backlight = pwm_set_backlight,
+    /*DTS2011070504600  sunhonghui 20110706 end >*/
+/*< DTS2011081601583 pengyu 20110816 begin */
 #ifdef CONFIG_FB_DYNAMIC_GAMMA
     .set_dynamic_gamma = nt35560_set_dynamic_gamma,
 #endif
+/* DTS2011081601583 pengyu 20110816 end >*/
+/*< DTS2011081800466 pengyu 20110818 begin */
 #ifdef CONFIG_FB_AUTO_CABC
     .config_cabc = nt35560_config_cabc,
 #endif
     .set_cabc_brightness = nt35560_set_cabc_brightness,
+/* DTS2011081800466 pengyu 20110818 end >*/
 };
 
 static struct platform_device this_device = {
@@ -762,7 +808,9 @@ static int __init nt35560_init(void)
 	    pinfo->clk_min = 192000000;
 	    pinfo->clk_max = 192000000;
         pinfo->lcd.vsync_enable = TRUE;
+		/*< DTS2012021007223 lijianzhao 20120211 begin */
         pinfo->lcd.refx100 = 6000;
+		/* DTS2012021007223 lijianzhao 20120211 end >*/
 		pinfo->lcd.v_back_porch = 0;
 		pinfo->lcd.v_front_porch = 0;
 		pinfo->lcd.v_pulse_width = 22;
@@ -781,3 +829,4 @@ static int __init nt35560_init(void)
 }
 module_init(nt35560_init);
 
+/* DTS2011042601502  jiaoshuangwei 20110308 end>*/

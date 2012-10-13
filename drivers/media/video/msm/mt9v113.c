@@ -1,3 +1,5 @@
+/*< DTS2012020400396 zhangyu 20120206 begin */
+/* < DTS2011123001368 zhouqiwei 20111219 begin */
 
 /*
  * Copyright (c) 2008-2009 QUALCOMM USA, INC.
@@ -44,6 +46,7 @@
 ==============================================================*/
 #define MT9V113_REG_MODEL_ID 0x0000
 #define MT9V113_CHIP_ID 0x2280
+/* < DTS2012030203312 zhouqiwei 20120302 begin */
 #define MT9V113_DEFAULT_CLOCK_RATE 24000000
 
 
@@ -92,8 +95,12 @@ enum mt9v113_setting_t
 
 
 
+/* < DTS2012031403324 zhouqiwei 20120314 begin */
 #define S5K5CA_IS_NOT_ON 0
+/* DTS2012031403324 zhouqiwei 20120314 end > */
+/* < DTS2012032603668 zhouqiwei 20120328 begin */
 #define MAX_COUNT_CYCLE 50  
+/* DTS2012032603668 zhouqiwei 20120328 end > */
 
 struct mt9v113_work_t
 {
@@ -121,6 +128,7 @@ struct mt9v113_ctrl_t
     unsigned short imgaddr;
 };
 
+/* < DTS2012042705026 zhouqiwei 20120427 begin */
 typedef enum
 {
     E_REGISTER_END,
@@ -130,6 +138,7 @@ typedef enum
     E_REGISTER_DELAY,
     E_REGISTER_MAX,
 } e_cmd_type;
+/* DTS2012042705026 zhouqiwei 20120427 end > */
 
 struct mt9v113_i2c_reg_conf
 {
@@ -139,8 +148,10 @@ struct mt9v113_i2c_reg_conf
 };
 
 /* < DTS2012030105378 zhuqiwei 20120308 begin > */
+/* < DTS2012042705026 zhouqiwei 20120427 begin */
 static struct mt9v113_i2c_reg_conf mt9v113_init_reg_config[] =
 {
+    /* < DTS2012032603668 zhouqiwei 20120328 begin */
     {E_REGISTER_CMD_16BIT, 0x0018, 0x4028},
     {E_REGISTER_WAIT     , 0x0018, 0     }, //0x0018 bit14 --->0, 0x301A bit2-->1  [bit0, bit15]
     {E_REGISTER_CMD_16BIT, 0x001A, 0x0011},
@@ -174,11 +185,13 @@ static struct mt9v113_i2c_reg_conf mt9v113_init_reg_config[] =
     {E_REGISTER_CMD_16BIT, 0x0014, 0x304B},
     {E_REGISTER_WAIT     , 0x0014, 0   },//delay 100   0x0014 bit15 --->1
     {E_REGISTER_CMD_16BIT, 0x0014, 0xB04A},
+    /* <DTS2012031303643 sibingsong 20120321 begin */	
     /* to solve QQ apk video image upside-down */
     {E_REGISTER_CMD_16BIT, 0x098C, 0x2717},
     {E_REGISTER_CMD_16BIT, 0x0990, 0x0025},
     {E_REGISTER_CMD_16BIT, 0x098C, 0x272D},
     {E_REGISTER_CMD_16BIT, 0x0990, 0x0025},	
+    /* DTS2012031303643 sibingsong 20120321 end> */	
     {E_REGISTER_CMD_16BIT, 0x098C, 0xAB1F},
     {E_REGISTER_CMD_16BIT, 0x0990, 0x00C7},
     {E_REGISTER_CMD_16BIT, 0x098C, 0xAB31},
@@ -308,9 +321,11 @@ static struct mt9v113_i2c_reg_conf mt9v113_init_reg_config[] =
     {E_REGISTER_CMD_16BIT, 0x098C, 0xA24F},
     {E_REGISTER_CMD_16BIT, 0x0990, 0x0038},
         
+     /* < DTS2012041604809 zhouqiwei 20120416 begin */
     /* add to modify max fps to 15*/
     {E_REGISTER_CMD_16BIT, 0x098C, 0x271F}, // MCU_ADDRESS [MODE_SENSOR_FRAME_LENGTH_A]
     {E_REGISTER_CMD_16BIT, 0x0990, 0x032A}, // MCU_DATA_0
+    /* DTS2012041604809 zhouqiwei 20120416 end > */
     {E_REGISTER_CMD_16BIT, 0x098C, 0xAB37},
     {E_REGISTER_CMD_16BIT, 0x0990, 0x0003},    
     
@@ -478,11 +493,13 @@ static struct mt9v113_i2c_reg_conf mt9v113_init_reg_config[] =
     {E_REGISTER_CMD_16BIT, 0x098C, 0xA103},
     {E_REGISTER_CMD_16BIT, 0x0990, 0x0005},
     {E_REGISTER_WAIT     , 0xA103, 0     }, //delay 100
+    /* DTS2012032603668 zhouqiwei 20120328 end > */
 
 //    {E_REGISTER_CMD_16BIT, 0x3400, 0x7A28},
     
 
 };
+/* DTS2012042705026 zhouqiwei 20120427 end > */
 
 
 
@@ -556,6 +573,7 @@ static struct mt9v113_i2c_reg_conf mt9v113_effect_aqua_reg_config[] =
 
 };
 
+/* < DTS2012032103952 zhouqiwei 20120321 begin */
 /*add the wb setting*/
 static struct mt9v113_i2c_reg_conf mt9v113_wb_auto_reg_config[] =
 {
@@ -576,6 +594,7 @@ static struct mt9v113_i2c_reg_conf mt9v113_wb_auto_reg_config[] =
     {E_REGISTER_CMD_16BIT, 0x0990, 0x0005},
 };
 
+/* < DTS2012032605873 zhouqiwei 20120402 begin */
 static struct mt9v113_i2c_reg_conf mt9v113_wb_incandescent_reg_config[] =
 {
     {E_REGISTER_CMD_16BIT, 0x098C, 0xA34a}, // MCU_ADDRESS 
@@ -594,6 +613,7 @@ static struct mt9v113_i2c_reg_conf mt9v113_wb_incandescent_reg_config[] =
     {E_REGISTER_CMD_16BIT, 0x098C, 0xA103},
     {E_REGISTER_CMD_16BIT, 0x0990, 0x0005},
 };
+/* DTS2012032605873 zhouqiwei 20120402 end > */
 
 static struct mt9v113_i2c_reg_conf mt9v113_wb_fluorescent_reg_config[] =
 {
@@ -654,13 +674,22 @@ static struct mt9v113_i2c_reg_conf mt9v113_wb_cloudy_reg_config[] =
     {E_REGISTER_CMD_16BIT, 0x0990, 0x0005},
 
 };
+/* DTS2012032103952 zhouqiwei 20120321 end > */ 
 /* DTS2012030105378 zhuqiwei 20120308 end > */
+/* DTS2012030203312 zhouqiwei 20120302 end > */
 
 
 static struct  mt9v113_work_t *mt9v113sensorw = NULL;
 static struct  i2c_client *mt9v113_client  = NULL;
 static struct mt9v113_ctrl_t *mt9v113_ctrl = NULL;
 
+/* <DTS2012041003722 sibingsong 20120410 begin */
+/*< DTS2012021702010 yuguangcai 20120217 begin */
+#define MODEL_SUNNY 0
+#define MODEL_BYD 1
+unsigned short model_id = 0;
+/* DTS2012021702010 yuguangcai 20120217 end > */
+/* DTS2012041003722 sibingsong 20120410 end> */
 
 static DECLARE_WAIT_QUEUE_HEAD(mt9v113_wait_queue);
 DEFINE_MUTEX(mt9v113_sem);
@@ -820,6 +849,7 @@ static int mt9v113_i2c_write_byte
     return 0;
 }
 
+/* < DTS2012032603668 zhouqiwei 20120328 begin */
 /* This function is use to wait for register become effect
  * if wait for more than 500ms, then timeout
  */
@@ -900,6 +930,7 @@ int32_t mt9v113_wait(int unsigned short waddr)
     
     return 0;
 }
+/* DTS2012032603668 zhouqiwei 20120328 end > */
 
 int32_t mt9v113_i2c_write_table(struct mt9v113_i2c_reg_conf *reg_conf_tbl, int num_of_items_in_table)
 {
@@ -932,14 +963,18 @@ int32_t mt9v113_i2c_write_table(struct mt9v113_i2c_reg_conf *reg_conf_tbl, int n
         }
         else if (E_REGISTER_WAIT == reg_conf_tbl->type)
         {
+           /* < DTS2012032603668 zhouqiwei 20120328 begin */
            // mdelay(reg_conf_tbl->value);
            mt9v113_wait(reg_conf_tbl->reg);
+           /* DTS2012032603668 zhouqiwei 20120328 end > */
         }
+        /* < DTS2012042705026 zhouqiwei 20120427 begin */
         /* delay some times */
         else if(E_REGISTER_DELAY == reg_conf_tbl->type)
         {
             mdelay(reg_conf_tbl->value);
         }
+        /* DTS2012042705026 zhouqiwei 20120427 end > */
         else
         {
             CDBG("mt9v113_i2c_write_table,reg[%d].type is wrong.\n", i);
@@ -1115,6 +1150,7 @@ int32_t mt9v113_move_focus(int direction, int32_t num_steps)
 
 static int mt9v113_sensor_init_done(const struct msm_camera_sensor_info *data)
 {
+    /* < DTS2012031403324 zhouqiwei 20120314 begin */
     /* is s5k5ca is not on, pull reset down, else do nothing */
     if(S5K5CA_IS_NOT_ON == data->get_s5k5ca_is_on())
     {
@@ -1126,19 +1162,23 @@ static int mt9v113_sensor_init_done(const struct msm_camera_sensor_info *data)
         CDBG("s5k5ca is on.\n");
     }
     gpio_free(data->sensor_reset);
+    /* DTS2012031403324 zhouqiwei 20120314 end > */
 
     gpio_direction_output(data->sensor_pwd, 1);
     gpio_free(data->sensor_pwd);
 
+    /*< DTS2012012901317 yuguangcai 20120131 begin */
     /*disable the power*/
     if (data->vreg_disable_func)
     {
         data->vreg_disable_func(0);
     }
+    /* DTS2012012901317 yuguangcai 20120131 end > */
 
     return 0;
 }
 
+/* < DTS2012031403324 zhouqiwei 20120314 begin */
 static int mt9v113_probe_init_sensor(const struct msm_camera_sensor_info *data)
 {
     int rc;
@@ -1222,6 +1262,7 @@ init_probe_fail:
 init_probe_done:
     return rc;
 }
+/* DTS2012031403324 zhouqiwei 20120314 end > */
 
 int mt9v113_sensor_open_init(const struct msm_camera_sensor_info *data)
 {
@@ -1476,7 +1517,9 @@ int mt9v113_sensor_config(void __user *argp)
         break;
 
     case CFG_SET_EFFECT:
+/* < DTS2012030203312 zhouqiwei 20120302 begin */
 /* enable set_effect function, delete if(0) */
+/* DTS2012030203312 zhouqiwei 20120302 end > */
         rc = mt9v113_set_effect(
             cdata.cfg.effect);
         break;
@@ -1495,6 +1538,7 @@ int mt9v113_sensor_config(void __user *argp)
     return rc;
 }
 
+/* < DTS2012040300372 zhouqiwei 20120524 begin */
 /* when cam_frame() is timeout, this function will be called to reset the sensor */
 static int mt9v113_reset_camera(void)
 {
@@ -1531,6 +1575,7 @@ static int mt9v113_reset_camera(void)
         
     return rc;
 }
+/* DTS2012040300372 zhouqiwei 20120524 end > */
 int mt9v113_sensor_release(void)
 {
     int rc = -EBADF;
@@ -1629,6 +1674,32 @@ static int mt9v113_sensor_probe(const struct msm_camera_sensor_info *info,
     }
     else
     {
+        /* <DTS2012041003722 sibingsong 20120410 begin */
+        /*< DTS2012021702010 yuguangcai 20120217 begin */
+        rc = mt9v113_i2c_write_table(mt9v113_init_reg_config,
+                                     sizeof(mt9v113_init_reg_config) / sizeof(mt9v113_init_reg_config[0]));
+        mdelay(50);
+        /*
+        * after sensor is initialized ,we distinguish the model by CAM_ID gpio:
+        * sunny model's GPIO[1] connects DGND, byd model's GPIO[1] connects to DOVDD
+        * bit[9] of register 0x1070 is the value of GPIO[1] signal, so we read
+        * the value of 0x1070 and move right 9 bits to get the GPIO[1] value
+        */
+        rc = mt9v113_i2c_write_word(mt9v113_client->addr,0x098C, 0x1070);
+        rc = mt9v113_i2c_read_word(mt9v113_client->addr,0x0990, &model_id);  
+        model_id = (model_id & 0x0200) >> 9;
+        CDBG("cam_id gpio[1]= %d\n", model_id);
+
+        if(MODEL_SUNNY == model_id)
+        {
+            strncpy((char *)info->sensor_name, "23060075FF-MT-S", strlen("23060075FF-MT-S"));
+        }
+        else
+        {
+            strncpy((char *)info->sensor_name, "23060075FF-MT-B", strlen("23060075FF-MT-B"));
+        }
+        /* DTS2012021702010 yuguangcai 20120217 end > */
+        /* DTS2012041003722 sibingsong 20120410 end> */
         CDBG("mt9v113 probe succeed!!!!\n");
     }
 
@@ -1644,7 +1715,9 @@ static int mt9v113_sensor_probe(const struct msm_camera_sensor_info *info,
 
     /*set the s_mount_angle value of sensor*/
     s->s_mount_angle = info->sensor_platform_info->mount_angle;
+    /* < DTS2012040300372 zhouqiwei 20120524 begin */
     s->s_reset_regs = mt9v113_reset_camera;
+    /* DTS2012040300372 zhouqiwei 20120524 end > */
     mt9v113_sensor_init_done(info);
 	
     /* For go to sleep mode, follow the datasheet */
@@ -1678,3 +1751,5 @@ static int __init mt9v113_init(void)
 
 module_init(mt9v113_init);
 
+/* DTS2011123001368 zhouqiwei 20111219 end > */
+/* DTS2012020400396 zhangyu 20120206 end > */

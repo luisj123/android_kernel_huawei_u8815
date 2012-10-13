@@ -1,3 +1,4 @@
+/* < DTS2011072705129    xiangxu 20110728 begin */
 /* Add new device node for torch */
 /*
  * Copyright (c) 2010, HUAWEI. All rights reserved.
@@ -19,6 +20,9 @@
 #include<linux/fs.h>
 #include<asm/atomic.h>
 #include<mach/camera.h>
+/* <DTS2012041003722 sibingsong 20120410 begin */
+#include <asm/mach-types.h>
+/* DTS2012041003722 sibingsong 20120410 end> */
 
 #define PRINT_BUG
 
@@ -82,47 +86,64 @@ static int hw_camera_led_open(struct inode *inode,struct file *file)
 
 static long hw_camera_led_ioctl(struct file *filep ,unsigned int cmd, unsigned long arg)
 {
-	int ret = 0;
-	unsigned int camera_led_state;
-	
-	CDBG("function %s enterence\n",__func__);
-	switch(cmd)
-	{
-		case CAMERA_LED_GET :
-			
-			camera_led_state = atomic_read(&camera_led_flag);
-			if(copy_to_user((void __user *)arg,&camera_led_state,sizeof(camera_led_state))) 
-			{
-				pr_err("function copy_to_user fail");
-				ret = -EFAULT;
-			}
-			break;
-		case CAMERA_LED_SET :
-			if(copy_from_user(&camera_led_state,(void __user *)arg,sizeof(camera_led_state)))
-			{
-				pr_err("function copy_from_user fail");
-				ret = -EFAULT;
-			}
-			else
-			{
-#ifdef CONFIG_HUAWEI_FEATURE_TPS61310
-				ret = tps61310_set_flash(camera_led_state);
+    int ret = 0;
+    unsigned int camera_led_state;
+
+    CDBG("function %s enterence\n", __func__);
+    switch (cmd)
+    {
+    case CAMERA_LED_GET:
+
+        camera_led_state = atomic_read(&camera_led_flag);
+        if (copy_to_user((void __user *)arg, &camera_led_state, sizeof(camera_led_state)))
+        {
+            pr_err("function copy_to_user fail");
+            ret = -EFAULT;
+        }
+
+        break;
+    case CAMERA_LED_SET:
+        if (copy_from_user(&camera_led_state, (void __user *)arg, sizeof(camera_led_state)))
+        {
+            pr_err("function copy_from_user fail");
+            ret = -EFAULT;
+        }
+        else
+        {
+/* <DTS2012041003722 sibingsong 20120410 begin */
+            /* < DTS2012021604840 ganfan 20120209 begin */
+            /* U8680 and U8730 use tps61310 flash driver IC, so set led with tps61310 function */
+#ifdef CONFIG_ARCH_MSM7X27A
+			ret = tps61310_set_flash(camera_led_state);
 #else
-				ret = msm_camera_flash_set_led_state(&hw_camera_led_data,camera_led_state);
+            if (machine_is_msm8255_u8680() 
+               || machine_is_msm8255_u8730()
+               //|| machine_is_msm8255_u8867z()
+				)
+            /* DTS2012021604840 ganfan 20120209 end > */
+            {
+                tps61310_set_flash(camera_led_state);
+            }
+            else
+            {
+                ret = msm_camera_flash_set_led_state(&hw_camera_led_data, camera_led_state);
+            }
 #endif
-				if(!ret)
-				{
-					atomic_set(&camera_led_flag,camera_led_state);
-				}
-			}
-			break;
-		default:
-			pr_err("hw_camera_led_ioctl:error ioctl cmd");
-			ret = -EINVAL;
-		
-	}
-	
-	return ret;
+/* DTS2012041003722 sibingsong 20120410 end> */
+
+            if (!ret)
+            {
+                atomic_set(&camera_led_flag, camera_led_state);
+            }
+        }
+
+        break;
+    default:
+        pr_err("hw_camera_led_ioctl:error ioctl cmd");
+        ret = -EINVAL;
+    }
+
+    return ret;
 }
 
 static int hw_camera_led_release(struct inode *inode,struct file *file)
@@ -160,3 +181,4 @@ static void __exit hw_camera_led_exit(void)
 module_init(hw_camera_led_init);
 module_exit(hw_camera_led_exit);
 
+/* DTS2011072705129    xiangxu 20110728 end > */

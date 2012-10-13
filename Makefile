@@ -569,7 +569,9 @@ else
 KBUILD_CFLAGS	+= -O2
 endif
 
+# /* <BU5D10533 duangan 2010-5-26 begin */
 KBUILD_CFLAGS	+= -DHUAWEI_KERNEL_VERSION=\"${HUAWEI_KERNEL_VERSION}\"
+# /* BU5D10533 duangan 2010-5-26 end> */
 include $(srctree)/arch/$(SRCARCH)/Makefile
 
 ifneq ($(CONFIG_FRAME_WARN),0)

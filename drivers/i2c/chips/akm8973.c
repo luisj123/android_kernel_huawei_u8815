@@ -27,13 +27,17 @@
 #include <linux/workqueue.h>
 #include <linux/freezer.h>
 #include <linux/akm8973.h>
+/* <DTS2012030804064 sunwenyong 20120308 begin */
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
 #include <linux/hw_dev_dec.h>
 #endif
+/* DTS2012030804064 sunwenyong 20120308 end> */
 #define DEBUG 0
 #define MAX_FAILURE_COUNT 3
 
+/* < DTS2011011002378   liujinggang 20110110 begin */
 #define AKM8973_I2C_NAME "akm8973"
+/* DTS2011011002378   liujinggang 20110110 end > */
 static struct i2c_client *this_client;
 
 struct akm8973_data {
@@ -391,8 +395,10 @@ akm_aot_ioctl(struct file *file,
 	case ECS_IOCTL_APP_GET_DELAY:
 		flag = akmd_delay;
 		break;
+/* < DTS2011011002378   liujinggang 20110110 begin */
 	case ECS_IOCTL_APP_GET_DEVID:
 		break;
+/* DTS2011011002378   liujinggang 20110110 end > */
 	default:
 		return -ENOTTY;
 	}
@@ -406,11 +412,13 @@ akm_aot_ioctl(struct file *file,
 		if (copy_to_user(argp, &flag, sizeof(flag)))
 			return -EFAULT;
 		break;
+/* < DTS2011011002378   liujinggang 20110110 begin */
 /*get the DEVID*/
 	case ECS_IOCTL_APP_GET_DEVID:
 		if (copy_to_user(argp, AKM8973_I2C_NAME, strlen(AKM8973_I2C_NAME)+1))
 			return -EFAULT;
 		break;
+/* DTS2011011002378   liujinggang 20110110 end > */
 	default:
 		break;
 	}
@@ -693,10 +701,12 @@ int akm8973_probe(struct i2c_client *client, const struct i2c_device_id *id)
 		       "AKM8973 akm8973_probe: akm_aot_device register failed\n");
 		goto exit_misc_device_register_failed;
 	}
+/* <DTS2012030804064 sunwenyong 20120308 begin */
 /* detect current device successful, set the flag as present */
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
 	set_hw_dev_flag(DEV_I2C_APS);
 #endif
+/* DTS2012030804064 sunwenyong 20120308 end> */
 	mutex_init(&sense_data_mutex);
 
 	init_waitqueue_head(&data_ready_wq);

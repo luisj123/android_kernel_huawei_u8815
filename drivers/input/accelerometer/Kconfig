@@ -10,7 +10,9 @@ menuconfig HUAWEI_FEATURE_INPUT_ACCELEROMETER
 	  This option doesn't affect the kernel.
 
 	 
+#/* < DTS2012020902104 zhangmin 20120209 begin */
 #/*delete select SERIO*/
+#/* < DTS2011043000257  liujinggang 20110503 begin */
 if HUAWEI_FEATURE_INPUT_ACCELEROMETER
 
 config HUAWEI_FEATURE_ACCELEROMETER_ADXL345
@@ -28,6 +30,8 @@ config HUAWEI_FEATURE_ACCELEROMETER_ST_L1S35DE
 	help
 	  Say Y here if you have the ST LIS35DE accelerometer.
 #BK4D00610, add  freescale config, dingxifeng KF14049, 2009-5-25 begin#
+#/* < DTS2011042703449  liujinggang 20110427 begin */
+#/* < DTS2012013004920 zhangmin 20120130 begin */
 config HUAWEI_FEATURE_SENSORS_ACCELEROMETER_MMA8452
 	tristate "FREESCALE MMA8452 accelerometer"
 	default n 
@@ -50,8 +54,14 @@ config HUAWEI_FEATURE_SENSORS_ACCELEROMETER_ST_LIS3XH
 	default n 
 	help
 	  Say Y here if you have the ST LIS3DH and LIS331DLH accelerometer.
+#/* < DTS2012022405847 zhangmin 20120224 begin */
 config HUAWEI_FEATURE_SENSORS_ACCELEROMETER_KXTIK1004
 	tristate "KXTIK-1004 accelerometer"	
 	help
 	  Say Y here if you have the KXTIK-1004 accelerometer.
+#/* DTS2012022405847 zhangmin 20120224 end > */
+#/* DTS2012013004920 zhangmin 20120130 end > */
+#/* DTS2011042703449  liujinggang 20110427 end > */
 endif
+#/* DTS2011043000257  liujinggang 20110503 end > */
+#/* DTS2012020902104 zhangmin 20120209 end > */

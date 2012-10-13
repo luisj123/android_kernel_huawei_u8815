@@ -1,3 +1,4 @@
+/* < DTS2011090704268 jiaxianghong 20110914 begin */
 #ifndef __RSM_FIND_FUNC_ADDR_H
 #define __RSM_FIND_FUNC_ADDR_H
 
@@ -32,3 +33,4 @@ extern DEF_PUT_TASK_STRUCT DEF_PUT_TASK_STRUCT_TMP;
 
 
 #endif /*__SYSCHK_FIND_FUNC_ADDR_H*/
+/* DTS2011090704268 jiaxianghong 20110914 end > */

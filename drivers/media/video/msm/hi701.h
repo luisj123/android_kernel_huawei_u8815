@@ -1,3 +1,4 @@
+/*< DTS2011051400258   songxiaoming 20110514 begin */
 
 /*
  * Copyright (c) 2008-2009 QUALCOMM USA, INC.
@@ -22,3 +23,4 @@
 
 #include <mach/board.h>
 #endif /* HI701_H */
+/* DTS2011051400258   songxiaoming 20110514 end > */

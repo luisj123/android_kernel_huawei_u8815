@@ -2188,11 +2188,13 @@ int mdp4_overlay_set(struct fb_info *info, struct mdp_overlay *req)
 		mdp4_hsic_set(pipe, &(req->dpp));
 
 	mdp4_stat.overlay_set[pipe->mixer_num]++;
+    /*< DTS2011072603082 fengwei 20110806 begin*/
     /*delete some lines*/
     /*for resolving freeze screen because of 60 frame freq and CTS TEST*/
 	if (ctrl->panel_mode & MDP4_PANEL_MDDI) {
 		if (mdp_hw_revision == MDP4_REVISION_V2_1 &&
 			pipe->mixer_num == MDP4_MIXER0)
+		/*< DTS2011091001586 lijianzhao 20110910 begin */
 		/* keep set_flag and unset_flag as mutex ,solve 30fps can't recover 60fps */
 		{
 			mdp4_overlay_status_write(MDP4_OVERLAY_TYPE_SET, true);
@@ -2200,7 +2202,9 @@ int mdp4_overlay_set(struct fb_info *info, struct mdp_overlay *req)
 				mdp4_overlay_status_write(MDP4_OVERLAY_TYPE_UNSET, false);
 			#endif
 		}
+		/* DTS2011091001586 lijianzhao 20110910 end >*/
 	}
+    /*DTS2011072603082 fengwei 20110806 end >*/
 	
 	if (ctrl->panel_mode & MDP4_PANEL_DTV &&
 	    pipe->mixer_num == MDP4_MIXER1)
@@ -2279,8 +2283,10 @@ int mdp4_overlay_unset(struct fb_info *info, int ndx)
 		}
 #else
 		if (ctrl->panel_mode & MDP4_PANEL_MDDI) {
+            /*< DTS2011072603082 fengwei 20110806 begin*/
             /*for resolving freeze screen because of 60 frame freq and CTS TEST*/
 			if (mdp_hw_revision == MDP4_REVISION_V2_1)
+			/*< DTS2011091001586 lijianzhao 20110910 begin */
 			/* keep set_flag and unset_flag as mutex ,solve 30fps can't recover 60fps */
 			{
 				mdp4_overlay_status_write(
@@ -2290,6 +2296,8 @@ int mdp4_overlay_unset(struct fb_info *info, int ndx)
 						MDP4_OVERLAY_TYPE_SET, false);
 				#endif
 			}
+			/* DTS2011091001586 lijianzhao 20110910 end >*/
+            /*DTS2011072603082 fengwei 20110806 end >*/
 			if (mfd->panel_power_on)
 				mdp4_mddi_dma_busy_wait(mfd);
 		}
@@ -2316,6 +2324,7 @@ int mdp4_overlay_unset(struct fb_info *info, int ndx)
 #else
 		if (ctrl->panel_mode & MDP4_PANEL_MDDI) {
 			if (mdp_hw_revision == MDP4_REVISION_V2_1)
+			/*< DTS2011091001586 lijianzhao 20110910 begin */
 			/* keep set_flag and unset_flag as mutex ,solve 30fps can't recover 60fps */
 			{
 				mdp4_overlay_status_write(
@@ -2325,6 +2334,7 @@ int mdp4_overlay_unset(struct fb_info *info, int ndx)
 						MDP4_OVERLAY_TYPE_SET, false);
 				#endif
 			}
+			/* DTS2011091001586 lijianzhao 20110910 end >*/
 			if (mfd->panel_power_on)
 				mdp4_mddi_overlay_restore();
 		}

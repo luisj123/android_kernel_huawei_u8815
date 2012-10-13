@@ -523,6 +523,7 @@ int __init msm_add_sdcc(unsigned int controller, struct mmc_platform_data *plat)
 	return platform_device_register(pdev);
 }
 
+/* < DTS2012011305204 libeibei 20120120 begin */
 #ifdef CONFIG_HUAWEI_FEATURE_OEMINFO
 static struct resource rmt_oeminfo_resources[] = {
        {
@@ -543,6 +544,7 @@ int __init rmt_oeminfo_add_device(void)
   return 0;
 }
 #endif
+/* DTS2012011305204 libeibei 20120120 end > */
 
 #ifdef CONFIG_MSM_CAMERA_V4L2
 static struct resource msm_csic0_resources[] = {
@@ -694,11 +696,13 @@ static struct kgsl_device_platform_data kgsl_3d0_pdata = {
 	.init_level = 0,
 	.num_levels = 3,
 	.set_grp_async = set_grp_xbar_async,
+	/*< DTS2012041906630 zhangxiangdang 20120423 begin */
 	/*merge qc patch to fix kgsl issue.*/
 	.idle_timeout = HZ,
 	.strtstp_sleepwake = true,
 	.nap_allowed = false,
 	/*.idle_needed = false,*/
+	/* DTS2012041906630 zhangxiangdang 20120423 end > */
 	.clk_map = KGSL_CLK_CORE | KGSL_CLK_IFACE | KGSL_CLK_MEM,
 };
 

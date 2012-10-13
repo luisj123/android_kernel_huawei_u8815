@@ -1,3 +1,4 @@
+/* < DTS2011042801270 yuezenglong 20110428 begin */
 
 /* drivers/i2c/gyroscope/l3g4200d.h
  *
@@ -33,8 +34,10 @@
 #define L3G4200D_SET_FUSION_DATA    _IOW(L3G4200D_IOCTL_BASE, 6, int)
 
 #define ECS_IOCTL_APP_GET_CAL  	    _IOR(0xA1, 0x21, short)  //mmi test
+/* < DTS2011071303318 yuezenglong 20110713 begin */
 #define ECS_IOCTL_APP_GET_GYRO_DATA  	_IOR(0xA1, 0x22, short)
 #define ECS_IOCTL_APP_GET_GYRO_CAL  	_IOR(0xA1, 0x23, short)
+/* DTS2011071303318 yuezenglong 20110713 end > */
 
 #define L3G4200D_FS_250DPS	0x00
 #define L3G4200D_FS_500DPS	0x10
@@ -57,3 +60,4 @@
 #define ODR800_BW100	0xF0  /* ODR = 800Hz; BW = 100Hz  */
 
 #endif  /* __L3G4200D_H__ */
+/* DTS2011042801270 yuezenglong 20110428 end > */

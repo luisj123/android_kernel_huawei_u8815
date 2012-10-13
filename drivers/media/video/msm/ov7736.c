@@ -1,3 +1,4 @@
+/*< DTS2011072600848   songxiaoming 20110726 begin */
 
 /*
  * Copyright (c) 2008-2009 QUALCOMM USA, INC.
@@ -288,6 +289,7 @@ static struct ov7736_i2c_reg_conf ov7736_init_reg_config_comm[] =
     {0x3818, 0x40}, //mirror and flip
 };
 
+/*< DTS2011072504793   songxiaoming 20110803 begin */
 /*add the effect setting*/
 static struct ov7736_i2c_reg_conf ov7736_effect_off_reg_config[] =
 {
@@ -379,6 +381,7 @@ static struct ov7736_i2c_reg_conf ov7736_wb_cloudy_reg_config[] =
     {0x5053,0x00},
 
 };
+/* DTS2011072504793   songxiaoming 20110803 end > */
 
 static struct  ov7736_work_t *ov7736sensorw = NULL;
 
@@ -528,6 +531,7 @@ int32_t ov7736_set_default_focus(uint8_t af_step)
     return rc;
 }
 
+/*< DTS2011072504793   songxiaoming 20110803 begin */
 /*add the effect setting*/
 int32_t ov7736_set_effect(int32_t effect)
 {
@@ -616,6 +620,7 @@ int32_t ov7736_set_wb(int32_t wb)
     return rc;
 
 }
+/* DTS2011072504793   songxiaoming 20110803 end > */
 int32_t ov7736_set_fps(struct fps_cfg    *fps)
 {
     /* input is new fps in Q8 format */
@@ -759,7 +764,9 @@ static int ov7736_sensor_init_done(const struct msm_camera_sensor_info *data)
 
     if (data->vreg_disable_func)
     {
+        /*< DTS2012020400396 zhangyu 20120206 begin */
         data->vreg_disable_func(0);
+        /* DTS2012020400396 zhangyu 20120206 end > */
     }
 
     return 0;
@@ -795,7 +802,9 @@ static int ov7736_probe_init_sensor(const struct msm_camera_sensor_info *data)
     mdelay(5);
     if (data->vreg_enable_func)
     {
+        /*< DTS2012020400396 zhangyu 20120206 begin */
         data->vreg_enable_func(1);
+        /* DTS2012020400396 zhangyu 20120206 end > */
     }
 
     mdelay(5);
@@ -1021,6 +1030,7 @@ int ov7736_sensor_config(void __user *argp)
         break;
 
     case CFG_SET_EFFECT:
+		/*< DTS2011072504793   songxiaoming 20110803 begin */
         rc = ov7736_set_effect(
             cdata.cfg.effect);
         break;
@@ -1029,6 +1039,7 @@ int ov7736_sensor_config(void __user *argp)
         rc = ov7736_set_wb(
             cdata.cfg.effect);
         break;
+		/* DTS2011072504793   songxiaoming 20110803 end > */
 
     default:
         rc = -EFAULT;
@@ -1178,3 +1189,4 @@ static int __init ov7736_init(void)
 
 module_init(ov7736_init);
 
+/* DTS2011072600848   songxiaoming 20110726 end > */

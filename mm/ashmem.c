@@ -361,6 +361,8 @@ static int ashmem_shrink(struct shrinker *s, struct shrink_control *sc)
 	if (!sc->nr_to_scan)
 		return lru_count;
 
+	/*< DTS2012021003176 yanzhijun 20120210 begin */
+	/* merge DTS2011120907436 yanzhijun */
 	/* android bug:When system memory is on low sate, some application (such as:SmsReceiverServ thread) 
 	will allocate memory while holding the ashmem_mutex in ashmem_mmap function may try to directly 
 	reclaim memory. Then ashmem_shrink() is called in same thread. It will deadlock at acquiring ashmem_mutex.
@@ -375,6 +377,7 @@ static int ashmem_shrink(struct shrinker *s, struct shrink_control *sc)
 #else
     mutex_lock(&ashmem_mutex);
 #endif
+	/* DTS2012021003176 yanzhijun 20120210 end >*/ 
 	
 	list_for_each_entry_safe(range, next, &ashmem_lru_list, lru) {
 		struct inode *inode = range->asma->file->f_dentry->d_inode;
@@ -683,6 +686,8 @@ done:
 }
 #endif
 
+/*< DTS2012021003176 yanzhijun 20120210 begin */
+/* merge DTS2011120907436 yanzhijun */
 #ifndef CONFIG_HUAWEI_KERNEL
 static int ashmem_cache_op(struct ashmem_area *asma,
 	void (*cache_func)(unsigned long vstart, unsigned long length,
@@ -738,6 +743,7 @@ done:
 	return ret;
 }
 #endif
+/* DTS2012021003176 yanzhijun 20120210 end >*/ 
 
 static long ashmem_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {

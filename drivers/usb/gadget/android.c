@@ -35,9 +35,11 @@
 
 #include "gadget_chips.h"
 
+/*< DTS2012011801998 chenxi 20120203 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 #include <asm-arm/huawei/usb_switch_huawei.h>
 #endif
+/* DTS2012011801998 chenxi 20120203 end >*/
 
 /*
  * Kbuild is not very cooperative with respect to linking separately
@@ -87,17 +89,21 @@ static const char longname[] = "Gadget Android";
 #define PRODUCT_ID		0x0001
 
 
+/*< DTS2012011801998 chenxi 20120203 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 /* string id of sequence number in string descriptor */
 static int serial_str_id = -1;
 #endif  /* CONFIG_HUAWEI_KERNEL */
+/* DTS2012011801998 chenxi 20120203 end >*/
 
+/* < DTS2012022706082 chenxi 20120302 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 /* 0: no usb port switch request has been sent
  * 1: one usb port switch request has already been sent at least
  */
 static int switch_request = 0;
 #endif
+/* DTS2012022706082 chenxi 20120302 end > */
 
 struct android_usb_function {
 	char *name;
@@ -135,6 +141,7 @@ struct android_dev {
 	bool enabled;
 	bool connected;
 	bool sw_connected;
+    /* < DTS2012032801176 chenxi 20120328 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
     /* the flag to indicate sending the usb state uevent or not.
      * 1-the sending of usb state uevent is disabled;
@@ -142,6 +149,7 @@ struct android_dev {
      */
 	bool disable_uevent;
 #endif	
+    /* DTS2012032801176 chenxi 20120328 end > */
 	struct work_struct work;
 };
 
@@ -196,6 +204,7 @@ static struct usb_configuration android_config_driver = {
 	.bMaxPower	= 0xFA, /* 500ma */
 };
 
+/*< DTS2012011801998 chenxi 20120203 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 /*
  * usb_port_switch_request: submit usb switch request by sending uevent 
@@ -209,9 +218,11 @@ void usb_port_switch_request(int usb_pid_index)
 	char *envp[2] = {event_buf, NULL};
 	int ret;
 
+    /* < DTS2012021307208 chenxi 20120215 begin */
     /* delete 5 lines
      * the if statement is moved to the outside of the function
      */
+    /* DTS2012021307208  chenxi 20120215 end > */
 
     snprintf(event_buf, sizeof(event_buf),"USB_PORT_SWITCH=%d", usb_pid_index);
 
@@ -222,15 +233,18 @@ void usb_port_switch_request(int usb_pid_index)
         USB_PR("%s: uevent sending failed with ret = %d\n", __func__, ret);
     }
 
+    /* < DTS2012022706082 chenxi 20120302 begin */
     /* framework may lost the requeset uevent when start with usb connection in normal mode
      * use switch_request as a flag to record a request has been sent already.
      */
     switch_request = 1;
+    /* DTS2012022706082 chenxi 20120302 end > */
     
 	return;
 }
 EXPORT_SYMBOL(usb_port_switch_request);
 #endif  /* CONFIG_HUAWEI_KERNEL */
+/* DTS2012011801998 chenxi 20120203 end >*/
 
 static void android_work(struct work_struct *data)
 {
@@ -250,6 +264,7 @@ static void android_work(struct work_struct *data)
 	dev->sw_connected = dev->connected;
 	spin_unlock_irqrestore(&cdev->lock, flags);
 
+    /* < DTS2012032801176 chenxi 20120328 begin */
 #ifdef CONFIG_HUAWEI_KERNEL 
     /* send the uevent or do nothing */
 	if (uevent_envp && !dev->disable_uevent) {
@@ -264,6 +279,7 @@ static void android_work(struct work_struct *data)
 		kobject_uevent_env(&dev->dev->kobj, KOBJ_CHANGE, uevent_envp);
 		pr_info("%s: sent uevent %s\n", __func__, uevent_envp[0]);
 #endif
+    /* DTS2012032801176 chenxi 20120328 end > */
 	} else {
 		pr_info("%s: did not send uevent (%d %d %p)\n", __func__,
 			 dev->connected, dev->sw_connected, cdev->config);
@@ -911,6 +927,7 @@ struct mass_storage_function_config {
 	struct fsg_common *common;
 };
 
+/* < DTS2012022400909 chenxi 20120224 begin */
 static int mass_storage_function_init(struct android_usb_function *f,
 					struct usb_composite_dev *cdev)
 {
@@ -975,6 +992,7 @@ static int mass_storage_function_init(struct android_usb_function *f,
 	f->config = config;
 	return 0;
 }
+/* DTS2012022400909 chenxi 20120224 end > */
 
 static void mass_storage_function_cleanup(struct android_usb_function *f)
 {
@@ -1009,6 +1027,7 @@ static ssize_t mass_storage_inquiry_store(struct device *dev,
 	return size;
 }
 
+/* < DTS2012022400909 chenxi 20120224 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 /*
  * nluns_show: to get the total number of luns
@@ -1101,6 +1120,7 @@ static ssize_t cdrom_index_store(struct device *pdev, struct device_attribute *a
 static DEVICE_ATTR(nluns, S_IRUGO | S_IWUSR, nluns_show, nluns_store);
 static DEVICE_ATTR(cdrom_index, S_IRUGO | S_IWUSR, cdrom_index_show, cdrom_index_store);
 #endif
+/* DTS2012022400909 chenxi 20120224 end > */
 
 static DEVICE_ATTR(inquiry_string, S_IRUGO | S_IWUSR,
 					mass_storage_inquiry_show,
@@ -1108,10 +1128,12 @@ static DEVICE_ATTR(inquiry_string, S_IRUGO | S_IWUSR,
 
 static struct device_attribute *mass_storage_function_attributes[] = {
 	&dev_attr_inquiry_string,
+    /* < DTS2012022400909 chenxi 20120224 begin */
     #ifdef CONFIG_HUAWEI_KERNEL
 	&dev_attr_nluns,
 	&dev_attr_cdrom_index,
 	#endif
+    /* DTS2012022400909 chenxi 20120224 end > */
 	NULL
 };
 
@@ -1342,10 +1364,12 @@ functions_store(struct device *pdev, struct device_attribute *attr,
 	strlcpy(buf, buff, sizeof(buf));
 	b = strim(buf);
 
+    /* < DTS2012022706082 chenxi 20120302 begin */
     /* print informatin for debug */    
 #ifdef CONFIG_HUAWEI_KERNEL
 	pr_info("%s: %s\n", __func__, buf);
 #endif	
+    /* DTS2012022706082 chenxi 20120302 end > */
 
 	while (b) {
 		name = strsep(&b, ",");
@@ -1375,6 +1399,7 @@ static ssize_t enable_store(struct device *pdev, struct device_attribute *attr,
 
 	sscanf(buff, "%d", &enabled);
 
+    /*< DTS2012011801998 chenxi 20120203 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
     /* cleanup usb serial number for normal and factory mode */
     if(!strcmp(serial_string, "cleanup"))
@@ -1400,6 +1425,7 @@ static ssize_t enable_store(struct device *pdev, struct device_attribute *attr,
         }
     }
 #endif  /* CONFIG_HUAWEI_KERNEL */
+    /* DTS2012011801998 chenxi 20120203 end >*/
 
 	if (enabled && !dev->enabled) {
 		/* update values in composite driver's copy of device descriptor */
@@ -1416,10 +1442,12 @@ static ssize_t enable_store(struct device *pdev, struct device_attribute *attr,
 		usb_gadget_connect(cdev->gadget);
 		dev->enabled = true;
 	} else if (!enabled && dev->enabled) {
+        /* < DTS2012022400909 chenxi 20120224 begin */
         /* close all stored file in each lun */
 #ifdef CONFIG_HUAWEI_KERNEL        
         fsg_close_all_file(((struct mass_storage_function_config *)mass_storage_function.config)->common);
 #endif
+        /* DTS2012022400909 chenxi 20120224 end > */
 		usb_gadget_disconnect(cdev->gadget);
 		usb_remove_config(cdev, &android_config_driver);
 		dev->enabled = false;
@@ -1451,6 +1479,7 @@ out:
 	return snprintf(buf, PAGE_SIZE, "%s\n", state);
 }
 
+/* < DTS2012022706082 chenxi 20120302 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 static ssize_t switch_request_show(struct device *pdev, struct device_attribute *attr,
 			   char *buf)
@@ -1465,6 +1494,7 @@ static ssize_t switch_request_store(struct device *pdev, struct device_attribute
     return size;
 }
 #endif	
+/* DTS2012022706082 chenxi 20120302 end > */
 
 #define DESCRIPTOR_ATTR(field, format_string)				\
 static ssize_t								\
@@ -1522,12 +1552,14 @@ static DEVICE_ATTR(enable, S_IRUGO | S_IWUSR, enable_show, enable_store);
 static DEVICE_ATTR(state, S_IRUGO, state_show, NULL);
 static DEVICE_ATTR(remote_wakeup, S_IRUGO | S_IWUSR,
 		remote_wakeup_show, remote_wakeup_store);
+/* < DTS2012022706082 chenxi 20120302 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 /* read the attribute to indentify if there is a switch request has been sent or not
  * write 0 to clear the request flag
  */
 static DEVICE_ATTR(switch_request, S_IRUGO | S_IWUSR, switch_request_show, switch_request_store);
 #endif	
+/* DTS2012022706082 chenxi 20120302 end > */
 
 static struct device_attribute *android_usb_attributes[] = {
 	&dev_attr_idVendor,
@@ -1543,9 +1575,11 @@ static struct device_attribute *android_usb_attributes[] = {
 	&dev_attr_enable,
 	&dev_attr_state,
 	&dev_attr_remote_wakeup,
+    /* < DTS2012022706082 chenxi 20120302 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
     &dev_attr_switch_request,
 #endif	
+    /* DTS2012022706082 chenxi 20120302 end > */
 	NULL
 };
 
@@ -1602,6 +1636,7 @@ static int android_bind(struct usb_composite_dev *cdev)
 	strlcpy(manufacturer_string, "Android",
 		sizeof(manufacturer_string) - 1);
 	strlcpy(product_string, "Android", sizeof(product_string) - 1);
+    /*< DTS2012011801998 chenxi 20120203 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
     if(0 != usb_para_data.usb_para.usb_serial[0])
     {
@@ -1611,6 +1646,7 @@ static int android_bind(struct usb_composite_dev *cdev)
     else
     {
 	    strlcpy(serial_string, USB_DEFAULT_SN, sizeof(serial_string) - 1);
+        /* < DTS2012022706082 chenxi 20120302 begin */
         /* if the usb_serial is null and the nv value is google index, init.c will set
 	     * the ports to factory mode. so update the variable to keep consistent.
 	     */
@@ -1619,20 +1655,24 @@ static int android_bind(struct usb_composite_dev *cdev)
             USB_PR("%s usb serial number is null in google mode. so switch to original mode\n", __func__);
             usb_para_data.usb_para.usb_pid_index = ORI_INDEX;
         }
+        /* DTS2012022706082 chenxi 20120302 end > */
     }
 #else
 	strlcpy(serial_string, "0123456789ABCDEF", sizeof(serial_string) - 1);
 #endif  /* CONFIG_HUAWEI_KERNEL */
+    /* DTS2012011801998 chenxi 20120203 end >*/
 
 	id = usb_string_id(cdev);
 	if (id < 0)
 		return id;
 	strings_dev[STRING_SERIAL_IDX].id = id;
 	device_desc.iSerialNumber = id;
+    /*< DTS2012011801998 chenxi 20120203 begin */
     /* backup the serial str id */
 #ifdef CONFIG_HUAWEI_KERNEL
     serial_str_id = id;
 #endif  /* CONFIG_HUAWEI_KERNEL */
+    /* DTS2012011801998 chenxi 20120203 end >*/
 
 	gcnum = usb_gadget_controller_number(gadget);
 	if (gcnum >= 0)
@@ -1717,6 +1757,7 @@ android_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *c)
 	return value;
 }
 
+/* < DTS2012032801176 chenxi 20120328 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 /*
  * android_disable_send_uevent: disable sending usb state uevent
@@ -1733,6 +1774,7 @@ void android_disable_send_uevent(bool disable)
     }
 }
 #endif
+/* DTS2012032801176 chenxi 20120328 end > */
 
 static void android_disconnect(struct usb_gadget *gadget)
 {

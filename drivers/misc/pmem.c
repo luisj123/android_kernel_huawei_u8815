@@ -169,10 +169,12 @@ struct pmem_info {
 
 	/* actual size of memory element, e.g.: (4 << 10) is 4K */
 	unsigned int quantum;
+    /* < DTS2012031903751 lizhigang 20120319 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 	/* the max allocated size the whole time  */
 	unsigned int allocated_max_quanta;
 #endif
+    /* DTS2012031903751 lizhigang 20120319 end > */
 	/* indicates maps of this region should be cached, if a mix of
 	 * cached and uncached is desired, set this and open the device with
 	 * O_SYNC to get an uncached region */
@@ -460,6 +462,7 @@ static ssize_t show_pmem_quantum_size(int id, char *buf)
 }
 RO_PMEM_ATTR(quantum_size);
 
+/* < DTS2012031903751 lizhigang 20120319 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 static ssize_t show_pmem_max_allocated_quanta(int id, char *buf)
 {
@@ -470,6 +473,7 @@ static ssize_t show_pmem_max_allocated_quanta(int id, char *buf)
 
 RO_PMEM_ATTR(max_allocated_quanta);
 #endif
+/* DTS2012031903751 lizhigang 20120319 end > */
 
 static ssize_t show_pmem_buddy_bitmap_dump(int id, char *buf)
 {
@@ -552,9 +556,11 @@ static struct attribute *pmem_bitmap_attrs[] = {
 
 	&pmem_attr_free_quanta.attr,
 	&pmem_attr_bits_allocated.attr,
+    /* < DTS2012031903751 lizhigang 20120319 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 	&pmem_attr_max_allocated_quanta.attr,
 #endif
+    /* DTS2012031903751 lizhigang 20120319 end > */
 	NULL
 };
 
@@ -1355,12 +1361,14 @@ static int pmem_allocator_bitmap(const int id,
 	pmem[id].allocator.bitmap.bitmap_free -= quanta_needed;
 	pmem[id].allocator.bitmap.bitm_alloc[i].bit = bitnum;
 	pmem[id].allocator.bitmap.bitm_alloc[i].quanta = quanta_needed;
+    /* < DTS2012031903751 lizhigang 20120319 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 	/* save the max allocated quanta when alloc pmem */
 	if ((pmem[id].num_entries - pmem[id].allocator.bitmap.bitmap_free) > pmem[id].allocated_max_quanta){
 		pmem[id].allocated_max_quanta = pmem[id].num_entries - pmem[id].allocator.bitmap.bitmap_free;
 	}
 #endif
+    /* DTS2012031903751 lizhigang 20120319 end > */
 leave:
 	return bitnum;
 }

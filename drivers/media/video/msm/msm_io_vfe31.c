@@ -111,6 +111,7 @@ static struct clk *camio_csi_vfe_clk;
 static struct clk *camio_jpeg_clk;
 static struct clk *camio_jpeg_pclk;
 static struct clk *camio_vpe_clk;
+/*<BU5D09497  lijuan 00152865  20100514 begin*/
 #ifndef CONFIG_HUAWEI_CAMERA
 static struct vreg *vreg_gp2;
 static struct vreg *vreg_lvsw1;
@@ -118,6 +119,7 @@ static struct vreg *vreg_gp6;
 static struct vreg *vreg_gp16;
 static struct regulator *fs_vfe;
 #endif
+/*BU5D09497  lijuan 00152865  20100514 end>*/
 static struct regulator *fs_vpe;
 static struct msm_camera_io_ext camio_ext;
 static struct msm_camera_io_clk camio_clk;
@@ -126,6 +128,7 @@ void __iomem *camifpadbase, *csibase;
 static uint32_t vpe_clk_rate;
 static uint32_t jpeg_clk_rate;
 
+/*<BU5D09497  lijuan 00152865  20100514 begin*/
 #ifndef CONFIG_HUAWEI_CAMERA
 static struct regulator_bulk_data regs[] = {
 	{ .supply = "gp2",  .min_uV = 2600000, .max_uV = 2600000 },
@@ -136,6 +139,7 @@ static struct regulator_bulk_data regs[] = {
 	{ .supply = "gp16", .min_uV = 1200000, .max_uV = 1200000 },
 };
 #endif
+/*BU5D09497  lijuan 00152865  20100514 end>*/
 
 static int reg_count;
 
@@ -217,6 +221,7 @@ void msm_io_memcpy(void __iomem *dest_addr, void __iomem *src_addr, u32 len)
 
 static void msm_camera_vreg_enable(struct platform_device *pdev)
 {
+/*<BU5D09497  lijuan 00152865  20100514 begin*/
 #ifndef CONFIG_HUAWEI_CAMERA
 	int count, rc;
 
@@ -259,16 +264,19 @@ reg_free:
 	regulator_bulk_free(count, regs);
 	return;
 #endif
+/*BU5D09497  lijuan 00152865  20100514 end>*/
 }
 
 
 static void msm_camera_vreg_disable(void)
 {
+/*<BU5D09497  lijuan 00152865  20100514 begin*/
 #ifndef CONFIG_HUAWEI_CAMERA
 	regulator_bulk_disable(reg_count, regs);
 	regulator_bulk_free(reg_count, regs);
 	reg_count = 0;
 #endif
+/*BU5D09497  lijuan 00152865  20100514 end>*/
 }
 
 int msm_camio_clk_enable(enum msm_camio_clk_type clktype)

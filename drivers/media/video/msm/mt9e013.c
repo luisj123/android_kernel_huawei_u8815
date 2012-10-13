@@ -27,18 +27,24 @@
 #include <mach/gpio.h>
 #include <mach/camera.h>
 #include "mt9e013.h"
+/* < DTS2011052803160 shenjinming 20110611 begin */
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
 #include <linux/hw_dev_dec.h>
 #endif
+/* DTS2011052803160 shenjinming 201106011 end > */
+/* < DTS2011070401622 lijuan 20110703 begin */
 /*Define OTP reading flag*/
 #define FALSE 0
 #define TRUE 1
 static bool OTP_READ = FALSE;
+/* DTS2011070401622 lijuan 20110703 end > */
 /*=============================================================
 	SENSOR REGISTER DEFINES
 ==============================================================*/
+/*<DTS2011042704563 penghai 20110427 begin*/
 #define MT9E013_REG_MODEL_ID 0x0000
 #define MT9E013_MODEL_ID 0x4B00
+/*DTS2011042704563 penghai 20110427 end>*/
 #define REG_GROUPED_PARAMETER_HOLD		0x0104
 #define GROUPED_PARAMETER_HOLD_OFF		0x00
 #define GROUPED_PARAMETER_HOLD			0x01
@@ -60,8 +66,11 @@ static bool OTP_READ = FALSE;
 #define Q8	0x00000100
 #define Q10	0x00000400
 #define MT9E013_MASTER_CLK_RATE 24000000
+/*<DTS2011053102286 lijuan 20110601 begin*/
 /*tunnig the auto focus params, change the total step, and tune each step that it has*/
 /* AF Total steps parameters */
+/*< DTS2011072801699   songxiaoming 20110728 begin */
+/*< DTS2011073001656   songxiaoming 20110730 begin */
 static uint16_t mt9e013_linear_total_step = 41;
 static uint16_t mt9e013_step_jump = 4;
 #define MT9E013_TOTAL_STEPS_NEAR_TO_FAR_MAX    41
@@ -83,6 +92,9 @@ static uint16_t mt9e013_sw_damping_time_wait_snap = 9;
 static uint16_t mt9e013_sw_damping_small_step_snap = 5;
 static uint16_t mt9e013_enable_damping = 1;
 static uint16_t mt9e013_af_initial_value = 25;
+/* DTS2011073001656   songxiaoming 20110730 end > */
+/* DTS2011072801699   songxiaoming 20110728 end > */
+/*<DTS2011053102286 lijuan 20110601 end*/
 struct mt9e013_work_t {
 	struct work_struct work;
 };
@@ -351,7 +363,9 @@ static int32_t mt9e013_write_exp_gain(uint16_t gain, uint32_t line)
 	int32_t rc = 0;
 	if (gain > max_legal_gain) {
 		CDBG("Max legal gain Line:%d\n", __LINE__);
-		//gain = max_legal_gain;
+		/* < DTS2012033107371 wangqing 20120413 begin */
+		gain = max_legal_gain;
+		/* DTS2012033107371 wangqing 20120413 end > */
 	}
 
 	if (mt9e013_ctrl->sensormode == SENSOR_PREVIEW_MODE) {
@@ -360,11 +374,15 @@ static int32_t mt9e013_write_exp_gain(uint16_t gain, uint32_t line)
 		line = (uint32_t) (line * mt9e013_ctrl->fps_divider /
 						   0x00000400);
 	} else {
+		/*< DTS2011073001656   songxiaoming 20110730 begin */
 		line = (uint32_t) (line * mt9e013_ctrl->pict_fps_divider /
 						   0x00000400);
+		/* DTS2011073001656   songxiaoming 20110730 end > */
 	}
 
-	//gain |= 0x1000;
+	/* < DTS2012033107371 wangqing 20120413 begin */
+	gain |= 0x1000;
+	/* DTS2012033107371 wangqing 20120413 end > */
 
 	mt9e013_group_hold_on();
 	rc = mt9e013_i2c_write_w_sensor(REG_GLOBAL_GAIN, gain);
@@ -381,6 +399,7 @@ static int32_t mt9e013_set_pict_exp_gain(uint16_t gain, uint32_t line)
 	return rc;
 }
 
+/*< DTS2011072801699   songxiaoming 20110728 begin */
 #define DIV_CEIL(x, y) (x/y + ((x%y) ? 1 : 0))
 
 static int32_t mt9e013_move_focus(int direction,
@@ -452,6 +471,7 @@ static int32_t mt9e013_move_focus(int direction,
 		dest_lens_position);
 		usleep(sw_damping_time_wait*50);
 	}
+/* DTS2011072801699   songxiaoming 20110728 end > */
 	mt9e013_ctrl->curr_lens_pos = dest_lens_position;
 	mt9e013_ctrl->curr_step_pos = dest_step_position;
 	return 0;
@@ -472,11 +492,13 @@ static int32_t mt9e013_set_default_focus(uint8_t af_step)
 
 	return rc;
 }
+/*<DTS2011053102286 lijuan 20110601 begin*/
 /*tunnig the auto focus params, change the total step, and tune each step that it has*/
 static void mt9e013_init_focus(void)
 {
 	uint8_t i;
 	mt9e013_step_position_table[0] = 0;
+/*< DTS2011072801699   songxiaoming 20110728 begin */
 	mt9e013_step_position_table[1] = mt9e013_af_initial_value;
 	for (i = 2; i <= mt9e013_linear_total_step; i++) {
 		if (i <= mt9e013_nl_region_boundary1) {
@@ -487,12 +509,14 @@ static void mt9e013_init_focus(void)
 			mt9e013_step_position_table[i] =
 				mt9e013_step_position_table[i-1]
 				+ mt9e013_l_region_code_per_step;
+/* DTS2011072801699   songxiaoming 20110728 end > */
 		}
 
 		if (mt9e013_step_position_table[i] > 255)
 			mt9e013_step_position_table[i] = 255;
 	}
 }
+/*<DTS2011053102286 lijuan 20110601 end*/
 static int32_t mt9e013_test(enum mt9e013_test_mode_t mo)
 {
 	int32_t rc = 0;
@@ -511,6 +535,8 @@ static int32_t mt9e013_test(enum mt9e013_test_mode_t mo)
 	return rc;
 }
 
+/* < DTS2011070401622 lijuan 20110703 begin */
+/*lijuan add for OTP reading begin*/
 /*read OTP value function*/
 inline int32_t reading(void)
 {
@@ -555,7 +581,9 @@ static int32_t Auto_reading(void)
 	if(1 == bsuccess)
 	{
 
+		/*< DTS2011072801699   songxiaoming 20110728 begin */
 		reading();
+		/* DTS2011072801699   songxiaoming 20110728 end > */
 
 	}
 	return bsuccess;
@@ -575,6 +603,7 @@ static int32_t mt9e013_OTP_reading (void)
 	mt9e013_i2c_write_w_sensor(0x304A, 0x0010);//0x0010
 	rc = Auto_reading();
 	if(rc > 0)
+	/*< DTS2011072801699   songxiaoming 20110728 begin */
 		{
 		CDBG("the right type is 35\n");
 		goto otp_probe_check;
@@ -646,6 +675,7 @@ otp_probe_check:
 		rc = -1;
 		return rc;
 	}*/
+	/* DTS2011072801699   songxiaoming 20110728 end > */
 	//check the 0x38e2 is 0xFFFF
 	if(0!=mt9e013_regs.reg_otp[7].wdata)
 	{
@@ -661,12 +691,14 @@ otp_probe_check:
 		return rc;
 	}
 	//check the 0x38e2 is 0xFFFF
+	/*< DTS2011092004532   songxiaoming 20110928 begin */
 	/*if(0xFFFF!=mt9e013_regs.reg_otp[115].wdata)//120
 	{
 		CDBG("The OTP reading failed addr = %0x, data = %0x\n", mt9e013_regs.reg_otp[115].waddr, mt9e013_regs.reg_otp[115].wdata);
 		rc = -1;
 		return rc;
 	}*/
+	/* DTS2011092004532   songxiaoming 20110928 end > */
 	//if OTP is right, we will set the OTP_READ to TRUE
 	OTP_READ = TRUE;
 	CDBG("The OTP reading success\n");
@@ -684,11 +716,13 @@ static int32_t mt9e013_shading_setting (void)
 	if((0==mt9e013_regs.reg_otp[8].wdata) || (FALSE == OTP_READ))
 	{
 		CDBG("shading invalid, write the default\n");
+		/*< DTS2011072801699   songxiaoming 20110728 begin */
 		for(i=0;i< mt9e013_regs.reg_shading_size;i++)
 		{
 			rc =mt9e013_i2c_write_w_sensor(mt9e013_regs.reg_shading[i].waddr, mt9e013_regs.reg_shading[i].wdata);
 		}
 		mt9e013_i2c_write_w_sensor(0x3780, 0x8000);
+		/* DTS2011072801699   songxiaoming 20110728 end > */
 		return rc;
 	}
 	
@@ -713,6 +747,7 @@ static int32_t mt9e013_shading_setting (void)
 	CDBG("mt9e013_shading_setting  OTP write success! \n");
 	return rc;
 }
+/*< DTS2011072801699   songxiaoming 20110728 begin */
 static int mt9e013_read_awb_data(struct sensor_cfg_data *cfg)
 {
 	int32_t rc = 0;
@@ -731,7 +766,10 @@ static int mt9e013_read_awb_data(struct sensor_cfg_data *cfg)
 	CDBG(" mt9e013_read_awb_data, end rc = %d \n",rc);
 	return rc;
 }
+/* DTS2011072801699   songxiaoming 20110728 end > */
 
+/*lijuan add for OTP reading end*/
+/* DTS2011070401622 lijuan 20110703 end > */
 
 static int32_t mt9e013_sensor_setting(int update_type, int rt)
 {
@@ -749,7 +787,9 @@ static int32_t mt9e013_sensor_setting(int update_type, int rt)
 			mt9e013_regs.reg_mipi_size);
 		mt9e013_i2c_write_w_table(mt9e013_regs.rec_settings,
 			mt9e013_regs.rec_size);
+		/* < DTS2011070401622 lijuan 20110703 begin */
 		mt9e013_shading_setting( );
+		/* DTS2011070401622 lijuan 20110703 end > */
 		mt9e013_i2c_write_w_table(mt9e013_regs.reg_pll,
 			mt9e013_regs.reg_pll_size);
 		cam_debug_init();
@@ -774,9 +814,11 @@ static int32_t mt9e013_sensor_setting(int update_type, int rt)
 			msleep(10);
 			CSI_CONFIG = 1;
 		}
+		/*< DTS2011072801699   songxiaoming 20110728 begin */
 		mt9e013_start_stream();
 		mt9e013_move_focus(MOVE_NEAR, stored_af_step);
 		//mt9e013_start_stream();
+		/* DTS2011072801699   songxiaoming 20110728 end > */
 	}
 	return rc;
 }
@@ -865,10 +907,14 @@ static int32_t mt9e013_set_sensor_mode(int mode,
 
 static int32_t mt9e013_power_down(void)
 {
+	/*<DTS2011042704563 penghai 20110427 begin*/
 	if (mt9e013_ctrl->sensordata->vreg_disable_func)
     {
+        /*< DTS2012020400396 zhangyu 20120206 begin */
         mt9e013_ctrl->sensordata->vreg_disable_func(0);
+        /* DTS2012020400396 zhangyu 20120206 end > */
     }
+	/*DTS2011042704563 penghai 20110427 end>*/
 	return 0;
 }
 
@@ -876,10 +922,14 @@ static int mt9e013_probe_init_done(const struct msm_camera_sensor_info *data)
 {
 	CDBG("probe done\n");
 	gpio_free(data->sensor_reset);
+	/*<DTS2011042704563 penghai 20110427 begin*/
 	if (data->vreg_disable_func)
 	{
+		/*< DTS2012020400396 zhangyu 20120206 begin */
 		data->vreg_disable_func(0);
+		/* DTS2012020400396 zhangyu 20120206 end > */
 	}
+	/*DTS2011042704563 penghai 20110427 end>*/
 	return 0;
 }
 
@@ -889,10 +939,14 @@ static int mt9e013_probe_init_sensor(const struct msm_camera_sensor_info *data)
 	uint16_t chipid = 0;
 	CDBG("%s: %d\n", __func__, __LINE__);
 
+	/*<DTS2011042704563 penghai 20110427 begin*/
     if (data->vreg_enable_func)
     {
+		/*< DTS2012020400396 zhangyu 20120206 begin */
 		data->vreg_enable_func(1);
+		/* DTS2012020400396 zhangyu 20120206 end > */
     }
+	/*DTS2011042704563 penghai 20110427 end>*/
 
 	
 	rc = gpio_request(data->sensor_reset, "mt9e013");
@@ -908,6 +962,7 @@ static int mt9e013_probe_init_sensor(const struct msm_camera_sensor_info *data)
 	}
 
 	CDBG(" mt9e013_probe_init_sensor is called\n");
+	/*<DTS2011042704563 penghai 20110427 begin*/
 	rc = mt9e013_i2c_read(MT9E013_REG_MODEL_ID, &chipid, 2);
 	CDBG("ID: 0x%x\n", chipid);
 	/* 4. Compare sensor ID to MT9E013 ID: */
@@ -916,6 +971,7 @@ static int mt9e013_probe_init_sensor(const struct msm_camera_sensor_info *data)
 		CDBG("mt9e013_probe_init_sensor fail chip id doesnot match\n");
 		goto init_probe_fail;
 	}
+	/*DTS2011042704563 penghai 20110427 end>*/
 
 	mt9e013_ctrl = kzalloc(sizeof(struct mt9e013_ctrl_t), GFP_KERNEL);
 	if (!mt9e013_ctrl) {
@@ -1028,12 +1084,14 @@ static int mt9e013_i2c_probe(struct i2c_client *client,
 	mt9e013_init_client(client);
 	mt9e013_client = client;
 
+	/*<DTS2011042704563 penghai 20110427 begin*/
 
 	CDBG("mt9e013_i2c_probe OK!!!! rc = %d\n", rc);
 	return 0;
 
 probe_failure:
 	CDBG("mt9e013_i2c_probe failed! rc = %d\n", rc);
+	/*DTS2011042704563 penghai 20110427 end>*/
 	return rc;
 }
 
@@ -1176,7 +1234,9 @@ int mt9e013_sensor_config(void __user *argp)
 			break;
 
 		case CFG_GET_AF_MAX_STEPS:
+			/*< DTS2011072801699   songxiaoming 20110728 begin */
 			cdata.max_steps = mt9e013_linear_total_step;
+			/* DTS2011072801699   songxiaoming 20110728 end > */
 			if (copy_to_user((void *)argp,
 				&cdata,
 				sizeof(struct sensor_cfg_data)))
@@ -1192,13 +1252,16 @@ int mt9e013_sensor_config(void __user *argp)
 		case CFG_SEND_WB_INFO:
 			rc = mt9e013_send_wb_info(
 				&(cdata.cfg.wb_info));
+		/*< DTS2011072801699   songxiaoming 20110728 begin */
 			break;
+		/*lijuan add for AWB OTP*/
 		case CFG_GET_CALIB_DATA:
 			rc = mt9e013_read_awb_data(&cdata);
 			if (rc < 0)
 				break;
 			if (copy_to_user((void *)argp,&cdata,	sizeof(struct sensor_cfg_data)))
 				rc = -EFAULT;	
+		/* DTS2011072801699   songxiaoming 20110728 end > */
 			break;
 
 		default:
@@ -1215,9 +1278,11 @@ static int mt9e013_sensor_release(void)
 {
 	int rc = -EBADF;
 	mutex_lock(&mt9e013_mut);
+	/*< DTS2011083101211 zhangyu 20110922 begin */
 	/* Push lens to default addr. */
 	mt9e013_set_default_focus(0);
 	msleep(100);
+	/* DTS2011083101211 zhangyu 20110922 end > */
 	mt9e013_power_down();
 	gpio_set_value_cansleep(mt9e013_ctrl->sensordata->sensor_reset, 0);
 	msleep(5);
@@ -1242,6 +1307,7 @@ static int mt9e013_sensor_probe(const struct msm_camera_sensor_info *info,
 	}
 	msm_camio_clk_rate_set(MT9E013_MASTER_CLK_RATE);
 	rc = mt9e013_probe_init_sensor(info);
+	/*<DTS2011042704563 penghai 20110427 begin*/
 	if (rc < 0)
 	{
 		CDBG("mt9e013 probe failed!\n");
@@ -1250,21 +1316,36 @@ static int mt9e013_sensor_probe(const struct msm_camera_sensor_info *info,
 	else
 	{
 		CDBG("mt9e013 probe succeed!\n");
+        /* <DTS2012041003722 sibingsong 20120410 begin */
+		/* < DTS2012031904303 zhouqiwei 20130319 begin */
+		/* camera name for project menu to display */
+		strncpy((char *)info->sensor_name, "23060068FA-MT-L", strlen("23060068FA-MT-L"));
+		/* DTS2012031904303 zhouqiwei 20130319 end > */
+        /* DTS2012041003722 sibingsong 20120410 end> */
 	}
+	/* <  DTS2011070401622 lijuan 20110703 begin */
 	mt9e013_OTP_reading();
+	/* DTS2011070401622 lijuan 20110703 end > */
 
 	s->s_init = mt9e013_sensor_open_init;
 	s->s_release = mt9e013_sensor_release;
 	s->s_config  = mt9e013_sensor_config;
 	s->s_camera_type = BACK_CAMERA_2D;
+	/*< DTS2011050701164  penghai 20110507 begin */
+	/* < DTS2011061801881 zhangyu 20110620 BEGIN */
 	s->s_mount_angle = 0;
+	/* DTS2011061801881 zhangyu 20110620 END > */ 
+	/* DTS2011050701164  penghai 20110507 end > */
+	/*DTS2011042704563 penghai 20110427 end>*/
 	gpio_set_value_cansleep(info->sensor_reset, 0);
 	mt9e013_probe_init_done(info);
 
+    /* < DTS2011052803160 shenjinming 20110611 begin */
     #ifdef CONFIG_HUAWEI_HW_DEV_DCT
     /* detect current device successful, set the flag as present */
     set_hw_dev_flag(DEV_I2C_CAMERA_MAIN);
     #endif
+    /* DTS2011052803160 shenjinming 201106011 end > */  
     
 	return rc;
 
@@ -1301,6 +1382,7 @@ MODULE_LICENSE("GPL v2");
 
 static bool streaming = 1;
 
+/*< DTS2011072801699   songxiaoming 20110728 begin */
 static int mt9e013_set_sw_damping(void *data, u64 val)
 {
 	mt9e013_enable_damping = val;
@@ -1445,6 +1527,7 @@ static int mt9e013_set_af_initial(void *data, u64 val)
 
 DEFINE_SIMPLE_ATTRIBUTE(cam_step, mt9e013_step_test,
 			mt9e013_set_af_initial, "%lld\n");
+/* DTS2011072801699   songxiaoming 20110728 end > */
 
 static int cam_debug_stream_set(void *data, u64 val)
 {
@@ -1480,6 +1563,7 @@ static int cam_debug_init(void)
 	cam_dir = debugfs_create_dir("mt9e013", debugfs_base);
 	if (!cam_dir)
 		return -ENOMEM;
+	/*< DTS2011072801699   songxiaoming 20110728 begin */
 	if (!debugfs_create_file("af_codeperstep", S_IRUGO | S_IWUSR, cam_dir,
 							 NULL, &af_codeperstep))
 		return -ENOMEM;
@@ -1500,6 +1584,7 @@ static int cam_debug_init(void)
 		return -ENOMEM;
 	if (!debugfs_create_file("af_timeparam", S_IRUGO | S_IWUSR, cam_dir,
 							 NULL, &cam_timeparam))
+	/* DTS2011072801699   songxiaoming 20110728 end > */
 		return -ENOMEM;
 	if (!debugfs_create_file("stream", S_IRUGO | S_IWUSR, cam_dir,
 							 NULL, &cam_stream))

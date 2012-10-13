@@ -12,11 +12,10 @@
 
 #define EVDEV_MINOR_BASE	64
 #define EVDEV_MINORS		32
-#ifdef CONFIG_HUAWEI_KERNEL
-#define EVDEV_MIN_BUFFER_SIZE	128U
-#else
+/* < DTS2012041107169  sunlibin 20120413 begin */
+/* modify the buffer size from 128 to 64 */
 #define EVDEV_MIN_BUFFER_SIZE	64U
-#endif
+/* DTS2012041107169  sunlibin 20120413 end > */
 #define EVDEV_BUF_PACKETS	8
 
 #include <linux/poll.h>
