@@ -1,4 +1,3 @@
-/*< DTS2011092601861 fengwei 20110928 begin */
 /* drivers/input/touchscreen/melfas_i2c_ts.c
  *
  * Copyright (C) 2010 Huawei, Inc.
@@ -32,12 +31,9 @@
 #include <asm/mach-types.h>
 #include <linux/earlysuspend.h>
 #include <linux/hardware_self_adapt.h>
-/* <DTS2012030804064 sunwenyong 20120308 begin */
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
 #include <linux/hw_dev_dec.h>
 #endif
-/* DTS2012030804064 sunwenyong 20120308 end> */
-/*< DTS2012020907660 sunlibin 20120213 begin */
 /*add this macro for probe phase debugging*/
 //#define TS_MELFAS_DEBUG
 #include <linux/touch_platform_config.h>
@@ -47,7 +43,6 @@
 #else
 #define TS_DEBUG_MELFAS(fmt,args...)
 #endif
-/* DTS2012020907660 sunlibin 20120213 end >*/
 static int melfas_debug_mask;
 module_param_named(melfas_debug, melfas_debug_mask, int, S_IRUGO | S_IWUSR | S_IWGRP);
 #define MELFAS_DEBUG(fmt, args...) do { \
@@ -55,9 +50,8 @@ module_param_named(melfas_debug, melfas_debug_mask, int, S_IRUGO | S_IWUSR | S_I
 		printk(KERN_ERR fmt, ##args); \
 		} \
 } while(0)
-/* < DTS2012051004932 huzheng 20120509 begin */
+/* add new variable */
 static bool first_int_flag = true;
-/* DTS2012051004932 huzheng 20120509 end > */
 #define TS_X_OFFSET		1
 #define TS_Y_OFFSET		TS_X_OFFSET
 #define TS_SCL_GPIO		131
@@ -76,14 +70,10 @@ static bool first_int_flag = true;
 #define RELEASE_KEY		  0
 
 #define MELFAS_MAX_TOUCH       2
-/*< DTS2011101704491 fengwei 20111018 begin */
 #define I2C_RETRY_CNT			5
-/* DTS2011101704491 fengwei 20111018 end >*/
 struct muti_touch_info
 {
-/*< DTS2011101704491 fengwei 20111018 begin */
     int id;
-/* DTS2011101704491 fengwei 20111018 end >*/
 	int action; 
 	int fingerX;
 	int fingerY;
@@ -97,9 +87,7 @@ static int reset_pin = 0;
 
 #define MELFAS_I2C_NAME "melfas-ts"
 
-/*< DTS2011101704491 fengwei 20111018 begin */
 /*delete some lines*/
-/* DTS2011101704491 fengwei 20111018 end >*/
 static int lcd_x = 0;
 static int lcd_y = 0;
 static int lcd_all = 0;
@@ -151,14 +139,12 @@ static int ts_firmware_file(void);
 static int i2c_update_firmware(void); 
 
 
-/*< DTS2012020907660 sunlibin 20120213 begin */
 /*chomod, modify the right*/
 static struct kobj_attribute update_firmware_attribute = {
 	.attr = {.name = "update_firmware", .mode = 0664},
 	.show = update_firmware_show,
 	.store = update_firmware_store,
 };
-/* DTS2012020907660 sunlibin 20120213 end >*/
 
 static int mcsdl_enter_download_mode(void)
 {
@@ -180,9 +166,7 @@ static int mcsdl_enter_download_mode(void)
 	/* INTR set output and low */
 	ret = gpio_tlmm_config(GPIO_CFG(TS_INT_GPIO, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), GPIO_CFG_ENABLE);
 	ret = gpio_direction_output(TS_INT_GPIO, 0);
-	/*< DTS2011101704491 fengwei 20111018 begin */
 	mdelay(75);
-	/* DTS2011101704491 fengwei 20111018 end >*/
 
 	ret = gpio_direction_output(reset_pin, 0);			/* CE set high */ // 1 -> 0
 	ret = gpio_direction_output(TS_SDA_GPIO, 1);			/* SDA set high */
@@ -207,12 +191,10 @@ static int mcsdl_enter_download_mode(void)
 	ret = gpio_direction_output(TS_INT_GPIO, 1);			/* INTR set high */
 	mdelay(1);
 
-	/*< DTS2011101704491 fengwei 20111018 begin */
 	/* config I/O to i2c mode */
 	ret = gpio_tlmm_config(GPIO_CFG(TS_SCL_GPIO, 2, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA), GPIO_CFG_ENABLE);
 
 	ret = gpio_tlmm_config(GPIO_CFG(TS_SDA_GPIO, 2, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA), GPIO_CFG_ENABLE);
-	/* DTS2011101704491 fengwei 20111018 end >*/
 	
 	mdelay(1);
 
@@ -594,9 +576,7 @@ static int i2c_update_firmware(void)
 	mm_segment_t oldfs;
     uint16_t	length;
 	int ret = 0;           //"/data/melfas_ts_update_firmware.bin";
-	/*< DTS2012020907660 sunlibin 20120213 begin */
 	const char filename[]="/sdcard/update/melfas.bin";
-	/* DTS2012020907660 sunlibin 20120213 end >*/
 
 	/* open file */
     oldfs = get_fs();
@@ -693,7 +673,6 @@ static int i2c_update_firmware(void)
 	return ret;
 }
 
-/*< DTS2012020907660 sunlibin 20120213 begin */
 static struct i2c_msg query_i2c_msg_name[2];
 static uint8_t query_name[5];
 static uint8_t vision_reg = 0xF1;
@@ -749,8 +728,6 @@ static int tp_read_proc(
 	return proc_calc_metrics(page, start, off, count, eof, len);
     
 }
-/* DTS2012020907660 sunlibin 20120213 end >*/
-/*< DTS2012021601331 duanfei 20120216 begin */
 /*report 0 to generate a touch-up event*/
 static void clear_pressed_point_status(struct melfas_ts_data *ts)
 {
@@ -777,8 +754,7 @@ static void clear_pressed_point_status(struct melfas_ts_data *ts)
     input_sync(ts->input_dev);
     memset(g_Mtouch_info, 0, sizeof(g_Mtouch_info));
 }
-/* DTS2012021601331 duanfei 20120216 end >*/
-/*< DTS2012051004932 huzheng 20120509 begin */
+/* add function to get module ID */
 #define OFILM_MODULE 0X00
 #define MUTTO_MODULE 0X01
 #define TRULY_MODULE 0X02
@@ -790,13 +766,9 @@ static void clear_pressed_point_status(struct melfas_ts_data *ts)
 static char touch_info[50] = {0};
 char * get_melfas_touch_info(void)
 {
-	int ret = 0;
 	char * module_name = NULL;
 
 	if (g_client == NULL)
-		return NULL;
-	ret = tp_read_input_name();
-	if (ret < 0)
 		return NULL;
 
 	switch(query_name[4])
@@ -830,7 +802,6 @@ char * get_melfas_touch_info(void)
 
 	return touch_info;
 }
-/* DTS2012051004932 huzheng 20120509 end >*/
 static void melfas_ts_work_func(struct work_struct *work)
 {
 	struct melfas_ts_data *ts = container_of(work, struct melfas_ts_data, work);
@@ -839,17 +810,12 @@ static void melfas_ts_work_func(struct work_struct *work)
 	uint8_t read_num = 0;
 	uint8_t touchAction = 0, touchType = 0, fingerID = 0;
 	int k = 0;
-	/*< DTS2012031503016 zhaoyuxia 20120315 begin */
 	u8 finger_pressed_count = 0;
-	/* DTS2012031503016 zhaoyuxia 20120315 end >*/
 
-/*< DTS2012020907660 sunlibin 20120213 begin */
 	TS_DEBUG_MELFAS(KERN_ERR "melfas_ts_work_func\n");
-/* DTS2012020907660 sunlibin 20120213 end >*/
 	if (ts == NULL)
 		MELFAS_DEBUG(KERN_ERR "melfas_ts_work_func : TS NULL\n"); 
 
-	/*< DTS2011101704491 fengwei 20111018 begin */
 	/*   Simple send transaction:  
 	 * S Addr Wr [A]  Data [A] Data [A] ... [A] Data [A] P   
 	 * Simple recv transaction:    	
@@ -944,7 +910,6 @@ static void melfas_ts_work_func(struct work_struct *work)
 	} 
 	if (ts->support_multi_touch)
 	{
-		/*< DTS2012031503016 zhaoyuxia 20120315 begin */
 		for (i = 0; i < fingerID; i++)
 		{
             input_report_abs(ts->input_dev, ABS_MT_POSITION_X,  g_Mtouch_info[i].fingerX);
@@ -958,7 +923,6 @@ static void melfas_ts_work_func(struct work_struct *work)
 				finger_pressed_count++;
         }
 		input_report_key(ts->input_dev, BTN_TOUCH, finger_pressed_count);
-		/* DTS2012031503016 zhaoyuxia 20120315 end >*/
 	}
 	else
 	{
@@ -973,7 +937,6 @@ static void melfas_ts_work_func(struct work_struct *work)
 	}
 
     input_sync(ts->input_dev);
-	/* DTS2011101704491 fengwei 20111018 end >*/
 		
 	if (ts->use_irq)
 	{
@@ -994,13 +957,11 @@ static enum hrtimer_restart melfas_ts_timer_func(struct hrtimer *timer)
 static irqreturn_t melfas_ts_irq_handler(int irq, void *dev_id)
 {
 	struct melfas_ts_data *ts = dev_id;
-	/* < DTS2012051004932 huzheng 20120509 begin */
 	if (first_int_flag)
 	{
 		first_int_flag = false;
 		return IRQ_HANDLED;
 	}
-	/* DTS2012051004932 huzheng 20120509 end > */
 	disable_irq_nosync(ts->client->irq);
  	MELFAS_DEBUG("melfas_ts_irq_handler: disable irq\n");
 	queue_work(ts->melfas_wq, &ts->work);
@@ -1010,17 +971,13 @@ static irqreturn_t melfas_ts_irq_handler(int irq, void *dev_id)
 static int melfas_ts_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
 	struct melfas_ts_data *ts;
-	/*< DTS2012020907660 sunlibin 20120213 begin */
 	struct proc_dir_entry *d_entry;
-	/* DTS2012020907660 sunlibin 20120213 end >*/
 	int ret = 0;
 	int i;
 	struct touch_hw_platform_data *touch_pdata = NULL;
 	struct tp_resolution_conversion tp_type_self_check;
 	
-/*< DTS2012020907660 sunlibin 20120213 begin */
 	TS_DEBUG_MELFAS(" In melfas_ts_probe: \n");
-/* DTS2012020907660 sunlibin 20120213 end >*/
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) 
 	{
@@ -1037,9 +994,10 @@ static int melfas_ts_probe(struct i2c_client *client, const struct i2c_device_id
 	}
 
     /* get reset pin */
-	if(touch_pdata->get_touch_reset_pin)
+	/* change function name */
+	if(touch_pdata->get_touch_reset_gpio)
 	{
-		reset_pin = touch_pdata->get_touch_reset_pin();
+		reset_pin = touch_pdata->get_touch_reset_gpio();
 	}
 	
 	if(touch_pdata->read_touch_probe_flag)
@@ -1067,10 +1025,10 @@ static int melfas_ts_probe(struct i2c_client *client, const struct i2c_device_id
         printk(KERN_ERR "%s: power on failed \n", __func__);
         goto err_check_functionality_failed;
     }
-/*< DTS2011101104844 fengwei 20111011 begin */
-	if(touch_pdata->get_phone_version)
+	/* change function name */
+	if(touch_pdata->get_touch_resolution)
     {
-        ret = touch_pdata->get_phone_version(&tp_type_self_check);
+        ret = touch_pdata->get_touch_resolution(&tp_type_self_check);
         if(ret < 0)
         {
             printk(KERN_ERR "%s: reset failed \n", __func__);
@@ -1083,9 +1041,7 @@ static int melfas_ts_probe(struct i2c_client *client, const struct i2c_device_id
             lcd_all = tp_type_self_check.lcd_all;
         }
     }
-	/*< DTS2011101704491 fengwei 20111018 begin */
 	/*delete some lines*/
-	/* DTS2011101704491 fengwei 20111018 end >*/
 
 
 	melfas_ts_power(client,1);
@@ -1094,9 +1050,7 @@ static int melfas_ts_probe(struct i2c_client *client, const struct i2c_device_id
 	for(i = 0; i < 3; i++) 
 	{		
 		ret = i2c_smbus_read_byte_data(client, 0x00);
-/*< DTS2012020907660 sunlibin 20120213 begin */
 		TS_DEBUG_MELFAS("id:%d\n",ret);
-/* DTS2012020907660 sunlibin 20120213 end >*/
 		if (ret < 0)
 			continue;
 		else
@@ -1109,9 +1063,7 @@ static int melfas_ts_probe(struct i2c_client *client, const struct i2c_device_id
 
 		goto err_find_touchpanel_failed;
 	}
-/* DTS2011101104844 fengwei 20111011 end >*/
 
-	/*< DTS2011101704491 fengwei 20111018 begin */
 	g_client = client;
 	for (i = 0 ; i < 3; i++) 
 	{
@@ -1119,9 +1071,7 @@ static int melfas_ts_probe(struct i2c_client *client, const struct i2c_device_id
 		if (!ret)
 			break;
 	}
-	/* DTS2011101704491 fengwei 20111018 end >*/
 
-	/*< DTS2012020907660 sunlibin 20120213 begin */
 	/*create entry in proc dir for touchscreen info */
 	ret = tp_read_input_name();
 	if(!ret)
@@ -1135,7 +1085,6 @@ static int melfas_ts_probe(struct i2c_client *client, const struct i2c_device_id
 		d_entry->read_proc = tp_read_proc;
 		d_entry->data = NULL;
 	}
-	/* DTS2012020907660 sunlibin 20120213 end >*/
 	
 	ts = kzalloc(sizeof(*ts), GFP_KERNEL);
 	if (ts == NULL) 
@@ -1158,9 +1107,7 @@ static int melfas_ts_probe(struct i2c_client *client, const struct i2c_device_id
 		
     ts->is_first_point = true;
     ts->support_multi_touch = client->flags;
-	/*< DTS2011101704491 fengwei 20111018 begin */
 	/*delete some lines*/
-	/* DTS2011101704491 fengwei 20111018 end >*/
 
 	ts->input_dev = input_allocate_device();
 	if (ts->input_dev == NULL) {
@@ -1176,15 +1123,11 @@ static int melfas_ts_probe(struct i2c_client *client, const struct i2c_device_id
 	set_bit(EV_ABS, ts->input_dev->evbit);
 	set_bit(ABS_X, ts->input_dev->absbit);
 	set_bit(ABS_Y, ts->input_dev->absbit);
-	/*< DTS2011101704491 fengwei 20111018 begin */
 	set_bit(KEY_NUMLOCK, ts->input_dev->keybit);
-	/* DTS2011101704491 fengwei 20111018 end >*/
 
 
-	/*< DTS2012031503016 zhaoyuxia 20120315 begin */
 	/*add INPUT_PROP_DIRECT property*/
 	set_bit(INPUT_PROP_DIRECT,ts->input_dev->propbit);
-	/* DTS2012031503016 zhaoyuxia 20120315 end >*/
 
     if(ts->support_multi_touch)
     {
@@ -1192,9 +1135,7 @@ static int melfas_ts_probe(struct i2c_client *client, const struct i2c_device_id
     	input_set_abs_params(ts->input_dev, ABS_MT_POSITION_Y, 0, lcd_y, 0, 0);
     	input_set_abs_params(ts->input_dev, ABS_MT_TOUCH_MAJOR, 0, 255, 0, 0);
     	input_set_abs_params(ts->input_dev, ABS_MT_WIDTH_MAJOR, 0, 15, 0, 0);
-		/*< DTS2012031503016 zhaoyuxia 20120315 begin */
 		input_set_abs_params(ts->input_dev, ABS_MT_PRESSURE, 0,	255, 0, 0);
-		/* DTS2012031503016 zhaoyuxia 20120315 end >*/
     }
 	else
 	{
@@ -1212,27 +1153,22 @@ static int melfas_ts_probe(struct i2c_client *client, const struct i2c_device_id
 	}
 	else 
 	{
-/*< DTS2012020907660 sunlibin 20120213 begin */
 		TS_DEBUG_MELFAS("melfas input device registered\n");
-/* DTS2012020907660 sunlibin 20120213 end >*/
 	}
   
-	/*< DTS2011101704491 fengwei 20111018 begin */
 	/*delete some lines*/
-	/* DTS2011101704491 fengwei 20111018 end >*/
-	/*< DTS2011101104844 fengwei 20111011 begin */
 	/*set tht bit means detected the tocuh yet in the next time we don't probe it*/
     if(touch_pdata->set_touch_probe_flag)
     {
         touch_pdata->set_touch_probe_flag(1);
     }
-	/* DTS2011101104844 fengwei 20111011 end >*/
 	
 	if (client->irq) 
     {
-		if(touch_pdata->touch_gpio_config_interrupt)
+		/* change function name */
+		if(touch_pdata->set_touch_interrupt_gpio)
 		{
-			ret = touch_pdata->touch_gpio_config_interrupt();		
+			ret = touch_pdata->set_touch_interrupt_gpio();		
 		}
 		if (ret < 0) 
 		{
@@ -1244,9 +1180,7 @@ static int melfas_ts_probe(struct i2c_client *client, const struct i2c_device_id
 		if (request_irq(client->irq, melfas_ts_irq_handler,
 				IRQF_TRIGGER_FALLING, client->name, ts) >= 0) 
 		{
-/*< DTS2012020907660 sunlibin 20120213 begin */
 			TS_DEBUG_MELFAS("Received IRQ!\n");
-/* DTS2012020907660 sunlibin 20120213 end >*/
 			ts->use_irq = 1;
 			if (irq_set_irq_wake(client->irq, 1) < 0)
             {
@@ -1255,9 +1189,7 @@ static int melfas_ts_probe(struct i2c_client *client, const struct i2c_device_id
 		} 
         else 
         {
-/*< DTS2012020907660 sunlibin 20120213 begin */
 			TS_DEBUG_MELFAS("Failed to request IRQ!\n");
-/* DTS2012020907660 sunlibin 20120213 end >*/
 		}
 	}
 
@@ -1275,16 +1207,12 @@ static int melfas_ts_probe(struct i2c_client *client, const struct i2c_device_id
 	register_early_suspend(&ts->early_suspend);
 #endif
 
-	/*< DTS2011101104844 fengwei 20111011 begin */
 	/*move before*/
-	/* DTS2011101104844 fengwei 20111011 end >*/
 	printk(KERN_INFO "melfas_ts_probe: Start touchscreen %s in %s mode\n", ts->input_dev->name, ts->use_irq ? "interrupt" : "polling");
-/* <DTS2012030804064 sunwenyong 20120308 begin */
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
 	/* detect current device successful, set the flag as present */
 	set_hw_dev_flag(DEV_I2C_TOUCH_PANEL);
 #endif
-/* DTS2012030804064 sunwenyong 20120308 end> */
 
 	return 0;
 
@@ -1293,10 +1221,8 @@ err_key_input_register_device_failed:
     {
 	    input_free_device(ts->key_input);
 	}
-/*< DTS2011101704491 fengwei 20111018 begin */
 /*delete one line*/
 
-/* DTS2011101704491 fengwei 20111018 end >*/
 err_input_register_device_failed:
 	input_free_device(ts->input_dev);
 //err_pdt_read_failed:
@@ -1319,9 +1245,7 @@ err_check_functionality_failed:
 static int melfas_ts_power(struct i2c_client *client, int on)
 {
     int ret = 0;
-/*< DTS2012020907660 sunlibin 20120213 begin */
     TS_DEBUG_MELFAS("melfas_ts_power on = %d\n", on);
-/* DTS2012020907660 sunlibin 20120213 end >*/
 
     ret = gpio_tlmm_config(GPIO_CFG(reset_pin, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA), GPIO_CFG_ENABLE);
     if(ret < 0)
@@ -1378,9 +1302,7 @@ static int melfas_ts_suspend(struct i2c_client *client, pm_message_t mesg)
 	{
 		enable_irq(client->irq);
 	}
-	/* < DTS2012051004932 huzheng 20120509 begin */
 	first_int_flag = true;
-	/* DTS2012051004932 huzheng 20120509 end > */
 	ret = melfas_ts_power(client,0);
 	if (ret < 0)
 	{
@@ -1392,7 +1314,6 @@ static int melfas_ts_suspend(struct i2c_client *client, pm_message_t mesg)
 
 static int melfas_ts_resume(struct i2c_client *client)
 {
-    /*< DTS2012021601331 duanfei 20120216 begin */
 	int ret,i;
 	struct melfas_ts_data *ts = i2c_get_clientdata(client);
 	MELFAS_DEBUG("In melfas_ts_resume\n");
@@ -1407,7 +1328,6 @@ static int melfas_ts_resume(struct i2c_client *client)
             break;
         }
     }
-    /* DTS2012021601331 duanfei 20120216 end >*/
 
 	ret = melfas_ts_power(client,1);	
 	if (ret < 0) 
@@ -1467,9 +1387,7 @@ static struct i2c_driver melfas_ts_driver = {
 
 static int __devinit melfas_ts_init(void)
 {
-/*< DTS2012020907660 sunlibin 20120213 begin */
 	TS_DEBUG_MELFAS(KERN_ERR "melfas_ts_init\n ");
-/* DTS2012020907660 sunlibin 20120213 end >*/
 	return i2c_add_driver(&melfas_ts_driver);
 }
 
@@ -1483,4 +1401,3 @@ module_exit(melfas_ts_exit);
 
 MODULE_DESCRIPTION("Melfas Touchscreen Driver");
 MODULE_LICENSE("GPL");
-/* DTS2011092601861 fengwei 20110928 end >*/
