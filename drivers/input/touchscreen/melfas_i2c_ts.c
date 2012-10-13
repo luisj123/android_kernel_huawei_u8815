@@ -50,6 +50,7 @@ module_param_named(melfas_debug, melfas_debug_mask, int, S_IRUGO | S_IWUSR | S_I
 		printk(KERN_ERR fmt, ##args); \
 		} \
 } while(0)
+/* add new variable */
 static bool first_int_flag = true;
 #define TS_X_OFFSET		1
 #define TS_Y_OFFSET		TS_X_OFFSET
@@ -753,6 +754,7 @@ static void clear_pressed_point_status(struct melfas_ts_data *ts)
     input_sync(ts->input_dev);
     memset(g_Mtouch_info, 0, sizeof(g_Mtouch_info));
 }
+/* add function to get module ID */
 #define OFILM_MODULE 0X00
 #define MUTTO_MODULE 0X01
 #define TRULY_MODULE 0X02
@@ -764,13 +766,9 @@ static void clear_pressed_point_status(struct melfas_ts_data *ts)
 static char touch_info[50] = {0};
 char * get_melfas_touch_info(void)
 {
-	int ret = 0;
 	char * module_name = NULL;
 
 	if (g_client == NULL)
-		return NULL;
-	ret = tp_read_input_name();
-	if (ret < 0)
 		return NULL;
 
 	switch(query_name[4])
@@ -996,9 +994,10 @@ static int melfas_ts_probe(struct i2c_client *client, const struct i2c_device_id
 	}
 
     /* get reset pin */
-	if(touch_pdata->get_touch_reset_pin)
+	/* change function name */
+	if(touch_pdata->get_touch_reset_gpio)
 	{
-		reset_pin = touch_pdata->get_touch_reset_pin();
+		reset_pin = touch_pdata->get_touch_reset_gpio();
 	}
 	
 	if(touch_pdata->read_touch_probe_flag)
@@ -1026,9 +1025,10 @@ static int melfas_ts_probe(struct i2c_client *client, const struct i2c_device_id
         printk(KERN_ERR "%s: power on failed \n", __func__);
         goto err_check_functionality_failed;
     }
-	if(touch_pdata->get_phone_version)
+	/* change function name */
+	if(touch_pdata->get_touch_resolution)
     {
-        ret = touch_pdata->get_phone_version(&tp_type_self_check);
+        ret = touch_pdata->get_touch_resolution(&tp_type_self_check);
         if(ret < 0)
         {
             printk(KERN_ERR "%s: reset failed \n", __func__);
@@ -1165,9 +1165,10 @@ static int melfas_ts_probe(struct i2c_client *client, const struct i2c_device_id
 	
 	if (client->irq) 
     {
-		if(touch_pdata->touch_gpio_config_interrupt)
+		/* change function name */
+		if(touch_pdata->set_touch_interrupt_gpio)
 		{
-			ret = touch_pdata->touch_gpio_config_interrupt();		
+			ret = touch_pdata->set_touch_interrupt_gpio();		
 		}
 		if (ret < 0) 
 		{
