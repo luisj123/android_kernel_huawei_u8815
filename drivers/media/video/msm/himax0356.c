@@ -25,9 +25,12 @@
 #include <mach/gpio.h>
 #include <mach/camera.h>
 #include "himax0356.h"
+/* < DTS2011052606009 jiaxianghong 20110527 begin */
+/* <DTS2011032104626 shenjinming 20110321 begin */
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
 #include <linux/hw_dev_dec.h>
 #endif
+/* <DTS2011032104626 shenjinming 20110321 end> */
 
 #undef CDBG
 #define CDBG(fmt, args...) printk(KERN_INFO "himax0356.c: " fmt, ## args)
@@ -504,11 +507,15 @@ static int himax0356_sensor_init_done(const struct msm_camera_sensor_info *data)
 {
 	gpio_direction_output(data->sensor_reset, 1);
 	gpio_free(data->sensor_reset);
+/*< DTS2010062300810 lijianzhao 20100624 begin*/
 /*probe finish ,power down camera*/
       if (data->vreg_disable_func)
       {  
+        /*< DTS2012020400396 zhangyu 20120206 begin */
          data->vreg_disable_func(0); 
+        /* DTS2012020400396 zhangyu 20120206 end > */
       }
+/*DTS2010062300810 lijianzhao 20100624 end >*/
 	return 0;
 }
 
@@ -534,7 +541,9 @@ static int himax0356_probe_init_sensor(const struct msm_camera_sensor_info *data
 
     if (data->vreg_enable_func)
     {
+        /*< DTS2012020400396 zhangyu 20120206 begin */
         rc = data->vreg_enable_func(1);
+        /* DTS2012020400396 zhangyu 20120206 end > */
         if (rc < 0)
         {
 			printk("u8800_himax0356.c-->%d\n",__LINE__);
@@ -857,16 +866,21 @@ static int himax0356_sensor_probe(
 		goto probe_done;
 	}
 
+    /* <DTS2011032104626 shenjinming 20110321 begin */
     #ifdef CONFIG_HUAWEI_HW_DEV_DCT
     /* detect current device successful, set the flag as present */
     set_hw_dev_flag(DEV_I2C_CAMERA_SLAVE);
     #endif
+    /* <DTS2011032104626 shenjinming 20110321 end> */
+/* < DTS2011052606009 jiaxianghong 20110527 end */	
 
 	s->s_init = himax0356_sensor_open_init;
 	s->s_release = himax0356_sensor_release;
 	s->s_config  = himax0356_sensor_config;
+	/*<DTS2011042704563 penghai 20110427 begin*/
 	s->s_camera_type = FRONT_CAMERA_2D;
 	s->s_mount_angle = 0;
+	/*DTS2011042704563 penghai 20110427 end>*/
 	himax0356_sensor_init_done(info);
 
 probe_done:

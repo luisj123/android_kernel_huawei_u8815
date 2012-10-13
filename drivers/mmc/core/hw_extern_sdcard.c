@@ -1,3 +1,4 @@
+/* <DTS2010092002892 duangan 20100926 begin */
 /*
  * Copyright (c) 2010, HUAWEI. All rights reserved.
  *
@@ -31,12 +32,14 @@ static ssize_t hw_extern_sdcard_read(struct file *file, char __user *buf,
 			  size_t count, loff_t *pos);
 static int hw_extern_sdcard_release(struct inode *inode, struct file *file);
 
+/* <DTS2011062802725 zhengzhechu 20110630 begin */
 static int hw_extern_sdcardMounted_probe(struct platform_device *pdev);
 static ssize_t hw_extern_sdcardMounted_read(struct file *file, char __user *buf,
 			  size_t count, loff_t *pos);
 static ssize_t hw_extern_sdcardMounted_write(struct file *file, const char __user *buf,
 			  size_t count, loff_t *pos);
 
+/* DTS2011062802725 zhengzhechu 20110630 end> */
 static struct platform_driver hw_extern_sdcard_driver = {
     .probe      = hw_extern_sdcard_probe,
 	.driver	= {
@@ -58,6 +61,7 @@ static struct miscdevice hw_extern_sdcard_device = {
 	.fops = &hw_extern_sdcard_fops,
 };
 
+/* <DTS2011062802725 zhengzhechu 20110630 begin */
 static struct platform_driver hw_extern_sdcardMounted_driver = {
     .probe      = hw_extern_sdcardMounted_probe,
 	.driver	= {
@@ -79,9 +83,12 @@ static struct miscdevice hw_extern_sdcardMounted_device = {
 	.name = "hw_extern_sdcardMounted",
 	.fops = &hw_extern_sdcardMounted_fops,
 };
+/* DTS2011062802725 zhengzhechu 20110630 end> */
 // 1 means extern sdcard exists, otherwise 0 means not exist.
 atomic_t hw_extern_sdcard_flag;
+/* <DTS2011062802725 zhengzhechu 20110630 begin */
 atomic_t hw_extern_sdcardMounted_flag;
+/* DTS2011062802725 zhengzhechu 20110630 end> */
 // interface function. It`s called by mmc-host moudule when extern sdcard insert.
 void hw_extern_sdcard_insert(void)
 {
@@ -99,10 +106,12 @@ static int hw_extern_sdcard_probe(struct platform_device *pdev)
 {
     int ret;
 	
+	/* <DTS2011062802725 zhengzhechu 20110630 begin */
 	/*hw_extern_sdcard_flag flag doesn't need initialization at here, becase it is 
 	 *a global variable, it has been initilized to zero by default. And device prob maybe
 	 *called after hw_extern_sdcard_insert, this will clear the hw_extern_sdcard_flag*/
     /*atomic_set(&hw_extern_sdcard_flag,0);*/
+    /* DTS2011062802725 zhengzhechu 20110630 end> */
     pr_err("%s: enter-----> \n", __func__);
 
 	ret = misc_register(&hw_extern_sdcard_device);
@@ -114,6 +123,7 @@ static int hw_extern_sdcard_probe(struct platform_device *pdev)
     return 0;
 }
 
+/* <DTS2011062802725 zhengzhechu 20110630 begin */
 static int hw_extern_sdcardMounted_probe(struct platform_device *pdev)
 {
     int ret;
@@ -128,6 +138,7 @@ static int hw_extern_sdcardMounted_probe(struct platform_device *pdev)
     
     return 0;
 }
+/* DTS2011062802725 zhengzhechu 20110630 end> */
 
 // open file.
 static int hw_extern_sdcard_open(struct inode *inode, struct file *file)
@@ -162,6 +173,7 @@ static ssize_t hw_extern_sdcard_read(struct file *file, char __user *buf,
     
 	return buffer_len;
 }
+/* <DTS2011062802725 zhengzhechu 20110630 begin */
 static ssize_t hw_extern_sdcardMounted_read(struct file *file, char __user *buf,
 			  size_t count, loff_t *pos)
 {
@@ -210,6 +222,7 @@ static ssize_t hw_extern_sdcardMounted_write(struct file *file, const char __use
     }  
     return 1;
 }
+/* DTS2011062802725 zhengzhechu 20110630 end> */
 
 static int hw_extern_sdcard_release(struct inode *inode, struct file *file)
 {
@@ -218,6 +231,7 @@ static int hw_extern_sdcard_release(struct inode *inode, struct file *file)
 
 static int __init hw_extern_sdcard_init(void)
 {
+    /* <DTS2011062802725 zhengzhechu 20110630 begin */
 	int ret=platform_driver_register(&hw_extern_sdcard_driver);
 	if(ret)
 		return ret;
@@ -228,15 +242,23 @@ static int __init hw_extern_sdcard_init(void)
 		platform_driver_unregister(&hw_extern_sdcard_driver);
 
 	return ret;
+	/* DTS2011062802725 zhengzhechu 20110630 end> */
 }
+/* <DTS2011052805360 zhengzhechu 20110601 begin*/
 //delete one line
+/* DTS2011052805360 zhengzhechu 20110601 end> */
 
 static void __exit hw_extern_sdcard_exit(void)
 {
 	platform_driver_unregister(&hw_extern_sdcard_driver);
+	/* <DTS2011062802725 zhengzhechu 20110630 begin */
 	platform_driver_unregister(&hw_extern_sdcardMounted_driver);
+	/* DTS2011062802725 zhengzhechu 20110630 end> */
 }
 
+/* <DTS2011052805360 zhengzhechu 20110601 begin*/
 module_init(hw_extern_sdcard_init); //improve the priority of hw_extern_sdcard_init
+/* DTS2011052805360 zhengzhechu 20110601 end> */
 module_exit(hw_extern_sdcard_exit);
 
+/* DTS2010092002892 duangan 20100926 end> */

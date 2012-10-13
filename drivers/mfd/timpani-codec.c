@@ -41,11 +41,15 @@
 		TIMPANI_CDC_ST_MIXING_TX2_R_M)
 #define TIMPANI_CDC_ST_MIXING_TX2_ENABLE ((1 << TIMPANI_CDC_ST_MIXING_TX2_L_S)\
 		| (1 << TIMPANI_CDC_ST_MIXING_TX2_R_S))
+/* < DTS2012022402932 gaolin 20120224 begin */
+/*< DTS2011122606588 yinzhaoyang 20111230 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 #define TIMPANI_CDC_ST_MIXING_TX1_MIC1_MASK (TIMPANI_CDC_ST_MIXING_TX1_L_M |\
 		TIMPANI_CDC_ST_MIXING_TX1_R_M)
 #define TIMPANI_CDC_ST_MIXING_TX1_MIC1_ENABLE ((1 << TIMPANI_CDC_ST_MIXING_TX1_L_S))
 #endif
+/* DTS2011122606588 yinzhaoyang 20111230 end > */
+/* DTS2012022402932 gaolin 20120224 end > */
 
 enum refcnt {
 	DEC = 0,
@@ -2726,6 +2730,8 @@ static struct adie_codec_state adie_codec;
  * are not skipped.
  */
 
+/*< DTS2012021102090 gaolin 20120211 begin */
+/*< DTS2011122607023 yinzhaoyang 20111231 begin */
 #ifndef CONFIG_HUAWEI_KERNEL
 static bool timpani_register_is_cacheable(u8 reg)
 {
@@ -2822,6 +2828,8 @@ static int adie_codec_write(u8 reg, u8 mask, u8 val)
 	return 0;
 }
 #endif
+/* DTS2011122607023 yinzhaoyang 20111231 end >*/
+/* DTS2012021102090 gaolin 20120211 end >*/
 
 static int reg_in_use(u8 reg_ref, u8 path_type)
 {
@@ -2956,6 +2964,8 @@ int timpani_adie_codec_enable_sidetone(struct adie_codec_path *rx_path_ptr,
 	if (enable) {
 		rc = adie_codec_write(TIMPANI_A_CDC_RX1_CTL,
 			TIMPANI_RX1_ST_MASK, TIMPANI_RX1_ST_ENABLE);
+/* < DTS2012022402932 gaolin 20120224 begin */
+/*< DTS2011122606588 yinzhaoyang 20111230 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 		if (rx_path_ptr->reg_owner == RA_OWNER_PATH_RX1)
 			adie_codec_write(TIMPANI_A_CDC_ST_MIXING,
@@ -2967,6 +2977,8 @@ int timpani_adie_codec_enable_sidetone(struct adie_codec_path *rx_path_ptr,
 				TIMPANI_CDC_ST_MIXING_TX1_MASK,
 				TIMPANI_CDC_ST_MIXING_TX1_ENABLE);
 #endif
+/* DTS2011122606588 yinzhaoyang 20111230 end > */
+/* DTS2012022402932 gaolin 20120224 end > */
 		else if (rx_path_ptr->reg_owner == RA_OWNER_PATH_RX2)
 			adie_codec_write(TIMPANI_A_CDC_ST_MIXING,
 				TIMPANI_CDC_ST_MIXING_TX2_MASK,

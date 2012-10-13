@@ -24,12 +24,19 @@
 
 #include <mach/msm_rpcrouter.h>
 
+/* <DTS2010081400556 shenjinming 20100814 begin */
+/*< DTS2010071902252 shenjinming 20100719 begin */
 #ifdef CONFIG_HUAWEI_EVALUATE_POWER_CONSUMPTION 
 #include <mach/msm_battery.h>
 #endif
+/* DTS2010071902252 shenjinming 20100719 end >*/
+/* DTS2010081400556 shenjinming 20100814 end> */
+/* < DTS2010080500080 luojianhong 201000817 begin*/
 #include <linux/delay.h>
 #define VIBRATOR_DELAY 20
 #define VIBRATOR_MIN 50
+/*  DTS2010080500080 luojianhong 201000817 end > */
+/*<BU5D07918, sibingsong 20100415 begin*/
 #define PM_LIBPROG      0x30000061
 #ifndef CONFIG_HUAWEI_FEATURE_VIBRATOR
 #if (CONFIG_MSM_AMSS_VERSION == 6220) || (CONFIG_MSM_AMSS_VERSION == 6225)
@@ -38,12 +45,15 @@
 #define PM_LIBVERS      0x10001
 #endif
 #else
+/*< DTS2012020306500 lijianzhao 20120204 begin */
 #ifdef CONFIG_ARCH_MSM7X27
 #define PM_LIBVERS  0x60001
 #else
 #define PM_LIBVERS	0x00030005
 #endif
+/* DTS2012020306500 lijianzhao 20120204 end >*/
 #endif
+/*<BU5D08979 sibingsong 20100429 begin*/
 #ifndef CONFIG_HUAWEI_FEATURE_VIBRATOR
 #define HTC_PROCEDURE_SET_VIB_ON_OFF	21
 #define PMIC_VIBRATOR_LEVEL	(3000)
@@ -51,24 +61,33 @@
 #define HW_PROCEDURE_SET_VIB_ON_OFF	22
 #define PMIC_VIBRATOR_LEVEL	(3000)
 #endif
+/*BU5D07918, sibingsong 20100415 end>*/
+/*BU5D08979 sibingsong 20100429 end>*/
 static struct work_struct work_vibrator_on;
 static struct work_struct work_vibrator_off;
 static struct hrtimer vibe_timer;
+/* < DTS2010080500080 luojianhong 201000817 begin*/
 #ifdef CONFIG_HUAWEI_SETTING_TIMER_FOR_VIBRATOR_OFF
 static int time_value = 0;
 #endif
+/*  DTS2010080500080 luojianhong 201000817 end > */
 
 static void set_pmic_vibrator(int on)
 {
 	static struct msm_rpc_endpoint *vib_endpoint;
+    /* < DTS2012041806002 houming 20120504 begin*/	
+	int ret=0;
+	/*  DTS2012041806002 houming 20120504 end > */
 	struct set_vib_on_off_req {
 		struct rpc_request_hdr hdr;
+/* < DTS2010080500080 luojianhong 201000817 begin*/
 		#ifndef CONFIG_HUAWEI_SETTING_TIMER_FOR_VIBRATOR_OFF
 		uint32_t data;
 		#else
 		uint32_t vib_volt;
 		uint32_t vib_time;//vibratting time pass to modem .
 		#endif
+/*  DTS2010080500080 luojianhong 201000817 end > */
 	} req;
 
 	if (!vib_endpoint) {
@@ -80,6 +99,7 @@ static void set_pmic_vibrator(int on)
 		}
 	}
 
+/* < DTS2010080500080 luojianhong 201000817 begin*/
 	if (on)
 	{
 		#ifndef CONFIG_HUAWEI_SETTING_TIMER_FOR_VIBRATOR_OFF
@@ -98,13 +118,25 @@ static void set_pmic_vibrator(int on)
 		req.vib_time = cpu_to_be32(0); 
 		#endif
 	}
+/*  DTS2010080500080 luojianhong 201000817 end > */
+/*<BU5D07918, sibingsong 20100416 begin*/
 #ifndef CONFIG_HUAWEI_FEATURE_VIBRATOR
+/*BU5D07918, sibingsong 20100416 end>*/
 	msm_rpc_call(vib_endpoint, HTC_PROCEDURE_SET_VIB_ON_OFF, &req,
 		sizeof(req), 5 * HZ);
+/*<BU5D07918, sibingsong 20100416 begin*/
 #else
-	msm_rpc_call(vib_endpoint, HW_PROCEDURE_SET_VIB_ON_OFF, &req,
+    /* < DTS2012041806002 houming 20120504 begin*/
+	/* Add return value to determine */
+	ret=msm_rpc_call(vib_endpoint, HW_PROCEDURE_SET_VIB_ON_OFF, &req,
 		sizeof(req), 5 * HZ);
+	if(ret)
+	{
+		printk("%s:msm_rpc_call fail,ret=%d\n",__func__,ret);
+	}
+	/*  DTS2012041806002 houming 20120504 end > */
 #endif
+/*BU5D07918, sibingsong 20100416 end>*/
 }
 
 static void pmic_vibrator_on(struct work_struct *work)
@@ -117,6 +149,7 @@ static void pmic_vibrator_off(struct work_struct *work)
 	set_pmic_vibrator(0);
 }
 
+/* < DTS2010080500080 luojianhong 201000817 begin*/
 #ifndef CONFIG_HUAWEI_SETTING_TIMER_FOR_VIBRATOR_OFF
 static void timed_vibrator_on(struct timed_output_dev *sdev)
 {
@@ -124,10 +157,12 @@ static void timed_vibrator_on(struct timed_output_dev *sdev)
 }
 
 #endif
+/*  DTS2010080500080 luojianhong 201000817 end > */
 static void timed_vibrator_off(struct timed_output_dev *sdev)
 {
 	schedule_work(&work_vibrator_off);
 }
+/* < DTS2010080500080 luojianhong 201000817 begin*/
 #ifndef CONFIG_HUAWEI_SETTING_TIMER_FOR_VIBRATOR_OFF
 static void vibrator_enable(struct timed_output_dev *dev, int value)
 {
@@ -149,8 +184,9 @@ static void vibrator_enable(struct timed_output_dev *dev, int value)
 static void vibrator_enable(struct timed_output_dev *dev, int value)
 {
 	time_value = value;//save this value as vibratting time
-	hrtimer_cancel(&vibe_timer);
-
+    /* < DTS2012041806002 houming 20120504 begin*/
+    /* detele */
+    /*  DTS2012041806002 houming 20120504 end > */
 	if (value == 0)
 	{
 		mdelay(VIBRATOR_DELAY);
@@ -163,12 +199,13 @@ static void vibrator_enable(struct timed_output_dev *dev, int value)
 
 		//timed_vibrator_on(dev);
 		pmic_vibrator_on(NULL);//use this function instead of timed_vibrator_on.
-		hrtimer_start(&vibe_timer,
-			      ktime_set(value / 1000, (value % 1000) * 1000000),
-			      HRTIMER_MODE_REL);
+    /* < DTS2012041806002 houming 20120504 begin*/
+    /* detele */
+    /*  DTS2012041806002 houming 20120504 end > */
 	}
 }
 #endif
+/*  DTS2010080500080 luojianhong 201000817 end > */
 
 static int vibrator_get_time(struct timed_output_dev *dev)
 {

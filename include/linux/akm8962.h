@@ -1,3 +1,4 @@
+/*<DTS2010123100691 modified by yuxuesong on 2010-12-28 begin*/
 /*
  * Definitions for akm8962 compass chip.
  */
@@ -82,8 +83,10 @@ Defines a read-only address of the fuse ROM of the AK8962.*/
 #define ECS_IOCTL_APP_SET_MVFLAG	_IOW(AKMIO, 0x19, short)
 #define ECS_IOCTL_APP_GET_MVFLAG	_IOR(AKMIO, 0x1A, short)
 
+/* < DTS2011022604747  liujinggang 20110228 begin */
 #define ECS_IOCTL_SET_CAL  	_IOR(AKMIO, 0x0C, short)
 #define ECS_IOCTL_APP_GET_CAL  	_IOR(AKMIO, 0x21, short)
+/* DTS2011022604747  liujinggang 20110228 end > */
 
 struct akm8962_platform_data {
 	char layouts[3][3];
@@ -92,4 +95,5 @@ struct akm8962_platform_data {
 };
 
 #endif
+/* DTS2010123100691 modified by yuxuesong on 2010-12-28 end>*/
 

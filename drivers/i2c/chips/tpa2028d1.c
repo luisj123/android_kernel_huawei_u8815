@@ -1,3 +1,4 @@
+/* < DTS2010061100003 luojianhong 201000612 begin*/
 /* drivers\i2c\chips\tpa2028d1.c
  *
  * Copyright (C) 2009 HUAWEI Corporation.
@@ -19,13 +20,17 @@
 #include <mach/gpio.h>
 #include <linux/earlysuspend.h>
 #include <linux/audio_amplifier.h>
+/* < DTS2010062900324 luojianhong 201000629 begin*/
 #include <linux/delay.h>
 
+/* < DTS2011052803160 shenjinming 20110611 begin */
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
 #include <linux/hw_dev_dec.h>
 #endif
+/* DTS2011052803160 shenjinming 201106011 end > */
 
 #define REG1_DEFAULT_VALUE 0xc3
+/*  DTS2010062900324 luojianhong 201000629 end > */
 //#define TPA_DEBUG
 #ifdef TPA_DEBUG
 #define TPA_DEBUG_TPA(fmt, args...) printk(KERN_INFO fmt, ##args)
@@ -35,6 +40,7 @@
 #define TPA2028D1_I2C_NAME "tpa2028d1"
 static struct i2c_client *g_client;
 
+/*<DTS2010122802445 yanghaimin 20101228 begin */
 #include <asm/mach-types.h>
 
 /* for voice */
@@ -66,6 +72,7 @@ static char en_data_4voice_u8800[] =
 };
 static char en_data_4voice_u8820[] = 
 {
+    /*< DTS2011010501524 dongchen 20110106 begin */
     /* 2010.12.31 renyanhui tuning for U8820 */
     /* reg  val  */
     0x01, 0x83,
@@ -76,6 +83,7 @@ static char en_data_4voice_u8820[] =
     0x06, 0x7e,
     0x07, 0x30,
     0x01, 0xc3
+    /* DTS2011010501524 dongchen 20110106 end >*/
 };
 static char en_data_4voice_u8800_51[] = 
 {
@@ -91,6 +99,7 @@ static char en_data_4voice_u8800_51[] =
     0x01, 0xc3
 };
 
+/*< DTS2011080400504 dongchen 20110805 begin */
 static char en_data_4voice_u8860[] = 
 {
     /* close AGC, 18dB */
@@ -104,8 +113,10 @@ static char en_data_4voice_u8860[] =
     0x07, 0x00,
     0x01, 0xc3
 };
+/* DTS2011080400504 dongchen 20110805 end >*/
 
 /* for music */
+/*< DTS2011092207134 dongchen 20110923 begin */
 /* set default value same as U8860 */
 static char en_data_4music[] = 
 {
@@ -119,6 +130,7 @@ static char en_data_4music[] =
     0x07, 0x22,
     0x01, 0xc3
 };
+/* DTS2011092207134 dongchen 20110923 end >*/
 
 static char en_data_4music_u8800[] = 
 {
@@ -137,6 +149,7 @@ static char en_data_4music_u8800[] =
 
 static char en_data_4music_u8820[] = 
 {
+    /*< DTS2011010501524 dongchen 20110106 begin */
     /* 2010.12.31 renyanhui tuning for U8820 */
     /* reg  val  */
     0x01, 0x83,
@@ -147,6 +160,7 @@ static char en_data_4music_u8820[] =
     0x06, 0x7e,
     0x07, 0x30,
     0x01, 0xc3
+    /* DTS2011010501524 dongchen 20110106 end >*/
 };
 
 static char en_data_4music_u8800_51[] = 
@@ -164,8 +178,11 @@ static char en_data_4music_u8800_51[] =
     0x01, 0xc3
 };
 
+/*< DTS2011092207134 dongchen 20110923 begin */
 /* 2011.9.23 renyanhui tuning */
+/*< DTS2011090100008 dongchen 20110901 begin */
 /* 2011.8.31 renyanhui tuning */
+/*< DTS2011082205270 dongchen 20110824 begin */
 /* 2011.8.23 renyanhui tuning */
 static char en_data_4music_u8860[] = 
 {
@@ -179,7 +196,10 @@ static char en_data_4music_u8860[] =
     0x07, 0x22,
     0x01, 0xc3
 };
+/* DTS2011082205270 dongchen 20110824 end >*/
+/* DTS2011090100008 dongchen 20110901 end >*/
 
+/*< DTS2011092901202 dongchen 20110929 begin */
 /* 2011.9.28 renyanhui tuning */
 static char en_data_4music_c8860[] = 
 {
@@ -193,6 +213,8 @@ static char en_data_4music_c8860[] =
     0x07, 0x22,
     0x01, 0xc3
 };
+/* DTS2011092207134 dongchen 20110923 end >*/
+/* DTS2011092901202 dongchen 20110929 end >*/
 
 /* data  pointer */
 static char* pen_data_4voice = &(en_data_4voice[0]);
@@ -201,6 +223,7 @@ static int     pen_data_4voice_size = 0;
 static char* pen_data_4music = &(en_data_4music[0]);
 static int     pen_data_4music_size = 0;
 
+/* DTS2010122802445 yanghaimin 20101228 end>*/
 
 
 static int tpa2028d1_i2c_write(char *txData, int length)
@@ -254,6 +277,7 @@ static int tpa2028d1_i2c_read(char * reg, char *rxData)
 		return 0;
     }
 }
+/*<DTS2010122802445 yanghaimin 20101228 begin */
 /* power on tpa2028d1 amplifier by type */
 static int tpa2028d1_amplifier_on_by_type(char* pdata, int size)
 {
@@ -272,9 +296,14 @@ static int tpa2028d1_amplifier_on_by_type(char* pdata, int size)
 
     return ret;
 }
+/* DTS2010122802445 yanghaimin 20101228 end>*/
 
+/*< DTS2010090203607 dongchen 20100907 begin */
+/*<DTS2010122802445 yanghaimin 20101228 begin */
 /* move up static char en_data[8][2]  */
+/* DTS2010122802445 yanghaimin 20101228 end>*/
 
+/*<DTS2010122802445 yanghaimin 20101228 begin */
 void tpa2028d1_amplifier_on(void)
 {
     int ret = 0;
@@ -298,14 +327,19 @@ void tpa2028d1_amplifier_on(void)
     }
     */
 }
+/* DTS2010122802445 yanghaimin 20101228 end>*/
 
 void tpa2028d1_amplifier_off(void)
 {
     TPA_DEBUG_TPA("tpa2028d1_amplifier_off\n");
 }
 
+/*< DTS2010120204486 dongchen 20101223 begin */
+/*<DTS2010122802445 yanghaimin 20101228 begin */
 /* move up static char en_4music_data[8][2] */
+/* DTS2010122802445 yanghaimin 20101228 end>*/
 
+/*<DTS2010122802445 yanghaimin 20101228 begin */
 static void tpa2028d1_amplifier_4music_on(void)
 {
     int ret = 0;
@@ -324,6 +358,8 @@ static void tpa2028d1_amplifier_4music_on(void)
         TPA_DEBUG_TPA("tpa2028d1_amplifier_4music_on\n");
 
 }
+/* DTS2010122802445 yanghaimin 20101228 end>*/
+/* DTS2010120204486 dongchen 20101223 end >*/
 
 static int tpa2028d1_probe(struct i2c_client *client,const struct i2c_device_id *id)
 {
@@ -336,6 +372,7 @@ static int tpa2028d1_probe(struct i2c_client *client,const struct i2c_device_id 
 	
 	g_client = client;
 
+    /*<DTS2010122802445 yanghaimin 20101228 begin */
     /* power on tpa2028d1 amplifier by type */
     if (machine_is_msm7x30_u8800())
     {
@@ -364,6 +401,7 @@ static int tpa2028d1_probe(struct i2c_client *client,const struct i2c_device_id 
 
         TPA_DEBUG_TPA("tpa2028d1_probe machine_is_msm7x30_u8800_51\n");
     }
+	/*< DTS2011030202729  liliang 20110302  begin */	
 	 else if (machine_is_msm8255_u8800_pro())
     {
         pen_data_4voice = &(en_data_4voice_u8800_51[0]);
@@ -373,14 +411,28 @@ static int tpa2028d1_probe(struct i2c_client *client,const struct i2c_device_id 
 
         TPA_DEBUG_TPA("tpa2028d1_probe machine_is_msm8255_u8800_pro\n");
     }
+	/* DTS2011030202729  liliang 20110302 end >*/
+	/*< DTS2011081505841 dongchen 20110819 begin */
+    /*< DTS2011080400504 dongchen 20110805 begin */
+    /*< DTS2011082205270 dongchen 20110824 begin */
+	/* < DTS2011082302564 liwei 20110823 begin */
+	/*<DTS2011091502092 liyuping 20110915 begin */
+    /* <DTS2011091200073 zhangbo 20110912 begin */
+    /* < DTS2011102401822 liwei 20111024 begin */
     else if (machine_is_msm8255_u8860() 
             || machine_is_msm8255_u8860lp()
+            /* < DTS2012022905490 ganfan 20120301 begin */
             || machine_is_msm8255_u8860_r()
+            /* DTS2012022905490 ganfan 20120301 end > */
             || machine_is_msm8255_u8860_92()
             || machine_is_msm8255_u8680()
             || machine_is_msm8255_u8667()
 	 		|| machine_is_msm8255_u8860_51()
 			|| machine_is_msm8255_u8730())
+    /* DTS2011102401822 liwei 20111024 end > */
+    /* DTS2011091200073 zhangbo 20110912 end> */
+	/* DTS2011091502092 liyuping 20110915 end> */
+	/* DTS2011082302564 liwei 20110823 end > */
     {
         pen_data_4voice = &(en_data_4voice_u8860[0]);
         pen_data_4voice_size = ARRAY_SIZE(en_data_4voice_u8860);
@@ -393,11 +445,16 @@ static int tpa2028d1_probe(struct i2c_client *client,const struct i2c_device_id 
     {
         pen_data_4voice = &(en_data_4voice_u8860[0]);
         pen_data_4voice_size = ARRAY_SIZE(en_data_4voice_u8860);
+        /*< DTS2011092207134 dongchen 20110923 begin */
         pen_data_4music = &(en_data_4music_c8860[0]);
         pen_data_4music_size = ARRAY_SIZE(en_data_4music_c8860);
+        /* DTS2011092207134 dongchen 20110923 end >*/
         
         TPA_DEBUG_TPA("tpa2028d1_probe machine_is_msm8255_c8860\n");
     }
+    /* DTS2011082205270 dongchen 20110824 end >*/
+    /* DTS2011080400504 dongchen 20110805 end >*/
+	/* DTS2011081505841 dongchen 20110819 end >*/
     else
     {
         pen_data_4voice = &(en_data_4voice[0]);
@@ -407,6 +464,7 @@ static int tpa2028d1_probe(struct i2c_client *client,const struct i2c_device_id 
 
         TPA_DEBUG_TPA("tpa2028d1_probe default.\n");
     }
+    /* DTS2010122802445 yanghaimin 20101228 end>*/
 
     gpio_set_value(82, 1);	/* enable spkr poweramp */
     msleep(10);
@@ -418,18 +476,23 @@ static int tpa2028d1_probe(struct i2c_client *client,const struct i2c_device_id 
     {
         pdata->amplifier_on = tpa2028d1_amplifier_on;
         pdata->amplifier_off = tpa2028d1_amplifier_off;
+        /*< DTS2010120204486 dongchen 20101223 begin */
         #ifdef CONFIG_HUAWEI_KERNEL
         pdata->amplifier_4music_on = tpa2028d1_amplifier_4music_on;
         #endif
+        /* DTS2010120204486 dongchen 20101223 end >*/
     }
 
+    /* < DTS2011052803160 shenjinming 20110611 begin */
     #ifdef CONFIG_HUAWEI_HW_DEV_DCT
     /* detect current device successful, set the flag as present */
     set_hw_dev_flag(DEV_I2C_SPEAKER);
     #endif
+    /* DTS2011052803160 shenjinming 201106011 end > */  
     
     return ret;
 }
+/*  DTS2010062900324 luojianhong 201000629 end > */
 
 
 static int tpa2028d1_remove(struct i2c_client *client)
@@ -474,3 +537,4 @@ module_exit(tpa2028d1_exit);
 
 MODULE_DESCRIPTION("tpa2028d1 Driver");
 MODULE_LICENSE("GPL");
+/*  DTS2010061100003 luojianhong 201000612 end > */

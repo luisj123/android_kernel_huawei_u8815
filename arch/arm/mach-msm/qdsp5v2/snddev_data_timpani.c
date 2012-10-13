@@ -25,8 +25,12 @@
 #include <mach/qdsp5v2/snddev_virtual.h>
 #include "timpani_profile_7x30.h"
 #include <mach/qdsp5v2/audio_dev_ctl.h>
+/* < DTS2012022402932 gaolin 20120224 begin */
+/*< DTS2011122606588 yinzhaoyang 20111230 begin */
 #include <asm-arm/huawei/smem_vendor_huawei.h>
 #include "../smd_private.h"
+/* DTS2011122606588 yinzhaoyang 20111230 end > */
+/* DTS2012022402932 gaolin 20120224 end > */
 /* define the value for BT_SCO */
 #define BT_SCO_PCM_CTL_VAL (PCM_CTL__RPCM_WIDTH__LINEAR_V |\
 		PCM_CTL__TPCM_WIDTH__LINEAR_V)
@@ -34,8 +38,10 @@
 		DATA_FORMAT_PADDING_INFO__TPCM_FORMAT_V)
 #define BT_SCO_AUX_CODEC_INTF   AUX_CODEC_INTF_CTL__PCMINTF_DATA_EN_V
 
+/*< DTS2011051303410 dongchen 20110516 begin */
 extern struct platform_device *snd_devices_c8860[];
 extern int arraysize_c8860;
+/* DTS2011051303410 dongchen 20110516 end >*/
 
 #ifdef CONFIG_DEBUG_FS
 static struct dentry *debugfs_hsed_config;
@@ -748,7 +754,9 @@ static struct adie_codec_dev_profile ihs_stereo_speaker_stereo_rx_profile = {
 	.setting_sz = ARRAY_SIZE(ihs_stereo_speaker_stereo_rx_settings),
 };
 
+/*< DTS2011101304810 dongchen 20111013 begin */
 /* acdb_id from ACDB_ID_HEADSET_STEREO_PLUS_SPKR_STEREO_RX to ACDB_ID_HEADSET_STEREO_PLUS_SPKR_MONO_RX */
+/*< DTS2011061605311 dongchen 20110614 begin */
 /* set msm_snddev_poweramp_4music_on as pamp_on func */
 static struct snddev_icodec_data snddev_ihs_stereo_speaker_stereo_rx_data = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
@@ -767,6 +775,8 @@ static struct snddev_icodec_data snddev_ihs_stereo_speaker_stereo_rx_data = {
 	.max_voice_rx_vol[VOC_WB_INDEX] = -900,
 	.min_voice_rx_vol[VOC_WB_INDEX] = -2400,
 };
+/* DTS2011061605311 dongchen 20110614 end >*/
+/* DTS2011101304810 dongchen 20111013 end >*/
 
 static struct platform_device msm_ihs_stereo_speaker_stereo_rx_device = {
 	.name = "snddev_icodec",
@@ -969,6 +979,7 @@ static struct platform_device msm_auxpga_lb_hs_device = {
 	.dev = { .platform_data = &snddev_auxpga_lb_hs_data },
 };
 
+/*< DTS2011050601476 dongchen 20110506 begin */
 /****************************************************************/
 /**            HUAWEI ADDED DEVICE                             **/
 /****************************************************************/
@@ -992,8 +1003,11 @@ static struct adie_codec_dev_profile iearpiece_profile_u8860 = {
 	.setting_sz = ARRAY_SIZE(iearpiece_settings_u8860),
 };
 
+/* < DTS2012033005129 mengdong81003944 20120401 begin */
 /* rx volume from 0dB to 6dB */
+/*< DTS2011080400504 dongchen 20110805 begin */
 /* rx volume from 6dB to 0dB */
+/*< DTS2011061705385 dongchen 20110617 begin */
 /* rx volume from -7dB to 6dB */
 static struct snddev_icodec_data snddev_iearpiece_data_u8860 = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
@@ -1013,6 +1027,9 @@ static struct snddev_icodec_data snddev_iearpiece_data_u8860 = {
 	.max_voice_rx_vol[VOC_WB_INDEX] = 600,
 	.min_voice_rx_vol[VOC_WB_INDEX] = -900,
 };
+/* DTS2011061705385 dongchen 20110617 end >*/
+/* DTS2011080400504 dongchen 20110805 end >*/
+/* DTS2012033005129 mengdong81003944 20120401 end > */
 
 static struct platform_device msm_iearpiece_device_u8860 = {
 	.name = "snddev_icodec",
@@ -1080,8 +1097,11 @@ static struct adie_codec_dev_profile ispkr_stereo_profile_u8860 = {
 	.setting_sz = ARRAY_SIZE(ispkr_stereo_settings_u8860),
 };
 
+/*< DTS2011090100008 dongchen 20110901 begin */
 /* rx volume from -8dB to 3dB */
+/*< DTS2011080400504 dongchen 20110805 begin */
 /* rx volume from -2dB to -8dB */
+/*< DTS2011053005461 dongchen 20110530 begin */
 /* set to mono device */
 static struct snddev_icodec_data snddev_ispkr_stereo_data_u8860 = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
@@ -1100,6 +1120,9 @@ static struct snddev_icodec_data snddev_ispkr_stereo_data_u8860 = {
 	.max_voice_rx_vol[VOC_WB_INDEX] = 300,
 	.min_voice_rx_vol[VOC_WB_INDEX] = -1200
 };
+/* DTS2011053005461 dongchen 20110530 end >*/
+/* DTS2011080400504 dongchen 20110805 end >*/
+/* DTS2011090100008 dongchen 20110901 end >*/
 
 static struct platform_device msm_ispkr_stereo_device_u8860 = {
 	.name = "snddev_icodec",
@@ -1188,8 +1211,11 @@ static struct adie_codec_dev_profile headset_ab_cpls_profile_u8860 = {
 	.setting_sz = ARRAY_SIZE(headset_ab_cpls_settings_u8860),
 };
 
+/* < DTS2012033005129 mengdong81003944 20120401 begin */
 /* rxvolume from 2dB to 3dB */
+/*< DTS2011092500702 dongchen 20110926 begin */
 /* rxvolume from -4dB to 2dB */
+/*< DTS2011061705385 dongchen 20110617 begin */
 /* rxvolume from -7dB to -4dB */
 static struct snddev_icodec_data snddev_ihs_stereo_rx_data_u8860 = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
@@ -1211,6 +1237,9 @@ static struct snddev_icodec_data snddev_ihs_stereo_rx_data_u8860 = {
 	.max_voice_rx_vol[VOC_WB_INDEX] = -300, 
 	.min_voice_rx_vol[VOC_WB_INDEX] = -1800,
 };
+/* DTS2011061705385 dongchen 20110617 end >*/
+/* DTS2011092500702 dongchen 20110926 end >*/
+/* DTS2012033005129 mengdong81003944 20120401 end > */
 
 static struct platform_device msm_headset_stereo_device_u8860 = {
 	.name = "snddev_icodec",
@@ -1268,6 +1297,8 @@ static struct platform_device msm_idual_mic_broadside_device_u8860 = {
 	.id = 13,
 	.dev = { .platform_data = &snddev_idual_mic_broadside_data_u8860 },
 };
+/* < DTS2012022402932 gaolin 20120224 begin */
+/*< DTS2011122606588 yinzhaoyang 20111230 begin */
 /* ES HANDSET DUAL MIC BROADSIDE */
 static struct adie_codec_action_unit idual_mic_bs_8KHz_osr256_actions_u8860_es[] =
 	AMIC_BROADSIDE_DUAL_8000_OSR_256_U8860_es; 
@@ -1318,10 +1349,14 @@ static struct platform_device msm_idual_mic_broadside_device_u8860_es = {
 	.id = 13,
 	.dev = { .platform_data = &snddev_idual_mic_broadside_data_u8860_es },
 };
+/* DTS2011122606588 yinzhaoyang 20111230 end > */
+/* DTS2012022402932 gaolin 20120224 end > */
 
 /* SPEAKER MUSIC STEREO DEVICE */
+/*< DTS2011050903865 dongchen 20110513 begin */
 static struct adie_codec_action_unit ispkr_music_stereo_48KHz_osr256_actions_u8860[] =
 	SPEAKER_PRI_MUSIC_STEREO_48000_OSR_256_U8860;
+/* DTS2011050903865 dongchen 20110513 end >*/
 
 static struct adie_codec_hwsetting_entry ispkr_music_stereo_settings_u8860[] = {
 	{
@@ -1338,7 +1373,9 @@ static struct adie_codec_dev_profile ispkr_music_stereo_profile_u8860 = {
 	.setting_sz = ARRAY_SIZE(ispkr_music_stereo_settings_u8860),
 };
 
+/*< DTS2011061605311 dongchen 20110614 begin */
 /* set ACDB_ID_SPKR_PHONE_MUSIC_MONO as acdb_id */
+/*< DTS2011053005461 dongchen 20110530 begin */
 /* set to mono device, use music tpa parameter */
 static struct snddev_icodec_data snddev_ispkr_music_stereo_data_u8860 = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
@@ -1357,6 +1394,8 @@ static struct snddev_icodec_data snddev_ispkr_music_stereo_data_u8860 = {
 	.max_voice_rx_vol[VOC_WB_INDEX] = 1000,
 	.min_voice_rx_vol[VOC_WB_INDEX] = -500
 };
+/* DTS2011053005461 dongchen 20110530 end >*/
+/* DTS2011061605311 dongchen 20110614 end >*/
 
 static struct platform_device msm_ispkr_music_stereo_device_u8860 = {
 	.name = "snddev_icodec",
@@ -1383,6 +1422,7 @@ static struct adie_codec_dev_profile headset_ab_cpls_music_profile_u8860 = {
 	.setting_sz = ARRAY_SIZE(headset_ab_cpls_music_settings_u8860),
 };
 
+/*< DTS2011061605311 dongchen 20110614 begin */
 /* set ACDB_ID_HEADSET_SPKR_MUSIC_STEREO as acdb_id */
 static struct snddev_icodec_data snddev_ihs_music_stereo_rx_data_u8860 = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
@@ -1404,6 +1444,7 @@ static struct snddev_icodec_data snddev_ihs_music_stereo_rx_data_u8860 = {
 	.max_voice_rx_vol[VOC_WB_INDEX] = -900,
 	.min_voice_rx_vol[VOC_WB_INDEX] = -2400,
 };
+/* DTS2011061605311 dongchen 20110614 end >*/
 
 static struct platform_device msm_headset_music_stereo_device_u8860 = {
 	.name = "snddev_icodec",
@@ -1430,6 +1471,7 @@ static struct adie_codec_dev_profile iearpiece_hac_profile_u8860 = {
 	.setting_sz = ARRAY_SIZE(iearpiece_hac_settings_u8860),
 };
 
+/*< DTS2011061605311 dongchen 20110614 begin */
 /* set ACDB_ID_HANDSET_HAC_SPKR as acdb_id */
 static struct snddev_icodec_data snddev_iearpiece_hac_data_u8860 = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
@@ -1441,15 +1483,18 @@ static struct snddev_icodec_data snddev_iearpiece_hac_data_u8860 = {
 	.pmctl_id = NULL,
 	.pmctl_id_sz = 0,
 	.default_sample_rate = 48000,
+    /*<DTS2011060201308 yanghaimin 20110602, begin*/
     /* U8860 add hac gpio ctl func */
 	.pamp_on = msm_snddev_hac_on,  // when earpiece power on, pull up GPIO for hac
 	.pamp_off = msm_snddev_hac_off, // when earpiece power off, pull down GPIO for hac
+    /* DTS2011060201308 yanghaimin 20110602, end>*/
 	.property = SIDE_TONE_MASK,
 	.max_voice_rx_vol[VOC_NB_INDEX] = -700,
 	.min_voice_rx_vol[VOC_NB_INDEX] = -2200,
 	.max_voice_rx_vol[VOC_WB_INDEX] = -1400,
 	.min_voice_rx_vol[VOC_WB_INDEX] = -2900,
 };
+/* DTS2011061605311 dongchen 20110614 end >*/
 
 static struct platform_device msm_iearpiece_hac_device_u8860 = {
 	.name = "snddev_icodec",
@@ -1517,6 +1562,7 @@ static struct adie_codec_dev_profile ifm_analog_speaker_profile = {
 	.setting_sz = ARRAY_SIZE(ifm_analog_speaker_settings),
 };
 
+/*< DTS2011082205270 dongchen 20110824 begin */
 /* set msm_snddev_poweramp_4music_on as pamp_on for FM Speaker */
 static struct snddev_icodec_data snddev_analog_fm_speaker_data = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
@@ -1531,6 +1577,7 @@ static struct snddev_icodec_data snddev_analog_fm_speaker_data = {
 	.pamp_on = &msm_snddev_poweramp_4music_on,
 	.pamp_off = &msm_snddev_poweramp_off,
 };
+/* DTS2011082205270 dongchen 20110824 end >*/
 
 static struct platform_device  msm_snddev_analog_fm_speaker_device = {
 	.name = "snddev_icodec",
@@ -1576,9 +1623,13 @@ static struct platform_device msm_snddev_analog_fm_hs_device = {
 };
 
 #endif
+/* DTS2011050601476 dongchen 20110506 end >*/
+/* < DTS2012022402932 gaolin 20120224 begin */
+/*<DTS2011092905909 yinzhaoyang 20110929  begin*/
 /****************************************************************/
 /**            HUAWEI ADDED DEVICE                             **/
 /****************************************************************/
+/* < DTS2012012101655 liurennianKF62391 20120129 begin */
 /* RX EAR */
 static struct snddev_icodec_data snddev_iearpiece_data_u8730 = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
@@ -1631,6 +1682,7 @@ static struct platform_device msm_ispkr_stereo_device_u8730 = {
 	.id = 8,
 	.dev = { .platform_data = &snddev_ispkr_stereo_data_u8730 },
 };
+/* DTS2012012101655 liurennianKF62391 20120129 end > */
 /* AMIC Primary mono, common for SPEAKER MONO TX and HANDSET MONO TX */
 static struct snddev_icodec_data snddev_imic_data_u8730 = {
 	.capability = (SNDDEV_CAP_TX | SNDDEV_CAP_VOICE),
@@ -1674,6 +1726,7 @@ static struct platform_device msm_ispkr_mic_device_u8730 = {
 	.dev = { .platform_data = &snddev_ispkr_mic_data_u8730 },
 };
 /* HANDSET DUAL MIC BROADSIDE */
+/* < DTS2012012101655 liurennianKF62391 20120129 begin */
 static struct adie_codec_action_unit idual_mic_bs_8KHz_osr256_actions_u8730[] =
 	AMIC_BROADSIDE_DUAL_8000_OSR_256_U8730; 
 
@@ -1717,6 +1770,7 @@ static struct snddev_icodec_data snddev_idual_mic_broadside_data_u8730 = {
 	.pamp_on = msm_snddev_tx_route_config,
 	.pamp_off = msm_snddev_tx_route_deconfig,
 };
+/* DTS2012012101655 liurennianKF62391 20120129 end > */
 static struct platform_device msm_idual_mic_broadside_device_u8730 = {
 	.name = "snddev_icodec",
 	.id = 13,
@@ -1744,7 +1798,9 @@ static struct platform_device msm_handset_secondary_mic_tx_device_u8730 = {
 	.id = 250,
 	.dev = { .platform_data = &snddev_handset_secondary_mic_tx_data_u8730 },
 };
+/* DTS2011092905909 yinzhaoyang 20110929  end >*/
 
+/* < DTS2012010706112 liurennianKF62391 20120109 begin */
 /****************************************************************/
 /**            HUAWEI ADDED DEVICE U8680                        **/
 /****************************************************************/
@@ -1849,6 +1905,8 @@ static struct platform_device msm_iearpiece_device_u8680 = {
 	.id = 19,
 	.dev = { .platform_data = &snddev_iearpiece_data_u8680 },
 };
+/* DTS2012010706112 liurennianKF62391 20120109 end >*/
+/* DTS2012022402932 gaolin 20120224 end > */
 
 static struct platform_device *snd_devices_ffa[] __initdata = {
 	&msm_iearpiece_ffa_device,
@@ -1878,6 +1936,7 @@ static struct platform_device *snd_devices_ffa[] __initdata = {
 	&msm_auxpga_lb_lo_device,
 };
 
+/*< DTS2011050601476 dongchen 20110506 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 static struct platform_device *snd_devices_u8860[] __initdata = {
 	&msm_iearpiece_device_u8860,
@@ -1901,6 +1960,8 @@ static struct platform_device *snd_devices_u8860[] __initdata = {
 	&msm_snddev_analog_fm_speaker_device,
 	&msm_snddev_analog_fm_hs_device,
 };
+/* < DTS2012022402932 gaolin 20120224 begin */
+/*< DTS2011122606588 yinzhaoyang 20111230 begin */
 static struct platform_device *snd_devices_u8860_es[] __initdata = {
 	&msm_iearpiece_device_u8860,
 	&msm_imic_device_u8860,
@@ -1923,6 +1984,8 @@ static struct platform_device *snd_devices_u8860_es[] __initdata = {
 	&msm_snddev_analog_fm_speaker_device,
 	&msm_snddev_analog_fm_hs_device,
 };
+/* DTS2011122606588 yinzhaoyang 20111230 end > */
+/* < DTS2012010706112 liurennianKF62391 20120109 begin */
 static struct platform_device *snd_devices_u8680[] __initdata = {
 	&msm_iearpiece_device_u8680,
 	&msm_imic_device_u8860,
@@ -1945,7 +2008,11 @@ static struct platform_device *snd_devices_u8680[] __initdata = {
 	&msm_snddev_analog_fm_speaker_device,
 	&msm_snddev_analog_fm_hs_device,
 };
+/* DTS2012010706112 liurennianKF62391 20120109 end >*/
 #endif
+/* DTS2011050601476 dongchen 20110506 end >*/
+/*<DTS2011092905909 yinzhaoyang 20110929  begin*/
+/* < DTS2012012101655 liurennianKF62391 20120129 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 static struct platform_device *snd_devices_u8730[] __initdata = {
 	&msm_iearpiece_device_u8730,
@@ -1970,7 +2037,11 @@ static struct platform_device *snd_devices_u8730[] __initdata = {
 	&msm_snddev_analog_fm_hs_device,
 };
 #endif
+/* DTS2012012101655 liurennianKF62391 20120129 end > */
+/* DTS2011092905909 yinzhaoyang 20110929  end >*/
+/* DTS2012022402932 gaolin 20120224 end > */
 
+/*< DTS2011050601476 dongchen 20110506 begin */
 void __ref msm_snddev_init_timpani(void)
 {
 #ifndef CONFIG_HUAWEI_KERNEL
@@ -1984,8 +2055,12 @@ void __ref msm_snddev_init_timpani(void)
 		pr_err("failed to create msm_head_config debug fs entry\n");
 #endif
 #else  //#ifndef CONFIG_HUAWEI_KERNEL
+    /* < DTS2012022402932 gaolin 20120224 begin */
+    /*< DTS2011122606588 yinzhaoyang 20111230 begin */
     smem_huawei_vender *vender_para_ptr;
     const char *country_name = "es";
+    /* DTS2011122606588 yinzhaoyang 20111230 end > */
+    /* DTS2012022402932 gaolin 20120224 end > */
     if (machine_is_msm7x30_ffa() || machine_is_msm8x55_ffa() ||
     		machine_is_msm8x55_svlte_ffa()) {
     		platform_add_devices(snd_devices_ffa,
@@ -1997,12 +2072,34 @@ void __ref msm_snddev_init_timpani(void)
         if (!debugfs_hsed_config)
         	pr_err("failed to create msm_head_config debug fs entry\n");	
 #endif        
+    /* <DTS2011062600102  sunhonghui 20110626 begin */
+    /* <DTS2011071600361 liyuping 20110716 begin */
+	/* < DTS2011082302564 liwei 20110823 begin */
+	/*<DTS2011091502092 liyuping 20110915 begin */
+    /* <DTS2011091200073 zhangbo 20110912 begin */
+    /* < DTS2012022402932 gaolin 20120224 begin */
+    /*<DTS2011092905909 yinzhaoyang 20110929  begin*/
+	/* < DTS2011102401822 liwei 20111024 begin */
+	/* < DTS2011120702244 liwei 20111207 begin */
+    /* < DTS2012010706112 liurennianKF62391 20120109 begin */
     }else if( machine_is_msm8255_u8860() 
 	        || machine_is_msm8255_u8860lp() 
+            /* < DTS2012022905490 ganfan 20120301 begin */
             || machine_is_msm8255_u8860_r()
+            /* DTS2012022905490 ganfan 20120301 end > */
             || machine_is_msm8255_u8860_92()
             || machine_is_msm8255_u8860_51())
+    /* DTS2012010706112 liurennianKF62391 20120109 end >*/
+	/* DTS2011120702244 liwei 20111207 end > */
+	/* DTS2011102401822 liwei 20111024 end > */
+    /* DTS2011092905909 yinzhaoyang 20110929  end >*/
+    /* DTS2011091200073 zhangbo 20110912 end> */
+	/* DTS2011091502092 liyuping 20110915 end> */
+	/* DTS2011082302564 liwei 20110823 end > */
+	/* DTS2011071600361 liyuping 20110716 end> */
+    /* DTS2011062600102  sunhonghui 20110626 end> */
     {
+        /*< DTS2011122606588 yinzhaoyang 20111230 begin */
         vender_para_ptr = (smem_huawei_vender*)smem_alloc(SMEM_ID_VENDOR0, sizeof(smem_huawei_vender));
         if (!vender_para_ptr)
         {
@@ -2020,14 +2117,23 @@ void __ref msm_snddev_init_timpani(void)
         {
           platform_add_devices(snd_devices_u8860, ARRAY_SIZE(snd_devices_u8860));
         }
+        /* DTS2011122606588 yinzhaoyang 20111230 end > */
 		
+    /*< DTS2011051303410 dongchen 20110516 begin */   
+    /*<DTS2011092905909 yinzhaoyang 20110929  begin*/
+	/* < DTS2011120702244 liwei 20111207 begin */
+    /* < DTS2012010706112 liurennianKF62391 20120109 begin */
     }else if ( machine_is_msm8255_u8680())
     {
        platform_add_devices(snd_devices_u8680, ARRAY_SIZE(snd_devices_u8680));  
+    /* DTS2012010706112 liurennianKF62391 20120109 end >*/
     }else if (machine_is_msm8255_u8730()
 	        || machine_is_msm8255_u8667())
+	/* DTS2011120702244 liwei 20111207 end > */
     {
         platform_add_devices(snd_devices_u8730,  ARRAY_SIZE(snd_devices_u8730));
+    /* DTS2011092905909 yinzhaoyang 20110929  end >*/
+    /* DTS2012022402932 gaolin 20120224 end > */
     }else if (machine_is_msm8255_c8860())
     {
         platform_add_devices(snd_devices_c8860, arraysize_c8860);
@@ -2036,6 +2142,8 @@ void __ref msm_snddev_init_timpani(void)
     {
         platform_add_devices(snd_devices_u8860, ARRAY_SIZE(snd_devices_u8860));
     }
+    /* DTS2011051303410 dongchen 20110516 end >*/
 #endif  //#ifndef CONFIG_HUAWEI_KERNEL
 
 }
+/* DTS2011050601476 dongchen 20110506 end >*/

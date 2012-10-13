@@ -29,10 +29,12 @@
 #include <mach/msm_rpcrouter.h>
 
 #define APP_TIMEREMOTE_PDEV_NAME "rs00000000"
+/*< DTS2011052803245  wangjiongfeng 20110531 begin */
 #ifdef CONFIG_HUAWEI_FEATURE_POWEROFF_ALARM
 /*define rpc case for rtc alarm set which defined in modem rpc server*/
 #define TIMEREMOTE_PROCEEDURE_SET_ALARM		3
 #endif /*CONFIG_HUAWEI_FEATURE_POWEROFF_ALARM*/
+/* DTS2011052803245  wangjiongfeng 20110531 end >*/
 #define TIMEREMOTE_PROCEEDURE_SET_JULIAN	6
 #define TIMEREMOTE_PROCEEDURE_GET_JULIAN	7
 #ifdef CONFIG_RTC_SECURE_TIME_SUPPORT
@@ -47,7 +49,9 @@
 #define RTC_CLIENT_INIT_PROC		0x12
 #define RTC_EVENT_CB_PROC		0x1
 #define RTC_CB_ID			0x1
+/*< DTS2011052803245  wangjiongfeng 20110531 begin */
 struct msm_rpc_client * huawei_alarm_client;
+/* DTS2011052803245  wangjiongfeng 20110531 end >*/
 
 /* Client request errors */
 enum rtc_rpc_err {
@@ -177,6 +181,7 @@ void msmrtc_updateatsuspend(struct timespec *ts)
 	}
 
 }
+/*< DTS2011052803245  wangjiongfeng 20110531 begin */
 #ifdef CONFIG_HUAWEI_FEATURE_POWEROFF_ALARM
 static int msmrtcalarm_tod_proc_args(struct msm_rpc_client *client, void *buff,
 							void *data)
@@ -188,6 +193,7 @@ static int msmrtcalarm_tod_proc_args(struct msm_rpc_client *client, void *buff,
 	return sizeof(*sec);
 }
 #endif /*CONFIG_HUAWEI_FEATURE_POWEROFF_ALARM*/
+/* DTS2011052803245  wangjiongfeng 20110531 end >*/
 #else
 void msmrtc_updateatsuspend(struct timespec *ts) { }
 #endif
@@ -333,6 +339,7 @@ msmrtc_timeremote_set_time(struct device *dev, struct rtc_time *tm)
 
 	return 0;
 }
+/*< DTS2011052803245  wangjiongfeng 20110531 begin */
 #ifdef CONFIG_HUAWEI_FEATURE_POWEROFF_ALARM
 /*Use RPC set rtc alarm time to ARM9*/
 int
@@ -352,6 +359,7 @@ msmrtc_remote_rtc_set_alarm(struct timespec *tm)
 	return 0;
 }
 #endif /*CONFIG_HUAWEI_FEATURE_POWEROFF_ALARM*/
+/* DTS2011052803245  wangjiongfeng 20110531 end >*/
 static int
 msmrtc_timeremote_read_time(struct device *dev, struct rtc_time *tm)
 {
@@ -665,7 +673,9 @@ msmrtc_probe(struct platform_device *pdev)
 		return rc;
 	}
 	
+	/*< DTS2011052803245  wangjiongfeng 20110531 begin */
 	huawei_alarm_client = rtc_pdata->rpc_client;
+	/* DTS2011052803245  wangjiongfeng 20110531 end >*/
 
 	/*
 	 * Set up the callback client.

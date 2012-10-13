@@ -1,3 +1,4 @@
+/*< DTS2011072600848   songxiaoming 20110726 begin */
 
 /*
  * Copyright (c) 2008-2009 QUALCOMM USA, INC.
@@ -22,3 +23,4 @@
 
 #include <mach/board.h>
 #endif /* OV7736_H */
+/* DTS2011072600848   songxiaoming 20110726 end > */

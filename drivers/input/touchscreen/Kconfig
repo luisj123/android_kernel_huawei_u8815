@@ -817,6 +817,8 @@ config TOUCHSCREEN_CYTTSP_I2C
 
          To compile this driver as a module, choose M here: the
          module will be called cyttsp-i2c.
+#/*< DTS2012020907660 sunlibin 20120213 begin */
+# /* < DTS2011062704824 cuiyu 20110629 begin */
 config HUAWEI_FEATURE_RMI_TOUCH
        tristate "Synaptics RMI4 based touchscreens"
        depends on I2C
@@ -828,6 +830,8 @@ config HUAWEI_FEATURE_RMI_TOUCH
          If unsure, say N.
 
          To compile this driver as a module, choose M here
+# /* DTS2011062704824 cuiyu 20110629 end > */
+#/*< DTS2011092601861 fengwei 20110928 begin */
 config  HUAWEI_MELFAS_TOUCHSCREEN
 	depends on I2C
 	default n
@@ -839,7 +843,10 @@ config  HUAWEI_MELFAS_TOUCHSCREEN
 
           To compile this driver as a module, choose M here: the
           module will be called melfas_i2c_ts.
+#/* DTS2011092601861 fengwei 20110928 end >*/
+#/* DTS2012020907660 sunlibin 20120213 end >*/
 endif
+#/*<BU5D09283 luojianhong 20100506 begin*/
 config HUAWEI_TOUCHSCREEN_EXTRA_KEY
 	default n
 	depends on HUAWEI_KERNEL
@@ -848,6 +855,7 @@ config HUAWEI_TOUCHSCREEN_EXTRA_KEY
 	  Say Y here if you are running Android framework on HUAWEI
 	  Smart phone. These hacks are required in order
 	  to use touchscreen extra key.
+#/*BU5D09283 luojianhong 20100506 end>*/
 
 
 #/* < DTS2010061200552 zhangtao 20100612 begin */
@@ -866,5 +874,7 @@ config  HUAWEI_FEATURE_AT42QT_TS
           module will be called AT42QT_TS_atmel.
 #/*BU5D09205 zhangtao 20100503 end>*/
 
+#/*< DTS2012020907660 sunlibin 20120213 begin */
 #/*delete some lines*/
+#/* DTS2012020907660 sunlibin 20120213 end >*/
 #/* DTS2010061200552 zhangtao 20100612 end > */	

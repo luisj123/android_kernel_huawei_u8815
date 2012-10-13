@@ -1,3 +1,4 @@
+/* < DTS2011082000924 fengwei 20110820 begin */
 /* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -179,7 +180,9 @@ static int __init mipi_cmd_nt35560_fwvga_init(void)
 	int ret = 0;
 	struct msm_panel_info *pinfo = NULL;
 
+	/*< DTS2011122306018 fengwei 20111224 begin */
 	lcd_panel_hvga = get_lcd_panel_type();
+	/* DTS2011122306018 fengwei 20111224 end >*/
 	if(MIPI_NT35560_TOSHIBA_FWVGA != lcd_panel_hvga) 
 	{
 		return 0;
@@ -235,3 +238,4 @@ static int __init mipi_cmd_nt35560_fwvga_init(void)
 }
 
 module_init(mipi_cmd_nt35560_fwvga_init);
+/* DTS2011082000924 fengwei 20110820 end > */

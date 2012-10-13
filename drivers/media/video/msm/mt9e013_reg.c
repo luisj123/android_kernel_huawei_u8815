@@ -42,6 +42,7 @@ struct mt9e013_i2c_reg_conf pll_settings[] = {
 };
 
 struct mt9e013_i2c_reg_conf prev_settings[] = {
+/*< DTS2011073001656   songxiaoming 20110730 begin */
 /*Output Size (1632x1224)(1640*1230)*/
          {0x0344, 0x0000},/*X_ADDR_START*/
          {0x0348, 0x0CD1},/*X_ADDR_END*/
@@ -61,10 +62,12 @@ struct mt9e013_i2c_reg_conf prev_settings[] = {
          {0x0202, 0x055F},/*COARSE_INTEGRATION_TIME*/
          {0x3014, 0x0846},/*FINE_INTEGRATION_TIME_*/
          {0x3010, 0x0130},/*FINE_CORRECTION*/
+/* DTS2011073001656   songxiaoming 20110730 end > */
 
 };
 
 struct mt9e013_i2c_reg_conf snap_settings[] = {
+/*< DTS2011073001656   songxiaoming 20110730 begin */
          /*Output Size (3280x2464)*/
          {0x0344, 0x0000},/*X_ADDR_START */
          {0x0348, 0x0CCF},/*X_ADDR_END*/
@@ -84,6 +87,7 @@ struct mt9e013_i2c_reg_conf snap_settings[] = {
          {0x0202, 0x0A2F},/*COARSE_INTEGRATION_TIME*/
          {0x3014, 0x0D26},/*FINE_INTEGRATION_TIME_ */
          {0x3010, 0x0078},/*FINE_CORRECTION*/
+/* DTS2011073001656   songxiaoming 20110730 end > */
 };
 
 
@@ -154,11 +158,14 @@ struct mt9e013_i2c_reg_conf recommend_settings[] = {
 	{0x3EDA, 0xCFC6},
 	{0x3EDC, 0x4FE4},
 	{0x3EE0, 0x2424},
-	{0x3EE2, 0x9797},
+	/*< DTS2012041904823   songxiaoming 20120419 begin */
+	//{0x3EE2, 0x9797}, //for AF
+	/* DTS2012041904823  songxiaoming 20120419 end > */
 	{0x3EE4, 0xC100},
 	{0x3EE6, 0x0540}
 };
 
+/* < DTS2011070401622 lijuan 20110703 begin */
 /*OTP array*/
 struct mt9e013_i2c_reg_conf OTP_settings[] = {
 	{0x3800, 0x0000},
@@ -292,6 +299,7 @@ struct mt9e013_i2c_reg_conf OTP_settings[] = {
 /*shading array*/
 struct mt9e013_i2c_reg_conf shading_settings[] = 
 {
+/*< DTS2011072801699   songxiaoming 20110728 begin */
 {0x3600, 0x0370},
 {0x3602, 0x102E},
 {0x3604, 0x30D0},
@@ -399,6 +407,8 @@ struct mt9e013_i2c_reg_conf shading_settings[] =
 {0x37C4, 0xDB8A},
 {0x37C6, 0x822B}
 };
+//lijuan add for OTP reading
+/* DTS2011072801699   songxiaoming 20110728 end > */
 
 struct mt9e013_reg mt9e013_regs = {
 	.reg_mipi = &mipi_settings[0],
@@ -416,3 +426,4 @@ struct mt9e013_reg mt9e013_regs = {
 	.reg_otp = &OTP_settings[0],
 	.reg_otp_size = ARRAY_SIZE(OTP_settings),
 };
+/* DTS2011070401622 lijuan 20110703 end > */

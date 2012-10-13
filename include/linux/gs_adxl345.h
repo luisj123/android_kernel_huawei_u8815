@@ -5,6 +5,7 @@
 #define _LINUX_GS_ADI_H
 
 
+/* < DTS2011042703449  liujinggang 20110427 begin */
 enum gs_adi_reg {
 
 	GS_ADI_REG_DEVID		             = 0x00,
@@ -43,9 +44,12 @@ enum gs_adi_reg {
 	GS_ADI_REG_ORIENT_CONF		= 0x3b,
 	GS_ADI_REG_ORIENT		= 0x3c,
 };
+/* DTS2011042703449  liujinggang 20110427 end > */
 
+/*<MSM7X25 hw modify --GSENSOR-- yuxuesong 20091125 £ºbegin */
 #define     GPIO_INT1                         19
 #define     GPIO_INT2                         20
+/* MSM7X25 hw modify --GSENSOR-- yuxuesong 20091125 £ºend>*/
 
 /*BK4D01075, add delay time, dingxifeng KF14049, 2009-6-10  begin*/
 

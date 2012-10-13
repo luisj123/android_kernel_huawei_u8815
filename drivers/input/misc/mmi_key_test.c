@@ -1,4 +1,7 @@
+/*< DTS2012021602342 zhongjinrong 20120224 begin */
+/* <DTS2012022006879 sunkai 20120220 begin */
 /* Optimize the MMI code */
+/* <DTS2012021004882 sunkai 20120210 begin */
 /*
  * ===========================================================================
  * 
@@ -10,6 +13,7 @@
  * 
  * when       who      what, where, why
  * -------------------------------------------------------------------------------
+ * 20120211  sunkai  create  SUPPORT MIMI key test ON C8828
  */
 /* Copyright (c) 2009, Code Aurora Forum. All rights reserved.
  *
@@ -156,3 +160,6 @@ static void __exit mmi_key_exit(void)
 
 module_init(mmi_key_init);
 module_exit(mmi_key_exit);
+/* DTS2012021004882 sunkai 20120210 end> */
+/* DTS2012022006879 sunkai 20120220 end> */
+/* DTS2012021602342 zhongjinrong 20120224 end >*/

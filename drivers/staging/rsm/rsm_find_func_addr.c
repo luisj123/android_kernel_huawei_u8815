@@ -1,3 +1,4 @@
+/* < DTS2011090704268 jiaxianghong 20110914 begin */
 #include "rsm_find_func_addr.h"
 
 DEF_SCHED_SHOW_TASK DEF_SCHED_SHOW_TASK_TMP = NULL;
@@ -47,3 +48,4 @@ int rsm_sym_addr_init(void)
 
     return 0;
 }
+/* DTS2011090704268 jiaxianghong 20110914 end > */

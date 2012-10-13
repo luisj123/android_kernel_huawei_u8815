@@ -1,3 +1,4 @@
+/*< DTS2011062206646 libeibei 20110623 begin */
 /*
  * Copyright (C) 2010-2012 HUAWEI Incorporated.
  */
@@ -17,4 +18,5 @@
 	_IO(MSM_SMEM_SLEEP_LOG_IOCTL_MAGIC, 2)
 
 #endif /* __LINUX_SMEM_SLEEP_LOG_H */
+/* DTS2011062206646 libeibei 20110623 end >*/
 

@@ -1,8 +1,10 @@
+/* < DTS2011042703449  liujinggang 20110427 begin */
 /*st compass and gs have the same device ID*/
 #ifndef ST303_H
 #define ST303_H
 
 
+/* <BU5D07680 liujinggang 20100413 begin */
 #define     GPIO_INT1                         51
 #define     GPIO_INT2                         87
 
@@ -19,3 +21,4 @@ enum
 
 
 #endif
+/* DTS2011042703449  liujinggang 20110427 end > */

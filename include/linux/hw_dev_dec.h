@@ -1,3 +1,5 @@
+/* < DTS2011052606009 jiaxianghong 20110527 begin */
+/* <DTS2011032104626 shenjinming 20110321 begin */
 /* ====*====*====*====*====*====*====*====*====*====*====*====*====*====*====*
  * 
  *                           I2C device detect driver
@@ -100,8 +102,10 @@ enum hw_device_type {
     DEV_I2C_SPEAKER,
     DEV_FM,	
     DEV_I2C_OFN,
+    /* < DTS2011052803160 shenjinming 20110611 begin */
     /* add gyroscope */
     DEV_I2C_GYROSCOPE,  
+    /* DTS2011052803160 shenjinming 201106011 end > */    
     DEV_MAX,    
 };
 
@@ -110,3 +114,5 @@ int set_hw_dev_flag( int dev_id );
 
 #endif
 
+/* <DTS2011032104626 shenjinming 20110321 end> */
+/* < DTS2011052606009 jiaxianghong 20110527 end */

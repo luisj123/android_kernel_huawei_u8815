@@ -17,6 +17,7 @@
 
 #include "internals.h"
 
+/* < DTS2012031000716 fangxinyong 20120310 begin */
 /* move from linux/irq.h */
 /* merge qcom DEBUG_CODE for RPC crashes */
 #ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
@@ -42,6 +43,7 @@ struct irqs_timestamp {
 static struct irqs_timestamp irq_ts[128];  
 static int irq_idx = 0;  
 #endif
+/* DTS2012031000716 fangxinyong 20120310 end > */
 
 /*
  * lockdep: we want to handle all irq_desc locks as a single lock-class:
@@ -334,6 +336,7 @@ int generic_handle_irq(unsigned int irq)
 {
 	struct irq_desc *desc = irq_to_desc(irq);
 
+    /* <DTS2012021001488 yuanjintao 20120210 begin */
 	/* merge qcom DEBUG_CODE for RPC crashes */
 #ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 	uint32_t  timetick=0; 
@@ -353,6 +356,7 @@ int generic_handle_irq(unsigned int irq)
     irq_ts[irq_idx].state=3;
     irq_idx = (irq_idx + 1)%128; 
 #endif
+    /* DTS2012021001488 yuanjintao 20120210 end> */
 
 	return 0;
 }

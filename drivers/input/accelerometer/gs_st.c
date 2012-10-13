@@ -5,6 +5,7 @@
  * 
  *
  */
+/* < DTS2011042703449  liujinggang 20110427 begin */
 #include <linux/slab.h>
 #include <linux/module.h>
 #include <linux/delay.h>
@@ -19,6 +20,7 @@
 #include <linux/delay.h>
 /*BK4D00263, add for misc devices, dingxifeng KF14049, 2009-5-20 begin */
 #include <mach/vreg.h>
+/* DTS2011042703449  liujinggang 20110427 end > */
 
 #include <linux/miscdevice.h>
 #include <asm/uaccess.h>
@@ -27,7 +29,9 @@
 /*BK4D00074, add  <gs_st.h> file, dingxifeng KF14049, 2009-4-1 begin */
 
 #include <linux/gs_st.h>
+/* <BU5D01928 zhangxiangdang 20100316 begin */
 #include "linux/hardware_self_adapt.h"
+/* BU5D01928 zhangxiangdang 20100316 end> */ 
 
 #define GS_POLLING   1
 /*BK4D00074, add  <gs_st.h> file, dingxifeng KF14049, 2009-4-1 end */
@@ -38,7 +42,9 @@
 static struct workqueue_struct *gs_wq;
 
 /* BK4D04662, G-sensor & Compass share input dev, zhouzuohua 00145359 2009.09.05  start */
+/* <BU5D01928 zhangxiangdang 20100316 begin */
 extern struct input_dev *sensor_dev ;
+/* BU5D01928 zhangxiangdang 20100316 end> */ 
 /* BK4D04662, G-sensor & Compass share input dev, zhouzuohua 00145359 2009.09.05  end   */
 
 struct gs_data {
@@ -129,8 +135,12 @@ static inline int reg_write(struct gs_data *gs, int reg, uint8_t val)
 
 /*BK4D00235, add  interface for compass, dingxifeng KF14049, 2009-5-13 begin */
 static int sensor_data[4];
+/* <BU5D01928 zhangxiangdang 20100316 begin */
+/* < DTS2011042703449  liujinggang 20110427 begin */
 /*adjust device name */
 static char st_device_id[] = "st_35de";
+/* DTS2011042703449  liujinggang 20110427 end > */
+/* BU5D01928 zhangxiangdang 20100316 end> */ 
 
 int gs_st_data_to_compass(int accel_data [3])
 {
@@ -270,10 +280,12 @@ gs_st_ioctl(struct file *file, unsigned int cmd,
 			if (copy_to_user(argp, &accel_buf, sizeof(accel_buf)))
 				return -EFAULT;
 			break;
+/* <BU5D01928 zhangxiangdang 20100316 begin */
 		case ECS_IOCTL_READ_DEVICEID:
 			if (copy_to_user(argp, st_device_id, sizeof(st_device_id)))
 				return -EFAULT;
 			break;
+/* BU5D01928 zhangxiangdang 20100316 end> */ 
 		default:
 			break;
 	}
@@ -361,6 +373,7 @@ static void gs_work_func(struct work_struct *work)
 			  z = u8z;
 		}
 
+		/*<BU5D04028 yuxuesong 20100301 begin*/
 		/* change the x,y,z for u8300 because orientation of accelerometer of u8300 is different.*/
 		//if(machine_is_msm7x25_u8300()) 
 		{
@@ -373,6 +386,7 @@ static void gs_work_func(struct work_struct *work)
 			y = y1;
 			z = z1;
 		}
+		/* BU5D04028 yuxuesong 20100301 end>*/
 
 		memset(sensor_data, 0, 3 );
 		sensor_data[0]= 46*(s16)x/10;
@@ -466,13 +480,16 @@ static int gs_probe(
 {	
       int ret;
       struct gs_data *gs;
+ 	/* < DTS2011042703449  liujinggang 20110427 begin */
       struct gs_platform_data *pdata;
 	struct vreg *vreg_gp4=NULL;
 	int rc;
 
 	vreg_gp4 = vreg_get(NULL, "gp4");
+    /* <DTS2011012600839 liliang 20110215 begin */
     /* set gp4 voltage as 2700mV for all */
     rc = vreg_set_level(vreg_gp4,VREG_GP4_VOLTAGE_VALUE_2700);
+    /* <DTS2011012600839 liliang 20110215 end >*/
 	if (rc) {
 		printk("%s: vreg_gp4  vreg_set_level failed \n", __func__);
 		return rc;
@@ -514,6 +531,7 @@ static int gs_probe(
 			}
 		}
 	}
+	/* DTS2011042703449  liujinggang 20110427 end > */
 	
 #ifndef   GS_POLLING 	
 	ret = gs_config_int_pin();
@@ -569,6 +587,7 @@ static int gs_probe(
 	}
 #endif
 
+	/* <BU5D01928 zhangxiangdang 20100316 begin */
 	if (sensor_dev == NULL)
 	{
 		gs->input_dev = input_allocate_device();
@@ -587,13 +606,16 @@ static int gs_probe(
 	}
 	
 	gs->input_dev->id.vendor = GS_ST35DE;//for  akm8973 compass detect.
+	/* BU5D01928 zhangxiangdang 20100316 end> */
 
 	set_bit(EV_ABS,gs->input_dev->evbit);
 	
+	/* < DTS20111208XXXXX  liujinggang 20111208 begin */
 	/* modify for ES-version*/
 	input_set_abs_params(gs->input_dev, ABS_X, -11520, 11520, 0, 0);
 	input_set_abs_params(gs->input_dev, ABS_Y, -11520, 11520, 0, 0);
 	input_set_abs_params(gs->input_dev, ABS_Z, -11520, 11520, 0, 0);
+	/* DTS20111208XXXXX  liujinggang 20111208 end > */
 	
 	set_bit(EV_SYN,gs->input_dev->evbit);
 
@@ -667,8 +689,10 @@ static int gs_probe(
 
 	printk(KERN_INFO "gs_probe: Start LIS35DE  in %s mode\n", gs->use_irq ? "interrupt" : "polling");
 /*BK4D02883, modify printk mesg, dingxifeng KF14049, 2009-7-20 end */
+ 	/* < DTS2011042703449  liujinggang 20110427 begin */
 	if(pdata && pdata->init_flag)
 		*(pdata->init_flag) = 1;
+	/* DTS2011042703449  liujinggang 20110427 end > */
 	return 0;
 	
 /*BK4D00263, add for misc devices, dingxifeng KF14049, 2009-5-20 begin */
@@ -681,6 +705,7 @@ err_input_register_device_failed:
 	input_free_device(gs->input_dev);
 
 err_input_dev_alloc_failed:
+/* <BU5D01928 zhangxiangdang 20100316 begin */
 err_detect_failed:
 	kfree(gs);
 
@@ -689,7 +714,9 @@ err_alloc_data_failed:
 #ifndef   GS_POLLING 
 	gs_free_int();
 #endif
+/* BU5D01928 zhangxiangdang 20100316 end> */
 err_check_functionality_failed:
+ 	/* < DTS2011042703449  liujinggang 20110427 begin */
 	if (vreg_gp4!=NULL)
 	{
 		rc = vreg_disable(vreg_gp4);
@@ -698,6 +725,7 @@ err_check_functionality_failed:
 			return rc;
 		}
 	}
+	/* DTS2011042703449  liujinggang 20110427 end > */
 	return ret;
 }
 

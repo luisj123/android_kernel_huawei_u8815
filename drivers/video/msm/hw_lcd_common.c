@@ -128,6 +128,7 @@ int mddi_multi_register_write(uint32 reg,uint32 value)
 	}	
 	return ret;
 }
+/* DTS2011090102706 jiaoshuangwei 20110901 end >*/
 int process_mddi_table(struct sequence *table, size_t count, lcd_panel_type lcd_panel)
 {
 	unsigned int i;
@@ -161,13 +162,24 @@ int process_mddi_table(struct sequence *table, size_t count, lcd_panel_type lcd_
                 }
                 up(&mdp_pipe_ctrl_mutex);
 				break;
+			/*< DTS2012021007223 lijianzhao 20120211 begin */
+			/*< DTS2012021602342 zhongjinrong 20120224 begin */
 			case MDDI_RSP61408_CHIMEI_WVGA:
 			case MDDI_RSP61408_BYD_WVGA:
 			case MDDI_HX8369A_TIANMA_WVGA:
+			/* DTS2012021602342 zhongjinrong 20120224 end >*/	
 			case MDDI_HX8357C_CHIMEI_HVGA:
 			case MDDI_HX8357C_TIANMA_HVGA:
 			case MDDI_HX8357C_CHIMEI_IPS_HVGA:
-				
+			/* DTS2012021007223 lijianzhao 20120211 end >*/
+/*< DTS2012042605475 zhongjinrong 20120426 begin  */
+/*< DTS2012022401352 qitongliang 20120224 begin */
+			case MDDI_HX8357C_TIANMA_IPS_HVGA:
+/* DTS2012022401352 qitongliang 20120224 end >*/
+/* <DTS2012030102766 sunkai 20120301 begin */
+            case MDDI_RSP61408_TRULY_WVGA:
+/* DTS2012030102766 sunkai 20120301 end> */
+/* DTS2012042605475 zhongjinrong 20120426 end >*/
 				down(&mdp_pipe_ctrl_mutex);
                 clk_on = pmdh_clk_func(2);
                 pmdh_clk_func(1);
@@ -192,6 +204,7 @@ int process_mddi_table(struct sequence *table, size_t count, lcd_panel_type lcd_
 #endif
 
 #ifdef CONFIG_FB_MSM_MIPI_DSI
+/*< DTS2011090203258 fengwei 20110903 begin */
 /*****************************************
   @brief : transfor struct sequence to struct mipi packet,  
   @param reg:register and param, value: reg type.
@@ -325,8 +338,10 @@ void process_mipi_table(struct msm_fb_data_type *mfd,struct dsi_buf *tp,
 		{
 			case MIPI_RSP61408_CHIMEI_WVGA:
 			case MIPI_RSP61408_BYD_WVGA:
+			/* <DTS2012022501992 liguosheng 20120229 begin */
 			case MIPI_RSP61408_TRULY_WVGA:
 			case MIPI_HX8357C_TIANMA_IPS_HVGA:
+			/* DTS2012022501992 liguosheng 20120229 end> */
 			case MIPI_HX8357C_CHIMEI_HVGA:
 			case MIPI_HX8357C_TIANMA_HVGA:
 			case MIPI_HX8369A_TIANMA_WVGA:
@@ -343,6 +358,7 @@ void process_mipi_table(struct msm_fb_data_type *mfd,struct dsi_buf *tp,
 	}
 			
 }
+/* DTS2011090203258 fengwei 20110903 end >*/
 #endif
 #ifdef CONFIG_FB_MSM_LCDC
 void seriout_ext(uint16 reg, uint16 data, uint16 time)
@@ -659,6 +675,7 @@ void truly_r61529_set_cs(struct msm_panel_common_pdata * lcdc_pnael_data){
 }
 
 #endif
+/*< DTS2011081601583 pengyu 20110816 begin */
 #ifdef CONFIG_FB_DYNAMIC_GAMMA
 /***************************************************************
 Function: is_panel_support_dynamic_gamma
@@ -692,7 +709,9 @@ int is_panel_support_dynamic_gamma(void)
     return ret;
 }
 #endif
+/* DTS2011081601583 pengyu 20110816 end >*/
 
+/*< DTS2011081800466 pengyu 20110818 begin */
 #ifdef CONFIG_FB_AUTO_CABC
 /***************************************************************
 Function: is_panel_support_auto_cabc
@@ -710,8 +729,12 @@ int is_panel_support_auto_cabc(void)
 
     lcd_panel = get_lcd_panel_type();
     if (machine_is_msm8255_u8860lp()
+    /* < DTS2012022905490 ganfan 20120301 begin */
     || machine_is_msm8255_u8860_r()
+    /* DTS2012022905490 ganfan 20120301 end > */
+/*<DTS2011091502092 liyuping 20110915 begin */
 	  ||machine_is_msm8255_u8860_51())
+/* DTS2011091502092 liyuping 20110915 end> */
     {
         switch (lcd_panel)
         {

@@ -54,6 +54,124 @@ static const struct sequence hx8369a_wvga_standby_enter_table[]=
 	{MDDI_MULTI_WRITE_END,TYPE_COMMAND,120}, //the end flag,it don't sent to driver IC
 };
 
+/*< DTS2012042605475 zhongjinrong 20120426 begin  */
+/*< DTS2012030504410 sunkai 20120312 begin */
+/* gamma 2.2 */
+static const struct sequence hx8369a_wvga_dynamic_gamma22_table[] = 
+{
+	{0xE0,TYPE_COMMAND,0},
+	{0x02,TYPE_PARAMETER,0},
+	{0x11,TYPE_PARAMETER,0},
+	{0x1A,TYPE_PARAMETER,0},
+	{0x3B,TYPE_PARAMETER,0},
+	{0x3F,TYPE_PARAMETER,0}, 
+	{0x3f,TYPE_PARAMETER,0},
+	{0x2B,TYPE_PARAMETER,0},
+	{0x49,TYPE_PARAMETER,0},
+	{0x0A,TYPE_PARAMETER,0}, 
+	{0x0F,TYPE_PARAMETER,0}, 
+	{0x0E,TYPE_PARAMETER,0}, 
+	{0x13,TYPE_PARAMETER,0}, 
+	{0x14,TYPE_PARAMETER,0}, 
+	{0x13,TYPE_PARAMETER,0}, 
+	{0x14,TYPE_PARAMETER,0},
+	{0x10,TYPE_PARAMETER,0},
+	{0x14,TYPE_PARAMETER,0},
+	{0x02,TYPE_PARAMETER,0},
+	{0x11,TYPE_PARAMETER,0},
+	{0x1A,TYPE_PARAMETER,0}, 
+	{0x3B,TYPE_PARAMETER,0}, 
+	{0x3F,TYPE_PARAMETER,0}, 
+	{0x3f,TYPE_PARAMETER,0},
+	{0x2B,TYPE_PARAMETER,0},
+	{0x49,TYPE_PARAMETER,0},
+	{0x0A,TYPE_PARAMETER,0},
+	{0x0F,TYPE_PARAMETER,0},
+	{0x0E,TYPE_PARAMETER,0},
+	{0x13,TYPE_PARAMETER,0},
+	{0x14,TYPE_PARAMETER,0},
+	{0x13,TYPE_PARAMETER,0},
+	{0x14,TYPE_PARAMETER,0}, 
+	{0x10,TYPE_PARAMETER,0}, 
+	{0x14,TYPE_PARAMETER,0},
+	{MDDI_MULTI_WRITE_END,TYPE_COMMAND,0}, //the end flag,it don't sent to driver IC
+};
+/* gamma1.9 */
+static const struct sequence hx8369a_wvga_dynamic_gamma19_table[] = {};
+/* gamma2.5 */
+static const struct sequence hx8369a_wvga_dynamic_gamma25_table[] = 
+{
+	{0xE0,TYPE_COMMAND,0},
+	{0x0A,TYPE_PARAMETER,0},
+	{0x18,TYPE_PARAMETER,0},
+	{0x1E,TYPE_PARAMETER,0},
+	{0x39,TYPE_PARAMETER,0},
+	{0x3F,TYPE_PARAMETER,0}, 
+	{0x3f,TYPE_PARAMETER,0},
+	{0x2F,TYPE_PARAMETER,0},
+	{0x4D,TYPE_PARAMETER,0},
+	{0x08,TYPE_PARAMETER,0}, 
+	{0x0D,TYPE_PARAMETER,0}, 
+	{0x0F,TYPE_PARAMETER,0}, 
+	{0x13,TYPE_PARAMETER,0}, 
+	{0x16,TYPE_PARAMETER,0}, 
+	{0x13,TYPE_PARAMETER,0}, 
+	{0x14,TYPE_PARAMETER,0},
+	{0x14,TYPE_PARAMETER,0},
+	{0x14,TYPE_PARAMETER,0},
+	{0x0A,TYPE_PARAMETER,0},
+	{0x18,TYPE_PARAMETER,0},
+	{0x1E,TYPE_PARAMETER,0}, 
+	{0x39,TYPE_PARAMETER,0}, 
+	{0x3F,TYPE_PARAMETER,0}, 
+	{0x3f,TYPE_PARAMETER,0},
+	{0x2F,TYPE_PARAMETER,0},
+	{0x4D,TYPE_PARAMETER,0},
+	{0x08,TYPE_PARAMETER,0},
+	{0x0D,TYPE_PARAMETER,0},
+	{0x0F,TYPE_PARAMETER,0},
+	{0x13,TYPE_PARAMETER,0},
+	{0x16,TYPE_PARAMETER,0},
+	{0x13,TYPE_PARAMETER,0},
+	{0x14,TYPE_PARAMETER,0}, 
+	{0x14,TYPE_PARAMETER,0}, 
+	{0x14,TYPE_PARAMETER,0},
+	{MDDI_MULTI_WRITE_END,TYPE_COMMAND,0}, //the end flag,it don't sent to driver IC
+};
+
+/* add the function  to set different gama by different mode */
+int hx8369a_set_dynamic_gamma(enum danymic_gamma_mode  gamma_mode)
+{
+    int ret = 0;
+	
+    if (LOW_LIGHT == gamma_mode)
+    {
+        printk(KERN_ERR "the dynamic_gamma_setting is wrong\n");
+    }
+
+    switch(gamma_mode)
+    {
+        case GAMMA25:
+            ret = process_mddi_table((struct sequence*)&hx8369a_wvga_dynamic_gamma25_table,
+                        ARRAY_SIZE(hx8369a_wvga_dynamic_gamma25_table), lcd_panel_wvga);
+            break ;
+        case GAMMA22:
+			 ret = process_mddi_table((struct sequence*)&hx8369a_wvga_dynamic_gamma22_table,
+                        ARRAY_SIZE(hx8369a_wvga_dynamic_gamma22_table), lcd_panel_wvga);
+            break;
+        case HIGH_LIGHT:
+            ret = process_mddi_table((struct sequence*)&hx8369a_wvga_dynamic_gamma19_table,
+                        ARRAY_SIZE(hx8369a_wvga_dynamic_gamma19_table), lcd_panel_wvga);
+            break;
+        default:
+            ret= -1;
+            break;
+    }
+	LCD_DEBUG("%s: change gamma mode to %d\n",__func__,gamma_mode);
+    return ret;
+}
+/* DTS2012030504410 sunkai 20120312 end >*/
+/* DTS2012042605475 zhongjinrong 20120426 end >*/
 
 static int hx8369a_lcd_on(struct platform_device *pdev)
 {
@@ -126,6 +244,11 @@ static struct msm_fb_panel_data hx8369a_panel_data = {
 	.off = hx8369a_lcd_off,
 	.set_backlight = pwm_set_backlight,
 	.set_cabc_brightness = hx8369a_set_cabc_brightness,
+	/*< DTS2012042605475 zhongjinrong 20120426 begin  */
+	/*< DTS2012030504410 sunkai 20120312 begin */
+    .set_dynamic_gamma = hx8369a_set_dynamic_gamma,
+	/* DTS2012030504410 sunkai 20120312 end >*/
+	/* DTS2012042605475 zhongjinrong 20120426 end >*/
 };
 
 static struct platform_device this_device = {
@@ -143,7 +266,9 @@ static int __init hx8369a_init(void)
 	hw_lcd_interface_type mddi_port_type = get_hw_lcd_interface_type();
 
 	lcd_panel_wvga=get_lcd_panel_type();
+	/*< DTS2012021602342 zhongjinrong 20120224 begin */
 	if(MDDI_HX8369A_TIANMA_WVGA != lcd_panel_wvga)
+	/* DTS2012021602342 zhongjinrong 20120224 end >*/
 	{
 		return 0;
 	}

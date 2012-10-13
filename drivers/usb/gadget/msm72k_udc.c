@@ -46,10 +46,12 @@
 #include <linux/uaccess.h>
 #include <linux/wakelock.h>
 
+/*< DTS2012011801998 chenxi 20120203 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 #include <mach/oem_rapi_client.h>
 #include <asm-arm/huawei/usb_switch_huawei.h>
 #endif  /* CONFIG_HUAWEI_KERNEL */
+/* DTS2012011801998 chenxi 20120203 end >*/
 
 static const char driver_name[] = "msm72k_udc";
 
@@ -232,9 +234,11 @@ struct usb_info {
 static const struct usb_ep_ops msm72k_ep_ops;
 static struct usb_info *the_usb_info;
 
+/*< DTS2011122400600 hujun 20120102 begin*/
 #ifdef CONFIG_HUAWEI_KERNEL
 static struct wake_lock charger_wlock;
 #endif
+/*< DTS2011122400600 hujun 20120102 end*/  
 static int msm72k_wakeup(struct usb_gadget *_gadget);
 static int msm72k_pullup_internal(struct usb_gadget *_gadget, int is_active);
 static int msm72k_set_halt(struct usb_ep *_ep, int value);
@@ -451,10 +455,12 @@ static void usb_chg_detect(struct work_struct *w)
 	if (temp == USB_CHG_TYPE__WALLCHARGER) {
 		pm_runtime_put_sync(&ui->pdev->dev);
 		wake_unlock(&ui->wlock);
+		/*< DTS2011122400600 hujun 20120102 begin*/
 #ifdef CONFIG_HUAWEI_KERNEL
 		wake_lock(&charger_wlock);		
 		printk(KERN_ERR "%s:lock charger_wlock\n",__func__);
 #endif
+		/*< DTS2011122400600 hujun 20120102 end*/  
 	}
 }
 
@@ -1157,6 +1163,7 @@ dequeue:
 				break;
 			}
 		}
+        /* < DTS2012030103703 chenxi 20120306 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 		/* !!!!!!!!!!!! here is very important for this case !!!!!!!!!!!!!!
 		 * dequeue every req in ept for avoid losting interrupt.
@@ -1167,6 +1174,7 @@ dequeue:
 #else
 		req_dequeue = 0;
 #endif
+        /* DTS2012030103703 chenxi 20120306 end > */
 
 		del_timer(&ept->prime_timer);
 		/* advance ept queue to the next request */
@@ -1342,10 +1350,12 @@ static irqreturn_t usb_interrupt(int irq, void *data)
 			dev_dbg(&ui->pdev->dev,
 					"usb: notify offline\n");
 
+            /* < DTS2012032801176 chenxi 20120328 begin */
 #ifdef CONFIG_HUAWEI_KERNEL 			
             /* to disable sending of the disconnected uevent */
 			android_disable_send_uevent(1);
 #endif
+            /* DTS2012032801176 chenxi 20120328 end > */
             
 			ui->driver->disconnect(&ui->gadget);
 			/* cancel pending ep0 transactions */
@@ -1630,10 +1640,12 @@ static void usb_do_work(struct work_struct *w)
 				pm_runtime_put_noidle(&ui->pdev->dev);
 				pm_runtime_suspend(&ui->pdev->dev);
 				wake_unlock(&ui->wlock);
+				/*< DTS2011122400600 hujun 20120102 begin*/
 #ifdef CONFIG_HUAWEI_KERNEL
 				wake_unlock(&charger_wlock);				
 				printk(KERN_ERR "%s:unlock charger_wlock\n",__func__);
 #endif
+				/*< DTS2011122400600 hujun 20120102 end*/  
 				break;
 			}
 			if (flags & USB_FLAG_SUSPEND) {
@@ -2515,7 +2527,9 @@ static ssize_t show_usb_chg_type(struct device *dev,
 	return count;
 }
 
+/*< DTS2012011801998 chenxi 20120203 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
+/* < DTS2012022400909 chenxi 20120224 begin */
 /*
  * the function for stitching usb mode
  * @dev: usb gadget device
@@ -2536,11 +2550,17 @@ static ssize_t msm_hsusb_store_fixusb(struct device *dev,
     USB_PR("%s, buf=%s\n", __func__, buf);
 	if (!strict_strtoul(buf, 10, &pid_index))
     {
-    	if (pid_index != ORI_INDEX && pid_index != CDROM_INDEX && pid_index != GOOGLE_INDEX)
+        /* < DTS2012041000776 chenxi 20120410 begin */
+        /* factory mode, normal mode, google mode, slate test mode, authentication mode
+         * are supported. Return fail if users want to switch to other mode.
+         */
+    	if (pid_index != ORI_INDEX && pid_index != CDROM_INDEX && pid_index != GOOGLE_INDEX
+        	&& pid_index != SLATE_TEST_INDEX && pid_index != AUTH_INDEX )
     	{
     		USB_PR("pid_index %ld is not supported. So fail to switch to this mode.\n", pid_index);
     		return -1;
     	}
+        /* DTS2012041000776 chenxi 20120410 end > */
         
     	if (0 == usb_para_data.usb_para.usb_serial[0] && GOOGLE_INDEX == pid_index)
     	{
@@ -2548,6 +2568,7 @@ static ssize_t msm_hsusb_store_fixusb(struct device *dev,
     		return -1;
     	}
     	
+        /* < DTS2012021307208 chenxi 20120215 begin */
         /* update nv_item when user set a pid_index that is differnt from the present nv_item */
         if(usb_para_data.usb_para.usb_pid_index != pid_index)
         {
@@ -2566,6 +2587,7 @@ static ssize_t msm_hsusb_store_fixusb(struct device *dev,
             usb_para_data.usb_para.usb_pid_index = pid_index;
             USB_PR("usb_pid_index updates to : %d \n", usb_para_data.usb_para.usb_pid_index);
         }
+        /* DTS2012021307208  chenxi 20120215 end > */
        
 		usb_port_switch_request(pid_index);
 	}
@@ -2576,6 +2598,7 @@ static ssize_t msm_hsusb_store_fixusb(struct device *dev,
 
 	return size;
 }
+/* DTS2012022400909 chenxi 20120224 end > */
 
 /*
  * the function for stitching usb mode
@@ -2598,6 +2621,7 @@ static ssize_t msm_hsusb_show_fixusb(struct device *dev,
 
 static DEVICE_ATTR(fixusb, 0664, msm_hsusb_show_fixusb, msm_hsusb_store_fixusb);
 #endif  /* CONFIG_HUAWEI_KERNEL */
+/* DTS2012011801998 chenxi 20120203 end >*/
 static DEVICE_ATTR(wakeup, S_IWUSR, 0, usb_remote_wakeup);
 static DEVICE_ATTR(usb_state, S_IRUSR, show_usb_state, 0);
 static DEVICE_ATTR(usb_speed, S_IRUSR, show_usb_speed, 0);
@@ -2713,11 +2737,13 @@ static int msm72k_probe(struct platform_device *pdev)
 	wake_lock_init(&ui->wlock,
 			WAKE_LOCK_SUSPEND, "usb_bus_active");
 
+	/*< DTS2011122400600 hujun 20120102 begin*/
 #ifdef CONFIG_HUAWEI_KERNEL
 	/*wakelock for charger, prevent arm11 enter sleep.avoid mobile dump.*/
 	wake_lock_init(&charger_wlock, WAKE_LOCK_SUSPEND,"charger_active");
 	printk(KERN_ERR "%s:wakelock init \n",__func__);
 #endif
+	/*< DTS2011122400600 hujun 20120102 end*/  
 	usb_debugfs_init(ui);
 
 	usb_prepare(ui);
@@ -2738,10 +2764,12 @@ static int msm72k_probe(struct platform_device *pdev)
 			__func__, retval);
 		switch_dev_unregister(&ui->sdev);
 		wake_lock_destroy(&ui->wlock);
+		/*< DTS2011122400600 hujun 20120102 begin*/
 #ifdef CONFIG_HUAWEI_KERNEL
 		wake_lock_destroy(&charger_wlock);
 		printk(KERN_ERR "%s:wakelock distroy \n",__func__);
 #endif
+		/*< DTS2011122400600 hujun 20120102 end*/  
 		return usb_free(ui, retval);
 	}
 
@@ -2827,6 +2855,7 @@ int usb_gadget_probe_driver(struct usb_gadget_driver *driver,
 		dev_err(&ui->pdev->dev,
 			"failed to create sysfs entry(chg_current):"
 			"err:(%d)\n", retval);
+    /*< DTS2012011801998 chenxi 20120203 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 	retval = device_create_file(&ui->gadget.dev, &dev_attr_fixusb);
 	if (retval != 0)
@@ -2834,6 +2863,7 @@ int usb_gadget_probe_driver(struct usb_gadget_driver *driver,
 			"failed to create sysfs entry(fixusb):"
 			"err:(%d)\n", retval);
 #endif  /* CONFIG_HUAWEI_KERNEL */
+    /* DTS2012011801998 chenxi 20120203 end >*/
 
 	dev_dbg(&ui->pdev->dev, "registered gadget driver '%s'\n",
 			driver->driver.name);
@@ -2874,9 +2904,11 @@ int usb_gadget_unregister_driver(struct usb_gadget_driver *driver)
 	device_remove_file(&dev->gadget.dev, &dev_attr_usb_speed);
 	device_remove_file(&dev->gadget.dev, &dev_attr_chg_type);
 	device_remove_file(&dev->gadget.dev, &dev_attr_chg_current);
+    /*< DTS2012011801998 chenxi 20120203 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 	device_remove_file(&dev->gadget.dev, &dev_attr_fixusb);
 #endif  /* CONFIG_HUAWEI_KERNEL */
+    /* DTS2012011801998 chenxi 20120203 end >*/
 	driver->disconnect(&dev->gadget);
 	driver->unbind(&dev->gadget);
 	dev->gadget.dev.driver = NULL;

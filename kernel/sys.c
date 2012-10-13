@@ -54,6 +54,7 @@
 #include <asm/io.h>
 #include <asm/unistd.h>
 
+/* < DTS2011111003569 fangxinyong 20111110 begin */
 #ifdef CONFIG_HUAWEI_KERNEL_DEBUG
 #define DBG(format, arg...) do { \
     printk(KERN_DEBUG "%s: " format "\n" , __func__ , ## arg); \
@@ -61,6 +62,7 @@
 #else
 #define DBG(format, arg...) do { } while (0)
 #endif
+/* DTS2011111003569 fangxinyong 20111110 end > */
 
 #ifndef SET_UNALIGN_CTL
 # define SET_UNALIGN_CTL(a,b)	(-EINVAL)
@@ -382,27 +384,37 @@ EXPORT_SYMBOL_GPL(kernel_halt);
  */
 void kernel_power_off(void)
 {
+    /* < DTS2011111003569 fangxinyong 20111110 begin */
     DBG("begin");
+    /* DTS2011111003569 fangxinyong 20111110 end > */
     
 	kernel_shutdown_prepare(SYSTEM_POWER_OFF);
 
+    /* < DTS2011111003569 fangxinyong 20111110 begin */
     DBG("kernel_shutdown_prepare complete");
+    /* DTS2011111003569 fangxinyong 20111110 end > */
     
 	if (pm_power_off_prepare)
 		pm_power_off_prepare();
 
+    /* < DTS2011111003569 fangxinyong 20111110 begin */
     DBG("before  disable_nonboot_cpus");
+    /* DTS2011111003569 fangxinyong 20111110 end > */
     
 	disable_nonboot_cpus();
 
+    /* < DTS2011111003569 fangxinyong 20111110 begin */
     DBG("disable_nonboot_cpus complete");
+    /* DTS2011111003569 fangxinyong 20111110 end > */
     
 	syscore_shutdown();
 	printk(KERN_EMERG "Power down.\n");
 	kmsg_dump(KMSG_DUMP_POWEROFF);
 	machine_power_off();
 
+    /* < DTS2011111003569 fangxinyong 20111110 begin */
     DBG("end");
+    /* DTS2011111003569 fangxinyong 20111110 end > */
 }
 EXPORT_SYMBOL_GPL(kernel_power_off);
 
@@ -422,7 +434,9 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
 	char buffer[256];
 	int ret = 0;
 
+    /* < DTS2011111003569 fangxinyong 20111110 begin */
     DBG("SYSCALL_DEFINE4  power off debug begin");
+    /* DTS2011111003569 fangxinyong 20111110 end > */
 
 	/* We only trust the superuser with rebooting the system. */
 	if (!capable(CAP_SYS_BOOT))
@@ -462,7 +476,9 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
 		panic("cannot halt");
 
 	case LINUX_REBOOT_CMD_POWER_OFF:
+        /* < DTS2011111003569 fangxinyong 20111110 begin */
         DBG("case LINUX_REBOOT_CMD_POWER_OFF");
+        /* DTS2011111003569 fangxinyong 20111110 end > */
 		kernel_power_off();
 		do_exit(0);
 		break;
@@ -495,7 +511,9 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
 	}
 	mutex_unlock(&reboot_mutex);
 
+    /* < DTS2011111003569 fangxinyong 20111110 begin */
     DBG("end");
+    /* DTS2011111003569 fangxinyong 20111110 end > */
     
 	return ret;
 }

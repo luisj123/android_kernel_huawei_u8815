@@ -979,16 +979,20 @@ static int rr_read(struct rpcrouter_xprt_info *xprt_info,
 		wake_unlock(&xprt_info->wakelock);
 		spin_unlock_irqrestore(&xprt_info->lock, flags);
 
+		/*< DTS2011082200901 genghua 20110822 begin */
         #ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 		printk(KERN_ERR "%s: Wait for %d bytes\n",__func__, xprt_info->need_len);
         #endif
+		/* DTS2011082200901 genghua 20110822 end >*/
 
 		wait_event(xprt_info->read_wait,
 			xprt_info->xprt->read_avail() >= len
 			|| xprt_info->abort_data_read);
+		/*< DTS2011082200901 genghua 20110822 begin */
         #ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 		printk(KERN_ERR "%s: Wait ended for %d bytes\n",__func__, xprt_info->need_len);
         #endif
+		/* DTS2011082200901 genghua 20110822 end >*/
 	}
 	return -EIO;
 }
@@ -1097,10 +1101,12 @@ static void do_read_data(struct work_struct *work)
 			rq = (struct rpc_request_hdr *) frag->data;
 			xid = ntohl(rq->xid);
 		}
+		/*< DTS2011083001117 mazhenhua 20110830 begin*/
 		#ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 		/*add log for debug rpc issue*/
         printk("RPC receive deubg #1: xid=0x%03x\n",xid);
 		#endif
+		/* DTS2011083001117 mazhenhua 20110830 end >*/
 		if ((pm >> 31 & 0x1) || (pm >> 30 & 0x1))
 			RAW_PMR_NOMASK("xid:0x%03x first=%i,last=%i,mid=%3i,"
 				       "len=%3i,dst_cid=%08x\n",
@@ -1113,11 +1119,13 @@ static void do_read_data(struct work_struct *work)
 
 	if (smd_rpcrouter_debug_mask & SMEM_LOG) {
 		rq = (struct rpc_request_hdr *) frag->data;
+        /*< DTS2011083001117 mazhenhua 20110830 begin*/
 		/*add log for debug rpc issue*/
 		#ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
         printk("RPC receive deubg #2: xid=0x%03x, ntohl(xid)=0x%03x\n",rq->xid, ntohl(rq->xid));
 		printk("RPC debug #3 prog=0x%x, ver=0x%x,proc=0x%x\n", ntohl(rq->prog), ntohl(rq->vers), ntohl(rq->procedure));
 		#endif
+		/* DTS2011083001117 mazhenhua 20110830 end >*/
 		if (rq->xid == 0)
 			smem_log_event(SMEM_LOG_PROC_ID_APPS |
 				       RPC_ROUTER_LOG_EVENT_MID_READ,
@@ -1133,6 +1141,7 @@ static void do_read_data(struct work_struct *work)
 	}
 #endif
 
+	/*< DTS2011090203887 hujun 20110902 begin */
 	spin_lock_irqsave(&local_endpoints_lock, flags);
 	ept = rpcrouter_lookup_local_endpoint(hdr.dst_cid);
 	if (!ept) {
@@ -1188,6 +1197,7 @@ packet_complete:
 	wake_up(&ept->wait_q);
 	spin_unlock(&ept->read_q_lock);
 	spin_unlock_irqrestore(&local_endpoints_lock, flags);
+	/*DTS2011090203887 hujun 20110902 end >*/
 
 done:
 
@@ -2462,10 +2472,12 @@ void msm_rpcrouter_xprt_notify(struct rpcrouter_xprt *xprt, unsigned event)
 		if (xprt->read_avail() >= xprt_info->need_len)
 			wake_lock(&xprt_info->wakelock);
 		wake_up(&xprt_info->read_wait);
+		/*< DTS2011082200901 genghua 20110822 begin */
 		#ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 		printk(KERN_ERR "%s: Wakeup event - read_avail: %d, need_len %d\n",
 		                  __func__, xprt->read_avail(), xprt_info->need_len);
 		#endif
+		/* DTS2011082200901 genghua 20110822 end >*/
 	}
 }
 
@@ -2512,12 +2524,20 @@ static int __init rpcrouter_init(void)
 	int ret;
 
 	msm_rpc_connect_timeout_ms = 0;
+	/*< DTS2011082200901 genghua 20110822 begin */
+	/*< DTS2011090203887 hujun 20110902 begin */
+    /*< DTS2011091402488 hujun 20110914 begin */
 #ifndef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 	smd_rpcrouter_debug_mask |= SMEM_LOG;
 #else
+    /*< DTS2011091402488 hujun 20110914 end > */
+	/*DTS2011090203887 hujun 20110902 end >*/
+	/*< DTS2011083001117 mazhenhua 20110830 begin*/
 	/* merge qcom SBA from 7x30 2030 baseline*/
 	smd_rpcrouter_debug_mask = 511;
+	/* DTS2011083001117 mazhenhua 20110830 end >*/
 #endif
+	/* DTS2011082200901 genghua 20110822 end >*/
 	debugfs_init();
 
 

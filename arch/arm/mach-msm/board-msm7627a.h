@@ -13,9 +13,9 @@
 #ifndef __ARCH_ARM_MACH_MSM_BOARD_7627A__
 #define __ARCH_ARM_MACH_MSM_BOARD_7627A__
 
-#ifdef CONFIG_HUAWEI_KERNEL
+/* < DTS2012042302547 chendeng 20120428 begin */
 #include "pm.h"
-#endif
+/* DTS2012042302547 chendeng 20120428 end > */
 void __init msm7627a_init_mmc(void);
 
 enum {
@@ -64,7 +64,9 @@ enum {
 	QRD_GPIO_TP,
 	QRD_GPIO_CAM_GP_CAMIF_RESET,
 };
+/* < DTS2012021306459 zhangyun 20120213 begin */
 #if (defined(CONFIG_HUAWEI_BT_WCN2243) || (!defined(CONFIG_HUAWEI_KERNEL)))
+/* DTS2012021306459 zhangyun 20120213 end > */
 
 #define FPGA_MSM_CNTRL_REG2 0x90008010
 #define BAHAMA_SLAVE_ID_FM_REG 0x02
@@ -100,6 +102,7 @@ extern struct platform_device msm_bt_power_device;
 
 void __init msm7627a_bt_power_init(void);
 #endif
+/* < DTS2012021306459 zhangyun 20120213 begin */
 #if (defined(CONFIG_HUAWEI_BT_BCM43XX) && defined(CONFIG_HUAWEI_KERNEL))
 
 struct bt_vreg_info {
@@ -113,18 +116,21 @@ struct bt_vreg_info {
 
 void __init bt_bcm4330_power_init(void);
 
+/* < DTS2012022206848 yangyang 20120220 begin */ 
 void bt_wake_msm_config(void);
+/* DTS2012022206848 yangyang 20120220 end >*/
 
 extern struct platform_device msm_bt_power_device;
 extern struct platform_device msm_bluesleep_device;
 
 #endif
 void __init msm7627a_camera_init(void);
+/* < DTS2012042302547 chendeng 20120428 begin */
 /*
  * From the qualcomm patch, the CR is 00823327.
  * Fix sd card resuming fail issue.
  */
-#ifdef CONFIG_HUAWEI_KERNEL
 u32 msm7627a_power_collapse_latency(enum msm_pm_sleep_mode);
+/* DTS2012042302547 chendeng 20120428 end > */
 #endif
-#endif
+/* DTS2012021306459 zhangyun 20120213 end > */

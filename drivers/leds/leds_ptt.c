@@ -1,3 +1,4 @@
+/*< DTS2012020306500 lijianzhao 20120204 begin */
 /*add by zhangtao for ptt leds*/
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -100,4 +101,5 @@ static void __exit ptt_leds_exit(void)
 module_init(ptt_leds_init);
 module_exit(ptt_leds_exit);
 
+/* DTS2012020306500 lijianzhao 20120204 end >*/
 

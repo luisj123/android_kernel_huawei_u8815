@@ -164,6 +164,7 @@ enum mt9e013_reg_mode {
 	E013_FINE_CORRECTION
 };
 
+/* < DTS2011070401622 lijuan 20110703 begin */
 /*add OTP arrays that can contain OTP when reading, */
 /*add shading arrays that can contain shading */
 struct mt9e013_reg {
@@ -182,4 +183,5 @@ struct mt9e013_reg {
 	struct mt9e013_i2c_reg_conf *reg_otp;
 	unsigned short reg_otp_size;
 };
+/* < DTS2011070401622 lijuan 20110703 begin */
 #endif /* MT9E013_H */

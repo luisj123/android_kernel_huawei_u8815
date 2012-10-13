@@ -1,3 +1,4 @@
+/* < DTS2011090704268 jiaxianghong 20110914 begin */
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -40,3 +41,4 @@ void rsm_cleanup_module(void)
 MODULE_LICENSE("GPL");
 module_init(rsm_init_module);
 module_exit(rsm_cleanup_module);
+/* DTS2011090704268 jiaxianghong 20110914 end > */

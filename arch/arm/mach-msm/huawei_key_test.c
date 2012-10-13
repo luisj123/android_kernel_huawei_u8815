@@ -1,3 +1,4 @@
+/* < DTS2011110800980 fangxinyong 20111108 begin */
 /* 
  * key auto test
  *
@@ -474,6 +475,7 @@ static void init_kp_devices(struct kset *kset, struct input_dev* in)
 #endif
 }
 
+/*< DTS2011102804700 yanzhijun 20111028 begin */
 /* fix the kernel panic due to the absinfo null pointer in 3.0.1 */
 static int do_ts_input_probe(void)
 {
@@ -498,12 +500,14 @@ static int do_ts_input_probe(void)
     key_test_dev->ts_input_dev->name = "ts_test_input";
     key_test_dev->ts_input_dev->mtsize = current_ts_dev->mtsize;
     input_alloc_absinfo(key_test_dev->ts_input_dev);
+    /*< DTS2012031702368 duanfei 20120322 begin*/
 	/*fix the absinfo null pointer*/
     if (!key_test_dev->ts_input_dev->absinfo || !current_ts_dev->absinfo) 
     {
         ret = -ENOMEM;
         goto err_ts_input_free;
     }
+    /* DTS2012031702368 duanfei 20120322 end >*/
 
     memcpy(key_test_dev->ts_input_dev->absinfo, current_ts_dev->absinfo, sizeof(struct input_absinfo));
     memcpy(key_test_dev->ts_input_dev->evbit, current_ts_dev->evbit, sizeof(current_ts_dev->evbit));
@@ -598,6 +602,7 @@ static int do_late_probe(void)
     
     return do_kp_input_probe();
 }
+/* DTS2011102804700 yanzhijun 20111028 end >*/ 
 
 /*this function must be invoked after gpio_event driver init*/
 static int __init init_huawei_key_test_dev(void)
@@ -647,4 +652,5 @@ module_exit(huawei_key_test_exit);
 
 MODULE_DESCRIPTION("Synaptics Touchscreen Driver");
 MODULE_LICENSE("GPL");
+/* DTS2011110800980 fangxinyong 20111108 end > */
 

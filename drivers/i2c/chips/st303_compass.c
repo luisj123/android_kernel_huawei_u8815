@@ -18,6 +18,7 @@
  * Revised by huawei  2009/04/24
  * 
  */
+/* <BU5D01928 zhangxiangdang 20100316 begin */
 
 #include <linux/interrupt.h>
 #include <linux/i2c.h>
@@ -35,20 +36,31 @@
 #include "linux/st303.h"
 #include <mach/gpio.h>
 #include <mach/vreg.h>
+/* < DTS2011042703449  liujinggang 20110427 begin */
 #include "linux/hardware_self_adapt.h"
+/* DTS2011042703449  liujinggang 20110427 end > */
 #ifdef CONFIG_ANDROID_POWER
 #include <linux/android_power.h>
 #endif
+/*< DTS2011041700393 lijianzhao 20110417 begin */
 /* modify for 4125 baseline */
 #include <linux/slab.h>
+/* DTS2011041700393 lijianzhao 20110417 end >*/
+/* <DTS2010120100623 shenjinming 20101201 begin */
 #include <asm/mach-types.h>
+/* DTS2010120100623 shenjinming 20101201 end> */
+/* < DTS2011052606009 jiaxianghong 20110527 begin */ 
+/* <DTS2011032104626 shenjinming 20110321 begin */
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
 #include <linux/hw_dev_dec.h>
 #endif
+/* <DTS2011032104626 shenjinming 20110321 end> */
 
+/* < DTS2010090303090  liujinggang 20100903 begin */
 #include "../../../arch/arm/mach-msm/proc_comm.h"
 #define COMPASS_INIT_FAIL		(99)
 #define COMPASS_INIT_SUCCESS	(0)
+/* DTS2010090303090  liujinggang 20100903 end > */
 //#define DEBUG_WQ 
 #define DEBUG 0
 #define     GS_POLLING  1
@@ -69,13 +81,17 @@
 /* Output register start address*/
 #define OUT_X_M           0x03
 
+/* < DTS2011021001618  liujinggang 20110210 begin */
 /* read HIDED_EARTH_MAGIC_REG for match WHO AM I
    303DLH DEV ID = 0x00 
    303DLM DEV ID = 0x3c  */
 #define HIDED_EARTH_MAGIC_REG  0x0F
 
+/* < DTS2011042703449  liujinggang 20110427 begin */
 int st303_dev_id = DEV_ID_NONE;
 
+/* DTS2011042703449  liujinggang 20110427 end > */
+/* DTS2011021001618  liujinggang 20110210 end > */
 
 #ifdef DEBUG_WQ
 static struct workqueue_struct *gs_wq;
@@ -83,9 +99,11 @@ static struct workqueue_struct *gs_wq;
 
 static struct i2c_client *this_client;
 extern struct input_dev *sensor_dev;
+/*<BU5D08569 liujinggang 20100424 begin*/
 #ifdef DEBUG_WQ
 static int accel_delay = 1000; 
 #endif
+/*BU5D08569 liujinggang 20100424 end>*/
 
 struct st303_data {
 	struct input_dev *input_dev;
@@ -196,6 +214,7 @@ static void AKECS_Report_Value(short *rbuf)
 		input_report_abs(data->input_dev, ABS_RUDDER, 3);
 	}
 	
+	/* < DTS2011043000257  liujinggang 20110503 begin */
 	/* modify the magnetic values  */
 	/* Report magnetic sensor information */
 	if (atomic_read(&mv_flag)) {
@@ -203,6 +222,7 @@ static void AKECS_Report_Value(short *rbuf)
 		input_report_abs(data->input_dev, ABS_HAT0Y, rbuf[4]);
 		input_report_abs(data->input_dev, ABS_BRAKE, -rbuf[5]);
 	}
+	/* DTS2011043000257  liujinggang 20110503 end > */
 	
 	input_sync(data->input_dev);
 }
@@ -294,6 +314,7 @@ st303_aot_ioctl(struct file *file,
 		break;
 	}
 
+ 	/* < DTS2011042703449  liujinggang 20110427 begin */
 	/*get device ID*/
 	switch (cmd) {
 	case ECS_IOCTL_APP_SET_MFLAG: 
@@ -344,6 +365,7 @@ st303_aot_ioctl(struct file *file,
 	default:
 		break;
 	}
+	/* DTS2011042703449  liujinggang 20110427 end > */
 
 	return 0;
 }
@@ -402,6 +424,7 @@ st303d_ioctl(struct file *file, unsigned int cmd,
 			if (rwbuf[0] < 1)
 				return -EINVAL;
 			ret = AKI2C_RxData(&rwbuf[1], rwbuf[0]);
+			/* < DTS2011021001618  liujinggang 20110210 begin */
 			if(DEV_ID_303DLM == st303_dev_id)
 			{
 				int temp = 0;
@@ -415,6 +438,7 @@ st303d_ioctl(struct file *file, unsigned int cmd,
 				rwbuf[4] = rwbuf[6];
 				rwbuf[6] = temp;
 			}
+			/* DTS2011021001618  liujinggang 20110210 end > */
 			
 #if DEBUG
 			printk("m %d ",(signed short)(((rwbuf[1])<<8)|rwbuf[2]));
@@ -513,9 +537,11 @@ static int st303_init_client(struct i2c_client *client)
 	init_waitqueue_head(&open_wq);
 
 	/* As default, report all information */
+ 	/* < DTS2011042703449  liujinggang 20110427 begin */
 	/*modify the default values*/
 	atomic_set(&m_flag, 0);
 	atomic_set(&mv_flag, 0);
+	/* DTS2011042703449  liujinggang 20110427 end > */
 
 	return 0;
 }
@@ -561,6 +587,7 @@ static void gs_work_func(struct work_struct *work)
 	int	sesc = accel_delay/1000;
 	int nsesc = (accel_delay%1000)*1000000;
 	
+//liujinggang add 20100410
 
 {
 		udata[0]= 0;
@@ -603,7 +630,9 @@ static enum hrtimer_restart gs_timer_func(struct hrtimer *timer)
 {
 	struct st303_data *gs = container_of(timer, struct st303_data, timer);		
 	queue_work(gs_wq, &gs->work);
+	/*<BU5D08569 liujinggang 20100424 begin*/
 	/* delete one line */
+	/*BU5D08569 liujinggang 20100424 end>*/
 	return HRTIMER_NORESTART;
 }
 
@@ -652,19 +681,26 @@ int st303_probe(struct i2c_client *client, const struct i2c_device_id * devid)
 	struct st303_data *st303;
 	int err=0;
 	int rc;
+	/*<BU5D08569 liujinggang 20100424 begin*/
 	#ifdef DEBUG_WQ
 	#ifndef   GS_POLLING
 	int ret;
 	#endif
 	#endif
+	/*BU5D08569 liujinggang 20100424 end>*/
 	int i,j;
+/* < DTS2010090303090  liujinggang 20100903 begin */
 	unsigned long nv_compass_state = 0;
 	unsigned long  nv_value = 1;
     unsigned nv_item = 60019;
     int  rval = -1;
+/* DTS2010090303090  liujinggang 20100903 end > */
+	/* < DTS2011043000257  liujinggang 20110503 begin */
 	struct compass_platform_data *pdata = NULL;
 
+	/* DTS2011043000257  liujinggang 20110503 end > */
 	
+/* < DTS2010090303090  liujinggang 20100903 begin */
 	rval = msm_proc_comm(PCOM_NV_READ, &nv_item, (unsigned*)&nv_value); 
 	if(0 == rval)
 	{
@@ -674,11 +710,13 @@ int st303_probe(struct i2c_client *client, const struct i2c_device_id * devid)
 	{
 		printk(KERN_ERR"st303_compass: read failed! nv(%d)=%d, rval=%d\n", nv_item, (int)nv_value, rval);
 	}
+/* DTS2010090303090  liujinggang 20100903 end > */
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
 		err = -ENODEV;
 		goto exit_check_functionality_failed;
 	}
 
+ 	/* < DTS2011043000257  liujinggang 20110503 begin */
 	/*turn on the power*/
 	pdata = client->dev.platform_data;
 	if (pdata){
@@ -699,6 +737,7 @@ int st303_probe(struct i2c_client *client, const struct i2c_device_id * devid)
 	}
 	#endif
 #endif
+	/* DTS2011043000257  liujinggang 20110503 end > */
 	
 	st303 = kzalloc(sizeof(struct st303_data), GFP_KERNEL);
 	if (!st303) {
@@ -719,6 +758,7 @@ int st303_probe(struct i2c_client *client, const struct i2c_device_id * devid)
 		printk(KERN_ERR "st303_compass probe: Failed to allocate input device\n");
 		goto exit_input_dev_alloc_failed;
 	}
+	/* < DTS2011021001618  liujinggang 20110210 begin */
 	for(i=0; i<3; i++)
 	{
 		rc = i2c_smbus_read_byte_data(client,HIDED_EARTH_MAGIC_REG);  /*read HIDED Magic register in order to check who am I*/
@@ -744,6 +784,7 @@ int st303_probe(struct i2c_client *client, const struct i2c_device_id * devid)
 			break;
 		}
 	}
+	/* DTS2011021001618  liujinggang 20110210 end > */
 	for(i=0;i<3;i++)
 	{
 		j = 0;
@@ -753,7 +794,11 @@ int st303_probe(struct i2c_client *client, const struct i2c_device_id * devid)
 			printk(KERN_ERR"st303_compass write CRA_REG_M failed \n");
 		}
 		
+		/* < DTS2010083000294 liujinggang 20100830 begin */
+		/* < DTS2010082701213  liujinggang 20100827 begin */
 		rc = i2c_smbus_write_byte_data(client,CRB_REG_M,0xe0);//(0x20 1.3gauss) (0x40 1.9gauss) (0x80 4.0gauss) (0xe0 8.1gauss)
+		/* DTS2010082701213  liujinggang 20100827 end > */
+		/* DTS2010083000294 liujinggang 20100830 end > */
 		if (rc < 0){
 			j++;
 			printk(KERN_ERR"st303_compass write CRB_REG_M failed \n");
@@ -770,6 +815,8 @@ int st303_probe(struct i2c_client *client, const struct i2c_device_id * devid)
 			break;
 		}
 	}
+/* < DTS2010090303090  liujinggang 20100903 begin */
+	/* < DTS2010083000294 liujinggang 20100830 begin */
 	if (j != 0)
 	{
 		err = -ENODEV;
@@ -791,6 +838,8 @@ int st303_probe(struct i2c_client *client, const struct i2c_device_id * devid)
 	        }
 		}
 	}	
+	/* DTS2010083000294 liujinggang 20100830 end > */
+/* DTS2010090303090  liujinggang 20100903 end > */
 	
 	set_bit(EV_ABS, st303->input_dev->evbit);
 	set_bit(ABS_X, st303->input_dev->absbit);
@@ -851,14 +900,19 @@ int st303_probe(struct i2c_client *client, const struct i2c_device_id * devid)
 		return -ENOMEM;
 #endif
 
+	/*<BU5D08569 liujinggang 20100424 begin*/
 	GS303_DEBUG(KERN_ERR "%s client->addr 0x%x  \n", __FUNCTION__, client->addr);
+	/*BU5D08569 liujinggang 20100424 end>*/
 #ifdef DEBUG_WQ
 hrtimer_start(&st303->timer, ktime_set(0, 500000000), HRTIMER_MODE_REL);
 #endif
+    /* <DTS2011032104626 shenjinming 20110321 begin */
     #ifdef CONFIG_HUAWEI_HW_DEV_DCT
     /* detect current device successful, set the flag as present */
     set_hw_dev_flag(DEV_I2C_COMPASS);
     #endif
+    /* <DTS2011032104626 shenjinming 20110321 end> */
+/* < DTS2011052606009 jiaxianghong 20110527 end */	
 	return 0;
 
 exit_misc_device_register_failed2:
@@ -869,6 +923,7 @@ exit_misc_device_register_failed1:
 exit_input_dev_alloc_failed:
 	kfree(st303);
 exit_alloc_data_failed:
+/* < DTS2011043000257  liujinggang 20110503 begin */
 /*turn down the power*/
 #ifdef DEBUG_WQ
 #ifndef   GS_POLLING 
@@ -879,8 +934,10 @@ err_power_failed:
 	if(pdata->compass_power != NULL){
 		pdata->compass_power(IC_PM_OFF);
 	}
+/* DTS2011043000257  liujinggang 20110503 end > */
 exit_check_functionality_failed:
 	
+/* < DTS2010090303090  liujinggang 20100903 begin */
 	nv_compass_state = COMPASS_INIT_FAIL;
 	if(nv_compass_state != nv_value)
 	{
@@ -894,9 +951,13 @@ exit_check_functionality_failed:
 			printk(KERN_ERR"st303_compass: probe failded write failed! nv(%d)=%d, rval=%d\n", nv_item, (int)nv_compass_state, rval);
 		}
 	}	
+/* DTS2010090303090  liujinggang 20100903 end > */
+ 	/* < DTS2011043000257  liujinggang 20110503 begin */
 	/*delete 8 lines*/
+	/* DTS2011043000257  liujinggang 20110503 end > */
 	return err;
 }
+/*< DTS2011041700393 lijianzhao 20110417 begin */
 /* modify for 4125 baseline */
 static int st303_detect(struct i2c_client *client,
 			  struct i2c_board_info *info)
@@ -904,6 +965,7 @@ static int st303_detect(struct i2c_client *client,
 	strlcpy(info->type, "st303", I2C_NAME_SIZE);
 	return 0;
 }
+/* DTS2011041700393 lijianzhao 20110417 end >*/
 
 static int st303_remove(struct i2c_client *client)
 {
@@ -991,7 +1053,9 @@ static struct i2c_driver st303_driver = {
 
 static int __init st303_init(void)
 {
+	/*<BU5D08569 liujinggang 20100424 begin*/
 	GS303_DEBUG(KERN_INFO "%s : st303_gs probe \n",__func__);
+	/*BU5D08569 liujinggang 20100424 end>*/
 	return i2c_add_driver(&st303_driver);
 }
 
@@ -1004,4 +1068,5 @@ late_initcall(st303_init);
 module_exit(st303_exit);
 MODULE_DESCRIPTION("st303 compass driver");
 MODULE_LICENSE("GPL");
+/* BU5D01928 zhangxiangdang 20100316 end> */
 

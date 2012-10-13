@@ -5,6 +5,7 @@
  * Copyright (C) 2010 HUAWEI Technology Co., ltd.
  * 
  * Date: 2011/09/01
+ * By jiaoshuangwei
  * 
  */
 
@@ -27,33 +28,38 @@ static lcd_panel_type lcd_panel_hvga = LCD_NONE;
 #define PM_GPIO_24 24
 #define PM_GPIO_HIGH_VALUE 1 
 
+/*<  DTS2011091905632 jiaoshuangwei 20110924 begin */
 /*delate the initialize sequence */
 
-
+/*< DTS2012052303745 zhongjinrong 20120523 begin */
+/* <DTS2012033105206 sunkai 20120416 begin */
+/* Modify the LCD sleep and wake-up sequence ,solve LCD flash white */
 static const struct sequence hx8357c_hvga_standby_exit_table[]= 
 {
 	{0x00011,TYPE_COMMAND,0}, //11 
 	{0x00000,TYPE_PARAMETER,0},
-	{0x000CC,TYPE_COMMAND,120},  //Set Panel 
+	{0x00020,TYPE_COMMAND,120},
+	{0x00000,TYPE_PARAMETER,0},
+	{0x000CC,TYPE_COMMAND,20},  //Set Panel 
 	{0x00007,TYPE_PARAMETER,0},
 	{0x00029,TYPE_COMMAND,0}, //29  
-	{0x00000,TYPE_PARAMETER,0},
-	{0x0020,TYPE_COMMAND,20},
 	{0x00000,TYPE_PARAMETER,0},
 	{MDDI_MULTI_WRITE_END,TYPE_COMMAND,20},
 };
 static const struct sequence hx8357c_hvga_standby_enter_table[]= 
 {
-	{0x0021,TYPE_COMMAND,0},
-	{0x00000,TYPE_PARAMETER,0},
 	{0x000CC,TYPE_COMMAND,0},  //Set Panel
 	{0x00005,TYPE_PARAMETER,0},
 	{0x00028,TYPE_COMMAND,0}, //29h
 	{0x00000,TYPE_PARAMETER,0},
-	{0x00010,TYPE_COMMAND,20},
+	{0x00021,TYPE_COMMAND,20},
+	{0x00000,TYPE_PARAMETER,0},
+	{0x00010,TYPE_COMMAND,0},
 	{0x00000,TYPE_PARAMETER,0},
 	{MDDI_MULTI_WRITE_END,TYPE_COMMAND,120}, //the end flag,it don't sent to driver IC
 };
+/* DTS2012033105206 sunkai 20120416 end> */
+/* DTS2012052303745 zhongjinrong 20120523 end >*/
 
 static struct sequence hx8357c_hvga_write_cabc_brightness_table[]= 
 {
@@ -220,7 +226,9 @@ static int __init hx8357c_init(void)
 		pinfo->pdest = DISPLAY_1;
 		pinfo->mddi.vdopkt = MDDI_DEFAULT_PRIM_PIX_ATTR;
 		pinfo->wait_cycle = 0;
-		pinfo->bpp = (uint32)24;
+		/* <DTS2012041903882 sunkai 20120510 begin */
+		pinfo->bpp = (uint32)18;  //24->18. use to change LCD display bit
+		/* DTS2012041903882 sunkai 20120510 end> */
 		pinfo->fb_num = 2;
         pinfo->clk_rate = 160000000;
 	    pinfo->clk_min = 160000000;

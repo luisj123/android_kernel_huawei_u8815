@@ -54,6 +54,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
+/*creat by lijuan 00152865 2010/03/30*/
+/* < BU5D10320 lijianzhao 20100521 begin */
 #ifndef MDDI_MDDI_NT35582_H
 #define MDDI_MDDI_NT35582_H
 
@@ -185,7 +187,9 @@ s_seq_init_setup[]={
 	{0xE510,0X32},
 	{0xE511,0X4D},
 	{0x5301,0x04},/*add for the backlight */
+	/*<BU5D09095, lijuan 00152865, 20100430 begin*/
 	/*{0x3600,0xc0},*/
+	/*BU5D09095, lijuan 00152865, 20100430 end>*/
 	{0x1100,0X00},
 	{0,	150},
 	{0x2900,0X00},
@@ -195,5 +199,6 @@ s_seq_init_setup[]={
 #endif
 
 #endif
+/* BU5D10320 lijianzhao 20100521 end > */
 
 

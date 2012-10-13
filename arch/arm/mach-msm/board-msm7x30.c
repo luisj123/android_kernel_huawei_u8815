@@ -6113,7 +6113,9 @@ static void __init msm7x30_init_mmc(void)
 	|| (machine_is_msm8255_u8860())
 	|| (machine_is_msm8255_c8860())
     || (machine_is_msm8255_u8860lp())
+    /* < DTS2012022905490 ganfan 20120301 begin */
     || machine_is_msm8255_u8860_r()
+    /* DTS2012022905490 ganfan 20120301 end > */
     || (machine_is_msm8255_u8860_92())
 	|| (machine_is_msm8255_u8680())
 	|| (machine_is_msm8255_u8860_51())

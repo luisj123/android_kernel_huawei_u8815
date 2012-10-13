@@ -13,6 +13,7 @@
  *
  */
 
+/* <BU5D01928 zhangxiangdang 20100316 begin */
 
 #include <linux/delay.h>
 #include <linux/earlysuspend.h>
@@ -29,13 +30,22 @@
 #include "linux/st303.h"
 #include <mach/gpio.h>
 #include <mach/vreg.h>
+/* < DTS2011042703449  liujinggang 20110427 begin */
 #include <linux/hardware_self_adapt.h>
+/* DTS2011042703449  liujinggang 20110427 end > */
+/*< DTS2011041700393 lijianzhao 20110417 begin */
 /* modify for 4125 baseline */
 #include <linux/slab.h>
+/* DTS2011041700393 lijianzhao 20110417 end >*/
+/* <DTS2010120100623 shenjinming 20101201 begin */
 #include <asm/mach-types.h>
+/* DTS2010120100623 shenjinming 20101201 end> */
+/* < DTS2011052606009 jiaxianghong 20110527 begin */ 
+/* <DTS2011032104626 shenjinming 20110321 begin */
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
 #include <linux/hw_dev_dec.h>
 #endif
+/* <DTS2011032104626 shenjinming 20110321 end> */
 
 //#define GS303_DEBUG_ST303_GS
 //#undef GS303_DEBUG 
@@ -51,9 +61,11 @@
 static struct workqueue_struct *gs_wq;
 static signed short st_sensor_data[3];
 
+/* < DTS2011042703449  liujinggang 20110427 begin */
 extern int st303_dev_id;
 
 extern struct input_dev *sensor_dev;
+/* DTS2011042703449  liujinggang 20110427 end > */
 
 enum st303_reg {
 	
@@ -117,11 +129,13 @@ struct gs_data {
 
 
 static struct gs_data  *this_gs_data;
+/*<BU5D08569 liujinggang 20100424 begin*/
 #ifdef GS303_DEBUG_ST303_GS
 static int accel_delay = 1000;
 #else
 static int accel_delay = ST303_TIMRER;     /*1000000s*/
 #endif
+/*BU5D08569 liujinggang 20100424 end>*/
 
 static atomic_t a_flag;
 
@@ -130,6 +144,7 @@ static void gs_early_suspend(struct early_suspend *h);
 static void gs_late_resume(struct early_suspend *h);
 #endif
 
+/* < DTS2011072105664 xiangxu  20110722 begin */
 static inline int reg_read(struct gs_data *gs , int reg);
 static int st303_debug_mask;
 module_param_named(st303_debug, st303_debug_mask, int, S_IRUGO | S_IWUSR | S_IWGRP);
@@ -155,6 +170,7 @@ void st303_print_debug(int start_reg,int end_reg)
 	
 }
 
+/* DTS2011072105664 xiangxu  20110722 end > */
 /**************************************************************************************/
 static inline int reg_read(struct gs_data *gs , int reg)
 {
@@ -199,7 +215,9 @@ static int gs_data_to_compass(signed short accel_data [3])
 
 static int gs_st_open(struct inode *inode, struct file *file)
 {		
+	/*<BU5D09887 liujinggang 20100514 begin*/
 	reg_write(this_gs_data, GS_ST_REG_CTRL1, 0x2f);
+	/*BU5D09887 liujinggang 20100514 end>*/
 	if (this_gs_data->use_irq)
 		enable_irq(this_gs_data->client->irq);
 	else
@@ -275,6 +293,7 @@ gs_st_ioctl(struct file *file, unsigned int cmd,
 		default:
 			break;
 	}
+ 	/* < DTS2011042703449  liujinggang 20110427 begin */
 	/*get device ID*/
 	switch (cmd) 
 	{
@@ -309,6 +328,7 @@ gs_st_ioctl(struct file *file, unsigned int cmd,
 		default:
 			break;
 	}
+	/* DTS2011042703449  liujinggang 20110427 end > */
 	return 0;
 }
 
@@ -325,6 +345,7 @@ static struct miscdevice gsensor_device = {
 	.fops = &gs_st_fops,
 };
 
+/* < DTS2011042703449  liujinggang 20110427 begin */
 static void gs_work_func(struct work_struct *work)
 {
 	int status;	
@@ -366,7 +387,9 @@ static void gs_work_func(struct work_struct *work)
 		z = ((udata[1])<<4)|udata[0]>>4;
 		
 
+		/* < DTS2011072105664 xiangxu 20110722 begin*/
 		st303_DBG("Gs_st303:A  x : %d y : %d z : %d \n", x,y,z);
+		/* DTS2011072105664 xiangxu 20110722 end > */
 	 
 		if(x&0x800)/*¸ºÖµ*/
 		{
@@ -388,15 +411,22 @@ static void gs_work_func(struct work_struct *work)
 		y = tmp;
 
 		memset((void*)st_sensor_data, 0, sizeof(st_sensor_data));
+	 	/* < DTS2011043000257  liujinggang 20110503 begin */
+		/*<BU5D09887 liujinggang 20100514 begin*/
+		/*<BU5D09396 liujinggang 20100506 begin*/
 		st_sensor_data[0]= -x;
 		st_sensor_data[1]= -y;	
 		st_sensor_data[2]= z;
+		/*BU5D09396 liujinggang 20100506 end>*/
+		/*BU5D09887 liujinggang 20100514 end>*/
+		/* DTS2011043000257  liujinggang 20110503 end > */
 		
 		/*(Decimal value/ 4096) * 4.0 g,For (0g ~+2.0g)*/	
 		x = (MG_PER_SAMPLE*40*(s16)x)/FILTER_SAMPLE_NUMBER/10;           
 		y = (MG_PER_SAMPLE*40*(s16)y)/FILTER_SAMPLE_NUMBER/10;
 		z = (MG_PER_SAMPLE*40*(s16)z)/FILTER_SAMPLE_NUMBER/10;
 
+		/*<BU5D09151 liujinggang 20100430 begin*/
 		z *=(-1);
 		
 		GS303_DEBUG(KERN_INFO "%s :%d   st303_gs probe  A  x :0x%x y :0x%x z :0x%x \n",__func__,__LINE__,x,y,z);
@@ -404,8 +434,10 @@ static void gs_work_func(struct work_struct *work)
 		input_report_abs(gs->input_dev, ABS_Y, y);	
 		input_report_abs(gs->input_dev, ABS_Z, z);
 		input_sync(gs->input_dev);
+		/*BU5D09151 liujinggang 20100430 end>*/
 	}
 	
+	/* < DTS2011072105664 xiangxu 20110722 begin */
 	st303_DBG("Gs_st303:A  x : %d y : %d z : %d \n", x,y,z);
 	if(st303_debug_mask)
 	{
@@ -418,12 +450,14 @@ static void gs_work_func(struct work_struct *work)
 			st303_print_debug(GS_ST_REG_FF_WU_CFG_1,GS_ST_REG_CLICK_WINDOW);
 		}
 	}
+	/*  DTS2011072105664 xiangxu 20110722 end > */
 	if (gs->use_irq)
 		enable_irq(gs->client->irq);
 	else
 		hrtimer_start(&gs->timer, ktime_set(sesc, nsesc), HRTIMER_MODE_REL);
 	GS303_DEBUG(KERN_INFO "%s :%d   st303_gs probe \n",__func__,__LINE__);
 }
+/* DTS2011042703449  liujinggang 20110427 end > */
 
 
 static enum hrtimer_restart gs_timer_func(struct hrtimer *timer)
@@ -479,14 +513,23 @@ static int gs_probe(
 {	
 	int ret;
 	struct gs_data *gs;
+ 	/* < DTS2011043000257  liujinggang 20110503 begin */
 	/* delete 3 lines*/
+	/* DTS2011043000257  liujinggang 20110503 end > */
 
 
+ 	/* < DTS2011042703449  liujinggang 20110427 begin */
 	struct gs_platform_data *pdata = NULL;
+	/* DTS2011042703449  liujinggang 20110427 end > */
 	
+      /*<BU5D08569 liujinggang 20100424 begin*/
 	GS303_DEBUG(KERN_INFO "%s :%d   st303_gs probe \n",__func__,__LINE__);
+      /*BU5D08569 liujinggang 20100424 end>*/
 
+ 	/* < DTS2011043000257  liujinggang 20110503 begin */
 	/*delete 30 lines*/	
+	/* DTS2011043000257  liujinggang 20110503 end > */
+ 	/* < DTS2011042703449  liujinggang 20110427 begin */
 	
 	
 	printk(KERN_ERR "st303_gs probe \n");
@@ -496,6 +539,7 @@ static int gs_probe(
 		goto err_check_functionality_failed;
 	}
 	
+ 	/* < DTS2011043000257  liujinggang 20110503 begin */
 	/*turn on the power*/
 	pdata = client->dev.platform_data;
 	if (pdata){
@@ -527,6 +571,7 @@ static int gs_probe(
 			}
 		}
 	}
+	/* DTS2011042703449  liujinggang 20110427 end > */
 	
 #ifndef   GS_POLLING 	
 	ret = gs_config_int_pin();
@@ -535,6 +580,7 @@ static int gs_probe(
 		goto err_power_failed;
 	}
 #endif
+	/* DTS2011043000257  liujinggang 20110503 end > */
 
 	gs = kzalloc(sizeof(*gs), GFP_KERNEL);
 	if (gs == NULL) {
@@ -590,10 +636,12 @@ static int gs_probe(
 	
 	gs->input_dev->id.vendor = GS_ST303DLH;//for st303_compass detect.
 	set_bit(EV_ABS,gs->input_dev->evbit);
+	/* < DTS20111208XXXXX  liujinggang 20111208 begin */
 	/* modify for ES-version*/
 	input_set_abs_params(gs->input_dev, ABS_X, -11520, 11520, 0, 0);
 	input_set_abs_params(gs->input_dev, ABS_Y, -11520, 11520, 0, 0);
 	input_set_abs_params(gs->input_dev, ABS_Z, -11520, 11520, 0, 0);
+	/* DTS20111208XXXXX  liujinggang 20111208 end > */
 	set_bit(EV_SYN,gs->input_dev->evbit);
 	gs->input_dev->id.bustype = BUS_I2C;
 	
@@ -637,16 +685,23 @@ static int gs_probe(
 		return -ENOMEM;
 	
 	this_gs_data =gs;
+/*<BU5D08569 liujinggang 20100424 begin*/
+ 	/* < DTS2011042703449  liujinggang 20110427 begin */
 	if(pdata && pdata->init_flag)
 		*(pdata->init_flag) = 1;
+	/* DTS2011042703449  liujinggang 20110427 end > */
+    /* <DTS2011032104626 shenjinming 20110321 begin */
     #ifdef CONFIG_HUAWEI_HW_DEV_DCT
     /* detect current device successful, set the flag as present */
     set_hw_dev_flag(DEV_I2C_G_SENSOR);
     #endif
+    /* <DTS2011032104626 shenjinming 20110321 end> */ 
+/* < DTS2011052606009 jiaxianghong 20110527 end */	 
 	GS303_DEBUG(KERN_INFO "gs_probe: Start LSM303DLH  in %s mode\n", gs->use_irq ? "interrupt" : "polling");
 #ifdef GS303_DEBUG_ST303_GS
 	hrtimer_start(&this_gs_data->timer, ktime_set(0, 500000000), HRTIMER_MODE_REL);
 #endif
+/*BU5D08569 liujinggang 20100424 end>*/
 	return 0;
 	
 err_misc_device_register_failed:
@@ -662,12 +717,14 @@ err_alloc_data_failed:
 #ifndef   GS_POLLING 
 	gs_free_int();
 #endif
+/* < DTS2011043000257  liujinggang 20110503 begin */
 /*turn down the power*/
 err_power_failed:
 	if(pdata->gs_power != NULL){
 		pdata->gs_power(IC_PM_OFF);
 	}
 err_check_functionality_failed:
+/* DTS2011043000257  liujinggang 20110503 end > */
 	return ret;
 }
 
@@ -753,7 +810,9 @@ static struct i2c_driver gs_driver = {
 
 static int __devinit gs_init(void)
 {
+	/*<BU5D08569 liujinggang 20100424 begin*/
 	GS303_DEBUG(KERN_INFO "%s : st303_gs probe \n",__func__);
+	/*BU5D08569 liujinggang 20100424 end>*/
 	return i2c_add_driver(&gs_driver);
 }
 
@@ -771,4 +830,5 @@ module_exit(gs_exit);
 
 MODULE_DESCRIPTION("ST303_gs Driver");
 MODULE_LICENSE("GPL");
+/* BU5D01928 zhangxiangdang 20100316 end> */
 

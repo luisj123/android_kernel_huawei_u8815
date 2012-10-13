@@ -1,7 +1,9 @@
+/*< DTS2011062206646 libeibei 20110623 begin */
 /*
  * SMEM Sleep log driver.
  * Allows a user space process to get the SMEM log of sleep.
  *
+ * Copyright (c) 2011 HUAWEI <hujun@huawei.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the smems of the GNU General Public License as published by
@@ -246,3 +248,4 @@ static void __exit smem_sleep_log_cleanup(void)
 
 module_init(smem_sleep_log_init);
 module_exit(smem_sleep_log_cleanup);
+/* DTS2011062206646 libeibei 20110623 end >*/

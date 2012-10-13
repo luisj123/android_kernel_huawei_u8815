@@ -11,7 +11,9 @@
  *
  */
 
+/* < DTS2012021306459 zhangyun 20120213 begin */
 #if (defined(CONFIG_HUAWEI_BT_WCN2243) || (!defined(CONFIG_HUAWEI_KERNEL)))
+/* DTS2012021306459 zhangyun 20120213 end > */
 
 #include <linux/delay.h>
 #include <linux/rfkill.h>
@@ -97,18 +99,49 @@ static unsigned fm_i2s_config_power_off[] = {
 	GPIO_CFG(71, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
 };
 
+/*< DTS2012042500611 kangyanjun 20120425 begin */
+#ifdef CONFIG_HUAWEI_KERNEL
+#define GPIO_BT_SYS_REST 5
+#endif
+
+#ifdef CONFIG_HUAWEI_KERNEL
+static unsigned bt_config_sys_rest[] = {
+	GPIO_CFG(GPIO_BT_SYS_REST, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
+};
+#endif
+/* DTS2012042500611 kangyanjun 20120425 end >*/
 int gpio_bt_sys_rest_en = 133;
+/*< DTS2012042500611 kangyanjun 20120425 begin */
+#ifndef CONFIG_HUAWEI_KERNEL
 static void gpio_bt_config(void)
 {
 	if (machine_is_msm7627a_qrd1())
 		gpio_bt_sys_rest_en = 114;
 }
+#endif
+/* DTS2012042500611 kangyanjun 20120425 end >*/
 
 static int bt_set_gpio(int on)
 {
 	int rc = 0;
 	struct marimba config = { .mod_id =  SLAVE_ID_BAHAMA};
 
+/*< DTS2012042500611 kangyanjun 20120425 begin */
+#ifdef CONFIG_HUAWEI_KERNEL
+    /*set or clear GPIO_BT_SYS_REST*/
+    if (on) {
+        rc = gpio_direction_output(GPIO_BT_SYS_REST, 1);
+        msleep(100);
+    } else {
+        if (!marimba_get_fm_status(&config) &&
+        		!marimba_get_bt_status(&config)) {
+        	gpio_set_value_cansleep(GPIO_BT_SYS_REST, 0);
+        	rc = gpio_direction_input(GPIO_BT_SYS_REST);
+        	msleep(100);
+        }
+    }
+#else
+/* DTS2012042500611 kangyanjun 20120425 end >*/
 	if (on) {
 		rc = gpio_direction_output(gpio_bt_sys_rest_en, 1);
 		msleep(100);
@@ -120,6 +153,9 @@ static int bt_set_gpio(int on)
 			msleep(100);
 		}
 	}
+/*< DTS2012042500611 kangyanjun 20120425 begin */
+#endif    
+/* DTS2012042500611 kangyanjun 20120425 end >*/
 	if (rc)
 		pr_err("%s: BT sys_reset_en GPIO : Error", __func__);
 
@@ -324,7 +360,11 @@ static int config_i2s(int mode)
 	int pin, rc = 0;
 
 	if (mode == FM_I2S_ON) {
+/*< DTS2012042500611 kangyanjun 20120425 begin */
+#ifndef CONFIG_HUAWEI_KERNEL
 		if (machine_is_msm7x27a_surf() || machine_is_msm7625a_surf())
+#endif
+/* DTS2012042500611 kangyanjun 20120425 end >*/
 			config_pcm_i2s_mode(0);
 		pr_err("%s mode = FM_I2S_ON", __func__);
 
@@ -367,7 +407,11 @@ static int config_pcm(int mode)
 	int pin, rc = 0;
 
 	if (mode == BT_PCM_ON) {
+/*< DTS2012042500611 kangyanjun 20120425 begin */
+#ifndef CONFIG_HUAWEI_KERNEL
 		if (machine_is_msm7x27a_surf() || machine_is_msm7625a_surf())
+#endif
+/* DTS2012042500611 kangyanjun 20120425 end >*/
 			config_pcm_i2s_mode(1);
 		pr_err("%s mode =BT_PCM_ON", __func__);
 		rc = switch_pcm_i2s_reg_mode(1);
@@ -619,11 +663,21 @@ static int bluetooth_switch_regulators(int on)
 		}
 
 		if (bt_vregs[i].is_pin_controlled) {
-			rc = pmapp_vreg_lpm_pincntrl_vote(id,
-				bt_vregs[i].pmapp_id,
-					PMAPP_CLOCK_ID_D1,
-					on ? PMAPP_CLOCK_VOTE_ON :
-						PMAPP_CLOCK_VOTE_OFF);
+/*< DTS2012042500611 kangyanjun 20120425 begin */
+#ifdef CONFIG_HUAWEI_KERNEL			
+            rc = pmapp_vreg_pincntrl_vote(id,
+                    bt_vregs[i].pmapp_id,
+                    PMAPP_CLOCK_ID_D1,
+                    on ? PMAPP_CLOCK_VOTE_ON :
+                        PMAPP_CLOCK_VOTE_OFF);
+#else
+            rc = pmapp_vreg_lpm_pincntrl_vote(id,
+                    bt_vregs[i].pmapp_id,
+                    PMAPP_CLOCK_ID_D1,
+                    on ? PMAPP_CLOCK_VOTE_ON :
+                        PMAPP_CLOCK_VOTE_OFF);
+#endif					
+/* DTS2012042500611 kangyanjun 20120425 end >*/
 			if (rc) {
 				dev_err(&msm_bt_power_device.dev,
 					"%s: pin control failed for %s: %d\n",
@@ -679,6 +733,30 @@ static unsigned int msm_bahama_setup_power(void)
 		pr_err("%s: could not enable regulator: %d\n", __func__, rc);
 		goto reg_fail;
 	}
+/*< DTS2012042500611 kangyanjun 20120425 begin */
+#ifdef CONFIG_HUAWEI_KERNEL
+    gpio_tlmm_config(bt_config_sys_rest[0], GPIO_CFG_ENABLE);
+
+    /*setup Bahama_sys_reset_n*/
+    rc = gpio_request(GPIO_BT_SYS_REST, "bahama sys_rst_n");
+    if (rc < 0) {
+        printk("%s: gpio_request %d = %d\n", __func__,
+            GPIO_BT_SYS_REST, rc);
+        goto reg_disable;
+    }
+
+    rc = bt_set_gpio(1);
+    if (rc < 0) {
+        printk("%s: bt_set_gpio %d = %d\n", __func__,
+            GPIO_BT_SYS_REST, rc);
+        goto gpio_fail;
+    }
+    printk("%s, %d\n", __func__, __LINE__);
+
+    return rc;
+
+#else
+/* DTS2012042500611 kangyanjun 20120425 end >*/
 	if (machine_is_msm7627a_qrd1())
 		gpio_tlmm_config(GPIO_CFG(gpio_bt_sys_rest_en, 0,
 			GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL,
@@ -702,8 +780,17 @@ static unsigned int msm_bahama_setup_power(void)
 
 	return rc;
 
+/*< DTS2012042500611 kangyanjun 20120425 begin */
+#endif
+/* DTS2012042500611 kangyanjun 20120425 end >*/
 gpio_fail:
-	gpio_free(gpio_bt_sys_rest_en);
+/*< DTS2012042500611 kangyanjun 20120425 begin */
+#ifdef CONFIG_HUAWEI_KERNEL
+    gpio_free(GPIO_BT_SYS_REST);
+#else
+    gpio_free(gpio_bt_sys_rest_en);
+#endif
+/* DTS2012042500611 kangyanjun 20120425 end >*/
 reg_disable:
 	regulator_disable(reg_s3);
 reg_fail:
@@ -735,7 +822,13 @@ static unsigned int msm_bahama_shutdown_power(int value)
 					__func__, rc);
 			goto reg_enable;
 		}
+/*< DTS2012042500611 kangyanjun 20120425 begin */
+#ifdef CONFIG_HUAWEI_KERNEL
+        gpio_free(GPIO_BT_SYS_REST);
+#else        
 		gpio_free(gpio_bt_sys_rest_en);
+#endif
+/* DTS2012042500611 kangyanjun 20120425 end >*/
 	}
 
 	regulator_put(reg_s3);
@@ -803,6 +896,18 @@ static int bluetooth_power(int on)
 		return -ENODEV;
 	}
 	if (on) {
+/*< DTS2012042500611 kangyanjun 20120425 begin */
+#ifdef CONFIG_HUAWEI_KERNEL		
+        /*cofig GPIO_BT_SYS_REST*/
+        rc = gpio_tlmm_config(bt_config_sys_rest[0],
+                    GPIO_CFG_ENABLE);
+        if (rc < 0) 
+        {
+            printk("%s: gpio_tlmm_config %d\n", __func__, rc);
+            goto exit;
+        }
+#endif		
+/* DTS2012042500611 kangyanjun 20120425 end >*/
 		/*setup power for BT SOC*/
 		rc = bt_set_gpio(on);
 		if (rc) {
@@ -937,7 +1042,11 @@ void __init msm7627a_bt_power_init(void)
 	int i, rc = 0;
 	struct device *dev;
 
+/*< DTS2012042500611 kangyanjun 20120425 begin */
+#ifndef CONFIG_HUAWEI_KERNEL		
 	gpio_bt_config();
+#endif		
+/* DTS2012042500611 kangyanjun 20120425 end >*/
 
 	i2c_register_board_info(MSM_GSBI1_QUP_I2C_BUS_ID,
 			bahama_devices,
@@ -967,8 +1076,11 @@ reg_get_fail:
 }
 #endif
 
+/* < DTS2012021306459 zhangyun 20120213 begin */
 #endif
+/* DTS2012021306459 zhangyun 20120213 end > */
 
+/* < DTS2012021306459 zhangyun 20120213 begin */
 #if (defined(CONFIG_HUAWEI_BT_BCM43XX) && defined(CONFIG_HUAWEI_KERNEL))
 
 #include <linux/delay.h>
@@ -981,11 +1093,15 @@ reg_get_fail:
 #include <asm/mach-types.h>
 #include <mach/rpc_pmapp.h>
 #include <linux/gpio.h>
+/* < DTS2012022206848 yangyang 20120220 begin */ 
 #include <linux/hardware_self_adapt.h>
+/* DTS2012022206848 yangyang 20120220 end >*/
 #include "board-msm7627a.h"
 #include "devices-msm7x2xa.h"
 
 
+/*< DTS2011121603145 zhangcunfei 20111216 begin*/
+/* DTS2011121603145 zhangcunfei 20111216 end >*/
 /* BCM BT GPIOs config*/
 #define GPIO_BT_UART_RTS   43 
 #define GPIO_BT_UART_CTS   44
@@ -1012,10 +1128,16 @@ reg_get_fail:
 #define GPIO_BT_FUN_2        2 
 #define GPIO_BT_ON           1
 #define GPIO_BT_OFF          0
+/*< DTS2011121603145 zhangcunfei 20111216 begin*/
+/* DTS2011121603145 zhangcunfei 20111216 end >*/
+/* DTS2011081800819 zhangyun 20110818 end >*/
 
 #define VREG_S3_VOLTAGE_VALUE	1800000
 
+/*< DTS2011081800819 zhangyun 20110818 begin */
+/*< DTS2011121603145 zhangcunfei 20111216 begin*/
 /* Code for BCM4330 */
+/* DTS2011121603145 zhangcunfei 20111216 end >*/
 struct platform_device msm_bt_power_device = {
     .name = "bt_power",
 };
@@ -1320,7 +1442,9 @@ struct platform_device msm_bluesleep_device = {
     .num_resources	= ARRAY_SIZE(bluesleep_resources),
     .resource	= bluesleep_resources,
 };
+/* DTS2011081800819 zhangyun 20110818 end >*/
 
+/* < DTS2012022206848 yangyang 20120220 begin */ 
 void bt_wake_msm_config(void)
 {
     /*distinguish the bt_wake_msm gpio by get_hw_bt_wakeup_gpio_type*/
@@ -1336,4 +1460,6 @@ void bt_wake_msm_config(void)
     }
     printk(KERN_DEBUG "bt_wake_msm_gpio = %d\n", bt_wake_msm_gpio); 
 }
+/* DTS2012022206848 yangyang 20120220 end >*/
 #endif
+/* DTS2012021306459 zhangyun 20120213 end > */

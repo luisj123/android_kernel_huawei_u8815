@@ -40,10 +40,12 @@
 #include "sd_ops.h"
 #include "sdio_ops.h"
 
+/*< DTS2011092602479 sunhonghui 20110926 begin*/
 #ifdef CONFIG_HUAWEI_KERNEL
 #include <asm/mach-types.h>
 #define MSM_SDCARD_SCAN_CYCLE	20
 #endif
+/* DTS2011092602479 sunhonghui 20110926 end >*/
 
 static struct workqueue_struct *workqueue;
 
@@ -75,6 +77,7 @@ MODULE_PARM_DESC(
 /*
  * Internal function. Schedule delayed work in the MMC work queue.
  */
+/* < DTS2012011302816  hujun 20120113 begin */
 /*we want mmc_schedule_delayed_work to run in source code of msm_sdcc*/
 #ifdef CONFIG_HUAWEI_KERNEL
 int mmc_schedule_delayed_work(struct delayed_work *work,
@@ -83,6 +86,7 @@ int mmc_schedule_delayed_work(struct delayed_work *work,
 static int mmc_schedule_delayed_work(struct delayed_work *work,
 				     unsigned long delay)
 #endif
+/* DTS2012011302816  hujun 20120113 end > */
 {
 	return queue_delayed_work(workqueue, work, delay);
 }
@@ -262,6 +266,7 @@ void mmc_wait_for_req(struct mmc_host *host, struct mmc_request *mrq)
 EXPORT_SYMBOL(mmc_wait_for_req);
 
 
+/* <DTS2010080901139 hufeng 20100821 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 #include <asm/delay.h>
 static int panic_wait_done = 0;
@@ -303,6 +308,7 @@ void mmc_panic_start_req(struct mmc_host *host, struct mmc_request *mrq)
 EXPORT_SYMBOL(mmc_panic_start_req);
 #endif
 
+/* DTS2010080901139 hufeng 20100821 end> */
 
 
 /**
@@ -334,6 +340,7 @@ int mmc_wait_for_cmd(struct mmc_host *host, struct mmc_command *cmd, int retries
 
 EXPORT_SYMBOL(mmc_wait_for_cmd);
 
+/* <DTS2010080901139 hufeng 20100821 begin */
 /**
  *	mmc_panic_wait_for_cmd - start a command and wait for completion
  *	@host: MMC host to start command
@@ -368,6 +375,7 @@ EXPORT_SYMBOL(mmc_panic_wait_for_cmd);
 #endif
 
 
+/* DTS2010080901139 hufeng 20100821 end> */
 /**
  *	mmc_set_data_timeout - set the timeout for a data command
  *	@data: data phase for command
@@ -1850,14 +1858,19 @@ void mmc_rescan(struct work_struct *work)
 		wake_unlock(&host->detect_wake_lock);
 	if (host->caps & MMC_CAP_NEEDS_POLL) {
 		wake_lock(&host->detect_wake_lock);
+/*< DTS2011092602479 sunhonghui 20110926 begin*/
 /*set 20s scan cycle*/
 #ifdef CONFIG_HUAWEI_KERNEL
+        /* < DTS2012011302816  hujun 20120113 begin */
         /*U8860-51 is set to interupt mode*/
         if( (machine_is_msm8255_c8860()) 
             || (machine_is_msm8255_u8860())
             || (machine_is_msm8255_u8860_92())
+            /* < DTS2012022905490 ganfan 20120301 begin */
             || machine_is_msm8255_u8860_r()
+            /* DTS2012022905490 ganfan 20120301 end > */
             || (machine_is_msm8255_u8860lp()))
+        /* DTS2012011302816  hujun 20120113 end > */     
         {
             mmc_schedule_delayed_work(&host->detect, MSM_SDCARD_SCAN_CYCLE*HZ);
         }
@@ -1867,6 +1880,7 @@ void mmc_rescan(struct work_struct *work)
             mmc_schedule_delayed_work(&host->detect, HZ);
         }
     }
+/* DTS2011092602479 sunhonghui 20110926 end >*/
 }
 
 void mmc_start_host(struct mmc_host *host)

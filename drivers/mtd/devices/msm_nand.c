@@ -2978,6 +2978,7 @@ static int msm_nand_write(struct mtd_info *mtd, loff_t to, size_t len,
 }
 
 
+/* <DTS2012021001488 yuanjintao 20120210 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 #include <asm/delay.h>
 extern int msm_dmov_exec_cmd_apanic(unsigned id, unsigned int cmdptr);
@@ -3984,6 +3985,7 @@ static int msm_nand_write_apanic(struct mtd_info *mtd, loff_t to, size_t len,
     return ret;
 }
 #endif
+/* DTS2012021001488 yuanjintao 20120210 end> */
 
 static int
 msm_nand_erase(struct mtd_info *mtd, struct erase_info *instr)
@@ -7849,10 +7851,12 @@ int msm_nand_scan(struct mtd_info *mtd, int maxchips)
 	mtd->unpoint = NULL;
 	mtd->read = msm_nand_read;
 	mtd->write = msm_nand_write;
+    /* <DTS2012021001488 yuanjintao 20120210 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 	/* add for android panic support*/
 	mtd->panic_write = msm_nand_write_apanic;
 #endif
+    /* DTS2012021001488 yuanjintao 20120210 end> */
 	mtd->read_oob  = msm_nand_read_oob;
 	mtd->write_oob = msm_nand_write_oob;
 	if (dual_nand_ctlr_present) {

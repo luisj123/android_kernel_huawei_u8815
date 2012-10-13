@@ -1,3 +1,5 @@
+/*< DTS2012020706029 liuyuntao 20120207 begin */
+/*< DTS2011082902761 zhongjinrong 20110829 begin */
 /* drivers/i2c/chips/huawei_qwerty.h
  *
  * Copyright (C) 2007-2009 Huawei.
@@ -24,6 +26,7 @@
 
 #define KEYMAP_SIZE ADP5587_KEYPAD_ROW_SIZE * ADP5587_KEYPAD_COL_SIZE
 
+/* < DTS2011121507916 liuyuntao 20111215 begin */
 static unsigned short keypad_keymap_7x27a[KEYMAP_SIZE] = {
 	[KEYMAP_INDEX(0, 0)] = KEY_Q,
 	[KEYMAP_INDEX(0, 1)] = KEY_W,
@@ -68,5 +71,8 @@ static unsigned short keypad_keymap_7x27a[KEYMAP_SIZE] = {
 	[KEYMAP_INDEX(4, 1)] = KEY_VOLUMEDOWN,	
 	[KEYMAP_INDEX(4, 4)] = KEY_VOLUMEUP,
 };
+/* DTS2011121507916 liuyuntao 20111215 end > */
 #endif
+/*DTS2011082902761 zhongjinrong 20110829 end> */
+/*DTS2012020706029 liuyuntao 20120207 end> */
 

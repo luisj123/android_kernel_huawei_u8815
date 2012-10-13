@@ -75,4 +75,6 @@ obj-$(CONFIG_HUAWEI_FEATURE_AT42QT_TS)  += atmel_i2c_rmi_QT602240.o
 #/* < DTS2010061200552 zhangtao 20100612 begin */
 obj-$(CONFIG_HUAWEI_FEATURE_RMI_TOUCH)  += synaptics_i2c_rmi_1564.o
 #/* DTS2010061200552 zhangtao 20100612 end > */	
+#/*< DTS2012020907660 sunlibin 20120213 begin */
 obj-$(CONFIG_HUAWEI_MELFAS_TOUCHSCREEN)  += melfas_i2c_ts.o
+#/* DTS2012020907660 sunlibin 20120213 end >*/

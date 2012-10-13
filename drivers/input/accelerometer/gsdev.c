@@ -5,6 +5,7 @@
  * 
  *
  */
+/* < DTS2011042703449  liujinggang 20110427 begin */
 #include <linux/slab.h>
 #include <linux/module.h>
 #include <linux/delay.h>
@@ -18,6 +19,7 @@
 #include <linux/gpio.h>
 #include <linux/delay.h>
 #include <mach/vreg.h>
+/* DTS2011042703449  liujinggang 20110427 end > */
 
 /*BK4D00238, add  include file, dingxifeng KF14049, 2009-5-9 begin */
 /*BK4D00263, add for misc devices, dingxifeng KF14049, 2009-5-20 begin */
@@ -28,8 +30,10 @@
 
 #include <linux/gs_adxl345.h>
 
+/* <BU5D01928 zhangxiangdang 20100316 begin */
 #include <linux/gs_st.h>
 #include "linux/hardware_self_adapt.h"
+/* BU5D01928 zhangxiangdang 20100316 end> */ 
 
 /*BK4D00238, add  include file, dingxifeng KF14049, 2009-5-9 end */
 
@@ -74,7 +78,9 @@ static int accel_delay = GS_ADI_TIMRER;
 
 static atomic_t a_flag;
 /*BK4D01898, add  acc_flag for control G-sensor, dingxifeng KF14049, 2009-7-2  end*/
+/* < DTS2011042703449  liujinggang 20110427 begin */
 #define ID_ADXL345 	0xE5
+/* DTS2011042703449  liujinggang 20110427 end > */
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
 static void gs_early_suspend(struct early_suspend *h);
@@ -114,8 +120,12 @@ static inline int reg_write(struct gs_data *gs, int reg, uint8_t val)
 	return ret;
 }
 
+/* <BU5D01928 zhangxiangdang 20100316 begin */
+/* < DTS2011042703449  liujinggang 20110427 begin */
 /*adjust device name */
 static char adix_device_id[] = "gs_adix345";
+/* DTS2011042703449  liujinggang 20110427 end > */
+/* BU5D01928 zhangxiangdang 20100316 end> */ 
 
 /**************************************************************************************/
 /*BK4D02639,consistent with  code ,  dingxifeng KF14049, 2009-7-13 begin */
@@ -260,10 +270,12 @@ gs_adi_ioctl(struct file *file, unsigned int cmd,
 				return -EFAULT;
 			break;
 
+/* <BU5D01928 zhangxiangdang 20100316 begin */
 		case ECS_IOCTL_READ_DEVICEID:
 			if (copy_to_user(argp, adix_device_id, sizeof(adix_device_id)))
 				return -EFAULT;
 			break;
+/* BU5D01928 zhangxiangdang 20100316 end> */ 
 		default:
 			break;
 	}
@@ -476,6 +488,7 @@ if set the value will work MMITest fail
 		}
 /*BK4D00263, compatible compass and gsensor devices, dingxifeng KF14049, 2009-5-20 begin */
 
+		/*<BU5D04028 yuxuesong 20100301 begin*/
 		/* change the x,y,z for u8300 because orientation of accelerometer of u8300 is different.*/
 		//if(machine_is_msm7x25_u8300()) 
 		{
@@ -488,6 +501,7 @@ if set the value will work MMITest fail
 			y = y1;
 			z = z1;
 		}
+		/* BU5D04028 yuxuesong 20100301 end>*/
 		
 		sensor_data[0] = (s16)x;
 		sensor_data[1] = (s16)y;		
@@ -589,6 +603,7 @@ static void gs_free_int2(void)
 static int gs_probe(
 	struct i2c_client *client, const struct i2c_device_id *id)
 {	
+	/* < DTS2011042703449  liujinggang 20110427 begin */
    int ret;
    struct gs_data *gs;
 
@@ -596,8 +611,10 @@ static int gs_probe(
 	int rc;
 
 	vreg_gp4 = vreg_get(NULL, "gp4");
+    /* <DTS2011012600839 liliang 20110215 begin */
     /* set gp4 voltage as 2700mV for all */
     rc = vreg_set_level(vreg_gp4,VREG_GP4_VOLTAGE_VALUE_2700);
+    /* <DTS2011012600839 liliang 20110215 end >*/
 	if (rc) {
 		printk("%s: vreg_gp4  vreg_set_level failed \n", __func__);
 		return rc;
@@ -609,6 +626,7 @@ static int gs_probe(
 		return rc;
 	}
 	mdelay(5);
+	/* DTS2011042703449  liujinggang 20110427 end > */
    	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
 		printk(KERN_ERR "gs_probe: need I2C_FUNC_I2C\n");
 		ret = -ENODEV;
@@ -646,6 +664,7 @@ static int gs_probe(
 	 ret =reg_read(gs,GS_ADI_REG_DEVID);		
 	if ( ret <0 )
 		goto err_detect_failed;
+ 	/* < DTS2011042703449  liujinggang 20110427 begin */
 	switch (ret) {
 	case ID_ADXL345:
 		break;
@@ -653,6 +672,7 @@ static int gs_probe(
 		printk(KERN_ERR, "Failed to probe \n" );
 		goto err_detect_failed;
 	}
+	/* DTS2011042703449  liujinggang 20110427 end > */
 	 
 /*BK4D01637, gs_probe interface set standby mode , dingxifeng KF14049, 2009-6-22  begin*/
 	 ret = reg_write(gs,GS_ADI_REG_POWER_CTL,0x14);   /* auto low power ,deep sleep */
@@ -693,6 +713,7 @@ static int gs_probe(
 	 if ( ret <0 )
 			 goto err_detect_failed;
 	 
+	/* <BU5D01928 zhangxiangdang 20100316 begin */
 	if (sensor_dev == NULL)
 	{
 		gs->input_dev = input_allocate_device();
@@ -708,13 +729,16 @@ static int gs_probe(
 		gs->input_dev = sensor_dev;
 	}
 	gs->input_dev->id.vendor = GS_ADIX345;//for akm8973 compass detect.
+	/* BU5D01928 zhangxiangdang 20100316 end> */
 
 	set_bit(EV_ABS,gs->input_dev->evbit);
 	
+	/* < DTS20111208XXXXX  liujinggang 20111208 begin */
 	/* modify for ES-version*/
 	input_set_abs_params(gs->input_dev, ABS_X, -11520, 11520, 0, 0);
 	input_set_abs_params(gs->input_dev, ABS_Y, -11520, 11520, 0, 0);
 	input_set_abs_params(gs->input_dev, ABS_Z, -11520, 11520, 0, 0);
+	/* DTS20111208XXXXX  liujinggang 20111208 end > */
 	
 	set_bit(EV_SYN,gs->input_dev->evbit);
 
@@ -807,6 +831,7 @@ err_detect_failed:
 	
 err_alloc_data_failed:
 err_check_functionality_failed:
+ 	/* < DTS2011042703449  liujinggang 20110427 begin */
 	if (vreg_gp4!=NULL)
 	{
 		rc = vreg_disable(vreg_gp4);
@@ -815,6 +840,7 @@ err_check_functionality_failed:
 			return rc;
 		}
 	}
+	/* DTS2011042703449  liujinggang 20110427 end > */
 	return ret;
 }
 

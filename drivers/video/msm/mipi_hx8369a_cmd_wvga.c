@@ -1,3 +1,4 @@
+/* <DTS2011120603230 liuyuntao 20111206 begin */
 /* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -41,12 +42,14 @@ static struct mipi_dsi_phy_ctrl dsi_cmd_mode_phy_db =
 static struct dsi_buf hx8369a_tx_buf;
 static struct sequence *hx8369a_lcd_init_table_debug = NULL;
 
+/*< DTS2011122306018 fengwei 20111224 begin */
 static struct sequence hx8369a_wvga_write_cabc_brightness_table[]= 
 {
 	{0x00051,MIPI_DCS_COMMAND,0},
 	{0x000FF,TYPE_PARAMETER,0},
 	{0x00029,MIPI_TYPE_END,0},
 };
+/* DTS2011122306018 fengwei 20111224 end >*/
 
 static const struct sequence hx8369a_wvga_standby_enter_table[]= 
 {
@@ -123,6 +126,7 @@ static int __devinit mipi_hx8369a_lcd_probe(struct platform_device *pdev)
 
 	return 0;
 }
+/*< DTS2011122306018 fengwei 20111224 begin */
 /*lcd cabc control function*/
 void hx8369a_set_cabc_backlight(struct msm_fb_data_type *mfd,uint32 bl_level)
 {	
@@ -131,6 +135,7 @@ void hx8369a_set_cabc_backlight(struct msm_fb_data_type *mfd,uint32 bl_level)
 	process_mipi_table(mfd,&hx8369a_tx_buf,(struct sequence*)&hx8369a_wvga_write_cabc_brightness_table,
 		 ARRAY_SIZE(hx8369a_wvga_write_cabc_brightness_table), lcd_panel_wvga);
 }
+/* DTS2011122306018 fengwei 20111224 end >*/
 
 static struct platform_driver this_driver = {
 	.probe  = mipi_hx8369a_lcd_probe,
@@ -141,9 +146,11 @@ static struct platform_driver this_driver = {
 static struct msm_fb_panel_data hx8369a_panel_data = {
 	.on		= mipi_hx8369a_lcd_on,
 	.off	= mipi_hx8369a_lcd_off,
+/*< DTS2011122306018 fengwei 20111224 begin */
 	.set_backlight = pwm_set_backlight,
 	/*add cabc control backlight*/
 	.set_cabc_brightness = hx8369a_set_cabc_backlight,
+/* DTS2011122306018 fengwei 20111224 end >*/
 };
 static struct platform_device this_device = {
 	.name   = LCD_DEVICE_NAME,
@@ -158,7 +165,9 @@ static int __init mipi_cmd_hx8369a_wvga_init(void)
 	int ret = 0;
 	struct msm_panel_info *pinfo = NULL;
 
+	/*< DTS2011122306018 fengwei 20111224 begin */
 	lcd_panel_wvga = get_lcd_panel_type();
+	/* DTS2011122306018 fengwei 20111224 end >*/
 	if ((MIPI_HX8369A_TIANMA_WVGA!= lcd_panel_wvga ))
 	{
 		return 0;
@@ -197,9 +206,11 @@ static int __init mipi_cmd_hx8369a_wvga_init(void)
 		pinfo->mipi.stream = 0; /* dma_p */
 		pinfo->mipi.mdp_trigger = DSI_CMD_TRIGGER_SW;
 		pinfo->mipi.dma_trigger = DSI_CMD_TRIGGER_SW;
+		/* <DTS2012010200256 liuyuntao 20120111 begin */
 		/*set hw te sync*/
 		pinfo->lcd.hw_vsync_mode = TRUE;
 		pinfo->lcd.vsync_enable = TRUE;		
+		/* DTS2012010200256 liuyuntao 20120111 end >*/
 		pinfo->mipi.te_sel = 1; /* TE from vsync gpio */
 		pinfo->mipi.interleave_max = 1;
 		pinfo->mipi.insert_dcs_cmd = TRUE;
@@ -220,3 +231,4 @@ static int __init mipi_cmd_hx8369a_wvga_init(void)
 }
 
 module_init(mipi_cmd_hx8369a_wvga_init);
+/* DTS2011120603230 liuyuntao 20111206 end >*/

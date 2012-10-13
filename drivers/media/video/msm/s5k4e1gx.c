@@ -1,3 +1,4 @@
+/* < DTS2011071802246 zhangyu 20110718 BEGIN */
 /*
 Copyright (c) 2010, Code Aurora Forum. All rights reserved.
 
@@ -82,7 +83,9 @@ END OF ALTERNATE GPL TERMS
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
  #include <linux/hw_dev_dec.h>
 #endif
+/* < DTS2011091605514 liwei 20110916 begin */
 #include <asm/mach-types.h>
+/* DTS2011091605514 liwei 20110916 end > */
 #undef CDBG
 #define CDBG(fmt, args...) printk(KERN_INFO "s5k4e1gx: " fmt, ## args)
 
@@ -512,12 +515,16 @@ static int s5k4e1gx_probe_init_done(const struct msm_camera_sensor_info *data)
     gpio_direction_output(data->sensor_reset, 0);
     gpio_free(data->sensor_reset);
     gpio_free(data->sensor_pwd);
+    /* < DTS2011090701903 zhangyu 20110907 begin */
     gpio_free(data->vcm_pwd);
+    /* DTS2011090701903 zhangyu 20110907 end > */ 
 
     /*probe finish ,power down camera*/
     if (data->vreg_disable_func)
     {
+        /*< DTS2012020400396 zhangyu 20120206 begin */
         data->vreg_disable_func(0);
+        /* DTS2012020400396 zhangyu 20120206 end > */
     }
 
     return 0;
@@ -543,7 +550,9 @@ static int s5k4e1gx_probe_init_sensor(const struct msm_camera_sensor_info *data)
 
     if (data->vreg_enable_func)
     {
+        /*< DTS2012020400396 zhangyu 20120206 begin */
         data->vreg_enable_func(1);
+        /* DTS2012020400396 zhangyu 20120206 end > */
     }
 
     rc = gpio_request(data->sensor_reset, "s5k4e1gx");
@@ -862,7 +871,9 @@ static int32_t s5k4e1gx_power_down(void)
 
     if (s5k4e1gx_ctrl->sensordata->vreg_disable_func)
     {
+        /*< DTS2012020400396 zhangyu 20120206 begin */
         s5k4e1gx_ctrl->sensordata->vreg_disable_func(0);
+        /* DTS2012020400396 zhangyu 20120206 end > */
     }
 
     return rc;
@@ -1522,6 +1533,7 @@ static int s5k4e1gx_sensor_probe(const struct msm_camera_sensor_info *info,
     s->s_release = s5k4e1gx_sensor_release;
     s->s_config = s5k4e1gx_sensor_config;
     s->s_camera_type = BACK_CAMERA_2D;
+	/* < DTS2011091605514 liwei 20110916 begin */
 	/* if machine is U8680, rotate the camera with 180 degree */
 	if (machine_is_msm8255_u8680())
 	{
@@ -1531,6 +1543,7 @@ static int s5k4e1gx_sensor_probe(const struct msm_camera_sensor_info *info,
 	{
         s->s_mount_angle = 0;
 	}
+	/* DTS2011091605514 liwei 20110916 end > */
     s5k4e1gx_probe_init_done(info);
     CDBG("Line:%d  s5k4e1gx_probe_init_done \n", __LINE__);
 
@@ -1566,3 +1579,4 @@ static int __init s5k4e1gx_init(void)
 }
 
 module_init(s5k4e1gx_init);
+/* DTS2011071802246 zhangyu 20110718 END > */ 

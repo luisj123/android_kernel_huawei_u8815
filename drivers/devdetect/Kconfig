@@ -1,3 +1,6 @@
+#/* <DTS2012030804064 sunwenyong 20120308 begin */
+#/* < DTS2011052606009 jiaxianghong 20110527 begin */
+#/* <DTS2011032104626 shenjinming 20110321 begin */
 
 #
 # I2C devices detect
@@ -11,3 +14,6 @@ config HUAWEI_HW_DEV_DCT
 		Say yes if you want i2c device detect driver.
 		This is for i2c connected version. If unsure, say N here.
 
+#/* <DTS2011032104626 shenjinming 20110321 end> */
+#/* < DTS2011052606009 jiaxianghong 20110527 end */
+#/* DTS2012030804064 sunwenyong 20120308 end> */

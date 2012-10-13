@@ -47,12 +47,16 @@
 #include <asm/irq_regs.h>
 
 /* Whether we react on sysrq keys or just ignore them */
+/*< DTS2011082700923 jiaxianghong 20110827 begin */
+/*< DTS2011071502872 zhangyancun 20110715 begin */ 
 /* disable the sysrq function , 0 presents disable*/ 
 #ifdef CONFIG_HUAWEI_KERNEL
 static int __read_mostly sysrq_enabled = 0;
 #else
 static int __read_mostly sysrq_enabled = 1;
 #endif
+/* DTS2011071502872 zhangyancun 20110715 end >*/
+/* DTS2011082700923 jiaxianghong 20110827 end >*/
 static bool __read_mostly sysrq_always_enabled;
 
 static bool sysrq_on(void)
@@ -581,6 +585,8 @@ static bool sysrq_filter(struct input_handle *handle, unsigned int type,
 
 	switch (code) {
 
+/*< DTS2011082700923 jiaxianghong 20110827 begin */
+/* <DTS2011052404041 zhangyancun 20110524 begin */ 
 /* use volumedown + volumeup + power for sysrq function */ 
 #ifdef CONFIG_HUAWEI_KERNEL
 	case KEY_VOLUMEDOWN:
@@ -645,6 +651,8 @@ static bool sysrq_filter(struct input_handle *handle, unsigned int type,
 			__handle_sysrq(sysrq_xlate[code], NULL, 1);
 		break;
 #endif
+/* DTS2011052404041 zhangyancun 20110524 end >*/
+/* DTS2011082700923 jiaxianghong 20110827 end >*/ 
 	}
 
 out:
@@ -704,6 +712,8 @@ static void sysrq_disconnect(struct input_handle *handle)
  * later, but we expect all such keyboards to have left alt.
  */
 static const struct input_device_id sysrq_ids[] = {
+/*< DTS2011082700923 jiaxianghong 20110827 begin */
+/* <DTS2011052404041 zhangyancun 20110524 begin */ 
 /* remove the keybit of KEY_LEFTALT for sysrq function */ 
 #ifdef CONFIG_HUAWEI_KERNEL
 	{
@@ -718,6 +728,8 @@ static const struct input_device_id sysrq_ids[] = {
 		.keybit = { BIT_MASK(KEY_LEFTALT) },
 	},
 #endif
+/* DTS2011052404041 zhangyancun 20110524 end >*/ 
+/* DTS2011082700923 jiaxianghong 20110827 end >*/ 
 	{ },
 };
 

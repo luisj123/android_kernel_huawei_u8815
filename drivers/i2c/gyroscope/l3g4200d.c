@@ -1,3 +1,4 @@
+/* < DTS2011082001050  liujinggang 20110822 begin */
 /* drivers/i2c/gyroscope/l3g4200d.c
  *
  * Copyright (C) 2007-2010  Huawei.
@@ -29,9 +30,11 @@
 #include <mach/vreg.h>
 #include "linux/hardware_self_adapt.h"
 
+/* < DTS2011052803160 shenjinming 20110611 begin */
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
 #include <linux/hw_dev_dec.h>
 #endif
+/* DTS2011052803160 shenjinming 201106011 end > */
 
 /* l3g4200d gyroscope registers */
 #define WHO_AM_I    0x0F
@@ -42,16 +45,22 @@
 #define CTRL_REG4       0x23    /* interrupt control reg */
 #define CTRL_REG5       0x24    /* interrupt control reg */
 #define AXISDATA_REG    0x28
+/* < DTS2011062103556 yuezenglong 20110621 begin */
 /*use FAE adviced value*/
 #define MAX_VAL         11000    
 #define MIN_VAL         2800
+/* DTS2011062103556 yuezenglong 20110621 end > */
 #define NORMAL_TM       10000000  /*10 HZ*/
 #define SUSPEND_VAL     10000000    
 #define VENDOR          0x11
+/* < DTS2011071600271 yuezenglong 20110716 begin */
 #define GYRO_ENABLE 1   
 #define GYRO_DISABLE  -1
+/* DTS2011071600271 yuezenglong 20110716 end > */
+/* < DTS2011111102443  liujinggang 20111111 begin */
 #define MAX_VALUE  2147483647
 #define MIN_VALUE  -2147483647
+/* DTS2011111102443  liujinggang 20111111 end > */
 
 static int gyro_debug_mask = 0;
 module_param_named(gyro_debug, gyro_debug_mask, int,
@@ -85,7 +94,9 @@ struct l3g4200d_data {
 	struct mutex  mlock;
 	struct hrtimer timer;
 	struct work_struct  work;	
+    /* < DTS2011070101164 yuezenglong 20110701 begin */
 	int flags;  
+    /* DTS2011070101164 yuezenglong 20110701 end > */
 	struct early_suspend early_suspend;
 };
 
@@ -93,7 +104,9 @@ static struct l3g4200d_data *gyro;
 static short userdata[3];
 static int fusiondata[10];
 static atomic_t a_flag;
-
+/* < DTS2012052505397 zhangmin 20120531 begin */
+int hasGyro = 0;
+/* DTS2012052505397 zhangmin 20120531 end > */
 #ifdef CONFIG_HAS_EARLYSUSPEND
 static void gy_early_suspend(struct early_suspend *h);
 static void gy_late_resume(struct early_suspend *h);
@@ -303,6 +316,7 @@ static void gy_work_func(struct work_struct *work)
 	input_report_abs(gy->input_dev, ABS_Y, sensor_data.y);		
 	input_report_abs(gy->input_dev, ABS_Z, sensor_data.z);
 	input_sync(gy->input_dev);
+	/* < DTS2011070101164 yuezenglong 20110701 begin */
 	/*initalize timer os gyro*/
 	if(gyro->flags > 0)
 	{
@@ -312,6 +326,7 @@ static void gy_work_func(struct work_struct *work)
 	{
 		hrtimer_start(&gy->timer, ktime_set(SUSPEND_VAL, 0), HRTIMER_MODE_REL);
 	}
+	/* DTS2011070101164 yuezenglong 20110701 end > */
 }
 /*  i2c read routine for l3g4200d digital gyroscope */
 static char l3g4200d_i2c_read(unsigned char reg_addr,
@@ -436,6 +451,7 @@ static long l3g4200d_ioctl(struct file *file,
 			GYRO_DBG( "copy_to_user error\n");
 			return -EFAULT;
 		}
+/* < DTS2011071600271 yuezenglong 20110716 begin */
 		/*enable or disable timer*/
 		if( PM_NORMAL == *data )
  		{
@@ -450,6 +466,7 @@ static long l3g4200d_ioctl(struct file *file,
 		GYRO_DBG("L3G4200D_SET_MODE %d\n", *data);
 		err = l3g4200d_set_mode(*data);
 		return err;
+/* DTS2011071600271 yuezenglong 20110716 end > */
 
 	case L3G4200D_SET_BANDWIDTH:
 		if (copy_from_user(data, argp, 1) != 0) {
@@ -483,6 +500,7 @@ static long l3g4200d_ioctl(struct file *file,
 		}
 		GYRO_DBG("L3G4200D_GET_GYRO_DATA copy_to error\n");
 		return 0; 
+	/* < DTS2011071303318 yuezenglong 20110713 begin */
 	case ECS_IOCTL_APP_GET_GYRO_DATA:
 		hrtimer_cancel(&gyro->timer);
 		memset(&sensor_data, 0, sizeof(sensor_data));
@@ -522,8 +540,10 @@ static long l3g4200d_ioctl(struct file *file,
 		}
 		l3g4200d_disable_selftest();
 		return 0; 		
+	/* DTS2011071303318 yuezenglong 20110713 end > */
 	case ECS_IOCTL_APP_GET_CAL:	
 		GYRO_DBG("L3G4200D mmi get ret!\n");
+		/* < DTS2011051102358 yuezenglong 20110511 begin */
 		/* self-test flowchart update*/
 		hrtimer_cancel(&gyro->timer);
 		memset(&sensor_data, 0, sizeof(sensor_data));
@@ -563,6 +583,7 @@ static long l3g4200d_ioctl(struct file *file,
 			return -EFAULT;
 		}
 		l3g4200d_disable_selftest();
+		/* DTS2011051102358 yuezenglong 20110511 end > */
 		return 0; 		
 	default:
 		return 0;
@@ -712,10 +733,12 @@ static int l3g4200d_probe(struct i2c_client *client,
 	set_bit(REL_RZ, data->input_dev->absbit);
 	#endif
 	set_bit(EV_ABS,data->input_dev->evbit);
+	/* < DTS2011111102443  liujinggang 20111111 begin */
 	/* modify the func of init */
 	input_set_abs_params(data->input_dev, ABS_RX, MIN_VALUE, MAX_VALUE, 0, 0);
 	input_set_abs_params(data->input_dev, ABS_RY, MIN_VALUE, MAX_VALUE, 0, 0);
 	input_set_abs_params(data->input_dev, ABS_RZ, MIN_VALUE, MAX_VALUE, 0, 0);
+	/* < DTS2011051102358 yuezenglong 20110511 begin */
 	input_set_abs_params(data->input_dev, ABS_X, MIN_VALUE, MAX_VALUE, 0, 0);
 	input_set_abs_params(data->input_dev, ABS_Y, MIN_VALUE, MAX_VALUE, 0, 0);
 	input_set_abs_params(data->input_dev, ABS_Z, MIN_VALUE, MAX_VALUE, 0, 0);
@@ -728,6 +751,8 @@ static int l3g4200d_probe(struct i2c_client *client,
 	input_set_abs_params(data->input_dev, ABS_HAT0X, MIN_VALUE, MAX_VALUE, 0, 0);
 	input_set_abs_params(data->input_dev, ABS_HAT0Y, MIN_VALUE, MAX_VALUE, 0, 0);
 	input_set_abs_params(data->input_dev, ABS_BRAKE, MIN_VALUE, MAX_VALUE, 0, 0);
+	/* DTS2011051102358 yuezenglong 20110511 end > */
+	/* DTS2011111102443  liujinggang 20111111 end > */
 	set_bit(EV_SYN,data->input_dev->evbit);
 	data->input_dev->id.bustype = BUS_I2C;
 	input_set_drvdata(data->input_dev, data);
@@ -758,14 +783,18 @@ static int l3g4200d_probe(struct i2c_client *client,
 	gy_wq = create_singlethread_workqueue("gy_wq");
 	if (!gy_wq)
 		return -ENOMEM;
-
+	/* < DTS2012052505397 zhangmin 20120531 begin */
+	hasGyro = 1 ;
+	/* DTS2012052505397 zhangmin 20120531 end > */
 	gyro = data;
 //	hrtimer_start(&this_gs_data->timer, ktime_set(0, 500000000), HRTIMER_MODE_REL);
 
+    /* < DTS2011052803160 shenjinming 20110611 begin */
     #ifdef CONFIG_HUAWEI_HW_DEV_DCT
     /* detect current device successful, set the flag as present */
     set_hw_dev_flag(DEV_I2C_GYROSCOPE);
     #endif
+    /* DTS2011052803160 shenjinming 201106011 end > */
 	printk(KERN_DEBUG "l3g4200d_probe   successful");
 
 	return 0;
@@ -802,6 +831,7 @@ static int l3g4200d_suspend(struct i2c_client *client, pm_message_t state)
 {
 	int ret;
 	struct l3g4200d_data *lis = i2c_get_clientdata(client);
+	/* < DTS2011070101164 yuezenglong 20110701 begin */
 	/*add mutex if gyro suspend*/
 	mutex_lock(&lis->mlock);
 	ret = l3g4200d_set_mode(PM_OFF);
@@ -812,6 +842,7 @@ static int l3g4200d_suspend(struct i2c_client *client, pm_message_t state)
 	hrtimer_cancel(&lis->timer);
 	ret = cancel_work_sync(&lis->work);
 	mutex_unlock(&lis->mlock);
+	/* DTS2011070101164 yuezenglong 20110701 end > */
 	return 0;
 }
 
@@ -819,7 +850,9 @@ static int l3g4200d_resume(struct i2c_client *client)
 {
 	int ret;
 	struct l3g4200d_data *lis = i2c_get_clientdata(client);
+	/* < DTS2011082306082 yuezenglong 20110829 begin */
 	/*if gyro is opened, need to set power reg bit*/
+	/* < DTS2011070101164 yuezenglong 20110701 begin */
 	/*add mutex if gyro resume*/
 	mutex_lock(&lis->mlock);
 	if(gyro->flags > 0)
@@ -836,6 +869,8 @@ static int l3g4200d_resume(struct i2c_client *client)
 		hrtimer_start(&lis->timer, ktime_set(SUSPEND_VAL, 0), HRTIMER_MODE_REL);
 	}
 	mutex_unlock(&lis->mlock);
+	/* DTS2011070101164 yuezenglong 20110701 end > */
+	/* DTS2011082306082 yuezenglong 20110829 end > */
 	return 0;
 }
 
@@ -898,4 +933,5 @@ module_exit(l3g4200d_exit);
 
 MODULE_DESCRIPTION("l3g4200d digital gyroscope driver");
 MODULE_LICENSE("GPL");
+/* DTS2011042801270 yuezenglong 20110428 end > */
 

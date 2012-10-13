@@ -1,3 +1,5 @@
+/* <DTS2012041003722 sibingsong 20120410 begin */
+/*<  DTS2011101000840   yuguangcai 20111010 begin */
 
 /*
  * Copyright (c) 2008-2009 QUALCOMM USA, INC.
@@ -34,8 +36,14 @@ struct s5k5ca_reg
 {
     const struct s5k5ca_i2c_reg_conf * s5k5ca_init_reg_config_sunny;
     const unsigned short               s5k5ca_init_reg_config_sunny_size;
+    /*< DTS2012020307372 cuixuefeng 20120326 begin */
+    const struct s5k5ca_i2c_reg_conf * s5k5ca_init_reg_config_sunny_M660;
+    const unsigned short               s5k5ca_init_reg_config_sunny_M660_size;
+    /* DTS2012020307372 cuixuefeng 20120326 end > */
+    /*< DTS2011111201369 yuguangcai 20111112 begin */
     const struct s5k5ca_i2c_reg_conf * s5k5ca_init_reg_config_sunny_2;
     const unsigned short               s5k5ca_init_reg_config_sunny_2_size;
+    /* DTS2011111201369 yuguangcai 20111112 end > */
     const struct s5k5ca_i2c_reg_conf * s5k5ca_init_reg_sensor_start;
     const unsigned short               s5k5ca_init_reg_sensor_start_size;
     const struct s5k5ca_i2c_reg_conf * s5k5ca_effect_off_reg_config;
@@ -60,6 +68,10 @@ struct s5k5ca_reg
     const unsigned short               s5k5ca_wb_auto_reg_config_size;
     const struct s5k5ca_i2c_reg_conf * s5k5ca_wb_a_reg_config;
     const unsigned short               s5k5ca_wb_a_reg_config_size;
+    /*< DTS2012020307372 cuixuefeng 20120326 begin */
+    const struct s5k5ca_i2c_reg_conf * s5k5ca_wb_a_reg_config_sunny_M660;
+    const unsigned short               s5k5ca_wb_a_reg_config_sunny_M660_size;
+    /* DTS2012020307372 cuixuefeng 20120326 end > */
     const struct s5k5ca_i2c_reg_conf * s5k5ca_wb_tl84_reg_config;
     const unsigned short               s5k5ca_wb_tl84_reg_config_size;
     const struct s5k5ca_i2c_reg_conf * s5k5ca_wb_f_reg_config;
@@ -68,9 +80,13 @@ struct s5k5ca_reg
     const unsigned short               s5k5ca_wb_d65_reg_config_size;
     const struct s5k5ca_i2c_reg_conf * s5k5ca_wb_d50_reg_config;
     const unsigned short               s5k5ca_wb_d50_reg_config_size;
+    /*< DTS2012013103283   songxiaoming 20120201 begin */ 
     const struct s5k5ca_i2c_reg_conf * s5k5ca_mirror_mode_reg_config;
     const unsigned short               s5k5ca_mirror_mode_reg_config_size;
-    /*delete some lines*/
+    /* DTS2012013103283  songxiaoming 20120201 end > */
 };
 
 #endif /* S5K5CA_H */
+
+/* DTS2011101000840   yuguangcai 20111010 end > */
+/* DTS2012041003722 sibingsong 20120410 end> */

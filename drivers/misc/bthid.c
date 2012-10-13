@@ -1,3 +1,4 @@
+/* < DTS2012020604357 zhangyun 20120206 begin */
 #if (defined(HUAWEI_BT_BTLA_VER30) && defined(CONFIG_HUAWEI_KERNEL))
 /************************************************************************************
  *
@@ -335,3 +336,4 @@ static void __exit bthid_exit(void)
 module_init(bthid_init);
 module_exit(bthid_exit);
 #endif
+/* DTS2012020604357 zhangyun 20120206 end > */

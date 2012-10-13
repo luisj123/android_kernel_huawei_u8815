@@ -166,11 +166,13 @@ static int suspend_enter(suspend_state_t state)
 	arch_suspend_disable_irqs();
 	BUG_ON(!irqs_disabled());
 	
+	/*< DTS2011082200901 genghua 20110822 begin */
 	/*add qcom debug code*/
     #ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 	print_dpm_list();
 	printk("print_dpm_list in suspend end\n");
     #endif
+	/* DTS2011082200901 genghua 20110822 end >*/
 
 	error = syscore_suspend();
 	if (!error) {
@@ -180,11 +182,13 @@ static int suspend_enter(suspend_state_t state)
 		}
 		syscore_resume();
 	}
+	/*< DTS2011082200901 genghua 20110822 begin */
 	/*add qcom debug code*/
     #ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 	print_dpm_list();
 	printk("print_dpm_list in resume end\n");
     #endif
+	/* DTS2011082200901 genghua 20110822 end >*/
 
 	arch_suspend_enable_irqs();
 	BUG_ON(irqs_disabled());

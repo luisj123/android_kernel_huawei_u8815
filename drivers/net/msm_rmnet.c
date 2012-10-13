@@ -72,6 +72,7 @@ static const char *ch_name[RMNET_DEVICE_COUNT] = {
 /* XXX should come from smd headers */
 #define SMD_PORT_ETHER0 11
 
+/* < DTS2012021402296  yuanjintao 20120214 begin */
 #ifdef CONFIG_HUAWEI_KERNEL
 /*****************************************************************************
  Function    : rmnet_get_max_mtu
@@ -85,6 +86,7 @@ static const char *ch_name[RMNET_DEVICE_COUNT] = {
  
   History        :
   1.Date         : 2011/12/16
+    Author       : yuanjintao
     Modification : Created function
 
 *****************************************************************************/
@@ -99,6 +101,7 @@ int rmnet_get_max_mtu(void)
 /* allow larger frames */
 #define RMNET_DATA_LEN 2000
 #endif
+/* DTS2012021402296  yuanjintao 20120214  end > */
 
 #define HEADROOM_FOR_QOS    8
 

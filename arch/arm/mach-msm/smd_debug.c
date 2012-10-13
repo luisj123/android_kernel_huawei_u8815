@@ -724,6 +724,7 @@ late_initcall(smd_debugfs_init);
 late_initcall(smsm_debugfs_init);
 #endif
 
+/*<DTS2010111703624 renjun 20101117 begin*/
 #ifdef CONFIG_HUAWEI_KERNEL
 struct IRAM_LOG_DESC {
   //magic number of this structure	
@@ -764,6 +765,7 @@ int detect_modem_crash_log(void **ppcrash_log,int *plog_len)
 	return 0;
 }
 #endif
+/*DTS2010111703624 renjun 20101117 end>*/	
 
 #define MAX_NUM_SLEEP_CLIENTS		64
 #define MAX_SLEEP_NAME_LEN		8

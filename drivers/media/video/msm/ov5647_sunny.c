@@ -26,9 +26,12 @@
 #include <mach/gpio.h>
 #include <mach/camera.h>
 #include "ov5647_sunny.h"
+/* < DTS2011052606009 jiaxianghong 20110527 begin */
+/* <DTS2011032104626 shenjinming 20110321 begin */
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
 #include <linux/hw_dev_dec.h>
 #endif
+/* <DTS2011032104626 shenjinming 20110321 end> */
 
 /*=============================================================
     SENSOR REGISTER DEFINES
@@ -45,7 +48,9 @@
 #define OV5647_SUNNY_PREVIEW_DUMMY_PIXELS 0
 #define OV5647_SUNNY_PREVIEW_DUMMY_LINES 0
 
+ /*<DTS2010082702166 penghai 20100827 begin*/
 #define OV5647_SUNNY_OFFSET 8
+/*DTS2010082702166 penghai 20100827 end>*/
 #define OV5647_SUNNY_MAX_SNAPSHOT_EXPOSURE_LINE_COUNT 4001
 
 #define OV5647_SUNNY_HRZ_FULL_BLK_PIXELS 92
@@ -141,6 +146,8 @@ DEFINE_MUTEX(ov5647_sunny_mut);
 
 // 30fps preview
 /*========================================*/
+/*<DTS2010062200469 lijuan 20100622 begin*/
+/*<DTS2010060901179  lijuan 20100610 begin*/
 struct register_address_value_pair const
 ov5647_sunny_preview[] =
 {
@@ -165,7 +172,9 @@ ov5647_sunny_preview[] =
 	{0x380b, 0xcc}, {0x3800, 0x00}, {0x3801, 0x08}, {0x3802, 0x00}, 
 
 	{0x3803, 0x02}, {0x3804, 0x0a}, {0x3805, 0x37}, {0x3806, 0x07},
+/*<DTS2010072400048 penghai 20100724 begin*/
 	{0x3807, 0xa1}, {0x3630, 0x2e}, {0x3632, 0xe2}, {0x3633, 0x23},
+/*DTS2010072400048 penghai 20100724 end>*/
 	{0x3634, 0x44}, {0x3620, 0x64}, {0x3621, 0xe0}, {0x3600, 0x37},
 
 	{0x3704, 0xa0}, {0x3703, 0x5a}, {0x3715, 0x78}, {0x3717, 0x01},
@@ -184,9 +193,16 @@ ov5647_sunny_preview[] =
 
 	{0x5189, 0x00}, {0x518a, 0x04}, {0x518b, 0x00}, {0x5000, 0x06},
 
+/*< DTS2010071700383 haoqingtao 20100716 begin*/
 /* kernel29 -> kernel32 driver modify*/
+/*<DTS2010070802693 penghai 20100708 begin*/
 	{0x3011, 0xe2}, {0x4001, 0x02}, {0x4004, 0x02}, {0x4000, 0x09}, 
+/*DTS2010070802693 penghai 20100708 end>*/
+/* DTS2010071700383 haoqingtao 20100716 end> */
+/*<DTS2010072400048 penghai 20100724 begin*/
+/*<DTS2010062800346 penghai 20100628 begin*/
 	{0x0100, 0x01}, {0x5000, 0x86},
+/*DTS2010062800346 penghai 20100628 end>*/
 	{0x5800, 0x15}, {0x5801, 0x8 }, {0x5802, 0x8 },	{0x5803, 0x8 },
 	
 	{0x5804, 0x8 },	{0x5805, 0xc },	{0x5806, 0x5 },	{0x5807, 0x4 },
@@ -218,6 +234,7 @@ ov5647_sunny_preview[] =
 	{0x5838, 0x66},	{0x5839, 0x28},	{0x583a, 0x2a},	{0x583b, 0x28},
 	
 	{0x583c, 0x28},	{0x583d, 0xae},
+/*DTS2010072400048 penghai 20100724 end>*/
 
 };
 
@@ -264,6 +281,8 @@ ov5647_sunny_snapshot[] =
 
 	{0x3a0e, 0x1a}, {0x3036, 0x46}, {0x0100, 0x01}, {0x4202, 0x01},
 };
+/*DTS2010060901179  lijuan 20100610 end>*/
+/*DTS2010062200469 lijuan 20100622 end>*/
 
 struct ov5647_sunny_reg ov5647_sunny_regs =
 {
@@ -278,6 +297,7 @@ struct ov5647_sunny_reg ov5647_sunny_regs =
 
 /*AF  parameters*/
 #define OV5647_SUNNY_AF_I2C_ADDR				0x18
+ /*<DTS2010082702166 penghai 20100827 begin*/
 #define OV5647_SUNNY_STEPS_NEAR_TO_CLOSEST_INF	40
 #define OV5647_SUNNY_TOTAL_STEPS_NEAR_TO_FAR	40
 #define OV5647_SUNNY_SW_DAMPING_STEP			10
@@ -287,6 +307,7 @@ struct ov5647_sunny_reg ov5647_sunny_regs =
 static uint16_t ov5647_sunny_pos_tbl [OV5647_SUNNY_TOTAL_STEPS_NEAR_TO_FAR];
 static uint8_t  ov5647_sunny_mode_mask = 0; 
 uint16_t ov5647_sunny_damping_threshold = 3;
+/*DTS2010082702166 penghai 20100827 end>*/
 uint16_t ov5647_sunny_sw_damping_step = 10;
 uint16_t ov5647_sunny_sw_damping_time_wait = 1;
 uint16_t ov5647_sunny_debug_total_step = 40;
@@ -430,6 +451,7 @@ static int32_t ov5647_sunny_lens_shading_enable(uint8_t is_enable)
 static void ov5647_sunny_setup_af_tbl(void)
 {
 	int i;
+ /*<DTS2010082702166 penghai 20100827 begin*/
 	uint16_t ov5647_sunny_nl_region_boundary1 = 6;
 	uint16_t ov5647_sunny_nl_region_boundary2 = 20;
 	uint16_t ov5647_sunny_nl_region_boundary3 = 30;
@@ -469,6 +491,7 @@ static void ov5647_sunny_setup_af_tbl(void)
 
   }
 
+/*DTS2010082702166 penghai 20100827 end>*/
 
   
 }
@@ -530,8 +553,10 @@ static uint16_t ov5647_sunny_get_pict_pixels_pl(void)
 
 static uint32_t ov5647_sunny_get_pict_max_exp_lc(void)
 {
+/*<DTS2010083101748 penghai 20100831 begin*/
 /*increase max exposure line counts for decrease frame rate to decrease noise*/
     return (OV5647_SUNNY_FULL_SIZE_HEIGHT + OV5647_SUNNY_VER_FULL_BLK_LINES) * 2;
+/*DTS2010083101748 penghai 20100831 end>*/
 }
 
 static int32_t ov5647_sunny_set_fps(struct fps_cfg *fps)
@@ -575,10 +600,12 @@ static int32_t ov5647_sunny_write_exp_gain(uint16_t gain, uint32_t line)
 		frame_boundary = line + OV5647_SUNNY_OFFSET ;
 	}
 
+	/*<DTS2010060901179  lijuan 20100610 begin*/
 	if (RES_PREVIEW== ov5647_sunny_ctrl->curr_res) {
 		ov5647_sunny_ctrl->my_reg_gain = gain;
 		ov5647_sunny_ctrl->my_reg_line_count =  line;
 	}	
+	/*DTS2010060901179  lijuan 20100610 end>*/
 	CDBG("ov5647_sunny_write_exp_gain start gain=%d  line = %d fram_boundary =%d \n", gain,line,frame_boundary);
 	gain_msb = (uint8_t) ((gain & 0xFF00) >>8);
 	gain_lsb = (uint8_t) (gain & 0xFF);
@@ -623,9 +650,11 @@ static int32_t ov5647_sunny_set_pict_exp_gain(uint16_t gain, uint32_t line)
         return rc;
     }
 
+ /*<DTS2010082702166 penghai 20100827 begin*/
 	if(!!ov5647_sunny_i2c_write(ov5647_sunny_client->addr,0x0100, 0x01))	 
 		return CAMERA_FAILED;
     mdelay(50);
+/*DTS2010082702166 penghai 20100827 end>*/
 
     return rc;
 }
@@ -663,8 +692,10 @@ static int32_t ov5647_sunny_setting(enum ov5647_sunny_reg_update rupdate,
             }
             else
             {
+				/*<DTS2010060901179  lijuan 20100610 begin*/
 		  		rc = ov5647_sunny_i2c_write_table(ov5647_sunny_regs.prev_reg_settings,
                                                   ov5647_sunny_regs.prev_reg_settings_size);
+				/*DTS2010060901179  lijuan 20100610 end>*/
                 rc = ov5647_sunny_i2c_write_table(ov5647_sunny_regs.snap_reg_settings,
                                                   ov5647_sunny_regs.snap_reg_settings_size);
                 mdelay(10);
@@ -757,10 +788,14 @@ static int32_t ov5647_sunny_raw_snapshot_config(int mode)
 static int32_t ov5647_sunny_power_down(void)
 {
     int32_t rc = 0;
+/*< DTS2010062300810 lijianzhao 20100624 begin*/
     if(ov5647_sunny_ctrl->sensordata->vreg_disable_func)
     {
+        /*< DTS2012020400396 zhangyu 20120206 begin */
         ov5647_sunny_ctrl->sensordata->vreg_disable_func(0);
+        /* DTS2012020400396 zhangyu 20120206 end > */
     }
+/*DTS2010062300810 lijianzhao 20100624 end >*/
     return rc;
 }
 
@@ -782,6 +817,7 @@ static int32_t ov5647_sunny_af_i2c_write(uint16_t data)
 	return rc;
 }
 
+/*<DTS2010062200469 lijuan 20100622 begin*/
 static int32_t ov5647_sunny_move_focus(int direction, int32_t num_steps)
 {
 		int16_t step_direction, dest_lens_position, dest_step_position;
@@ -807,11 +843,13 @@ static int32_t ov5647_sunny_move_focus(int direction, int32_t num_steps)
 		CDBG("%s:%d\n",__func__,__LINE__);
 		dest_step_position = 0;
 		}
+ /*<DTS2010082702166 penghai 20100827 begin*/
 		else if (dest_step_position > OV5647_SUNNY_STEPS_NEAR_TO_CLOSEST_INF)
 		{
 			CDBG("%s:%d\n",__func__,__LINE__);
 			dest_step_position = OV5647_SUNNY_STEPS_NEAR_TO_CLOSEST_INF;
 		}
+/*DTS2010082702166 penghai 20100827 end>*/
 		if(dest_step_position == ov5647_sunny_ctrl->curr_step_pos)
 		{
 			CDBG("%s:%d\n",__func__,__LINE__);
@@ -823,7 +861,9 @@ static int32_t ov5647_sunny_move_focus(int direction, int32_t num_steps)
 
 		ov5647_sunny_mode_mask = 0;
 		/* SW damping */ 
+ /*<DTS2010082702166 penghai 20100827 begin*/
 		if(step_direction < 0 && (target_dist >= 150)) {
+/*DTS2010082702166 penghai 20100827 end>*/
 			small_step = (uint16_t)(target_dist/10);
 		if (small_step ==0)
 			small_step = 1;
@@ -867,6 +907,7 @@ static int32_t ov5647_sunny_set_default_focus(void)
 		}
 	} else {
 	CDBG("%s:%d\n",__func__,__LINE__);
+ /*<DTS2010082702166 penghai 20100827 begin*/
 		rc = ov5647_sunny_af_i2c_write(0);
 		if (rc < 0) {
 			CDBG("ov5647_sunny_go_to_position Failed!!!\n");
@@ -875,9 +916,11 @@ static int32_t ov5647_sunny_set_default_focus(void)
 	}
 	ov5647_sunny_ctrl->curr_lens_pos = 0;
 	ov5647_sunny_ctrl->curr_step_pos = 0;
+/*DTS2010082702166 penghai 20100827 end>*/
 
 	return rc;
 }
+/*DTS2010062200469 lijuan 20100622 end>*/
 static int ov5647_sunny_probe_init_done(const struct msm_camera_sensor_info *data)
 {
     CDBG("ov5647_sunny_probe_init_done start\n");
@@ -886,11 +929,15 @@ static int ov5647_sunny_probe_init_done(const struct msm_camera_sensor_info *dat
     gpio_free ( data->sensor_pwd );
     gpio_free ( data->sensor_reset );
     gpio_free ( data->vcm_pwd);
+/*< DTS2010062300810 lijianzhao 20100624 begin*/
 /*probe finish ,power down camera*/
     if (data->vreg_disable_func)
     {
+        /*< DTS2012020400396 zhangyu 20120206 begin */
         data->vreg_disable_func(0);
+        /* DTS2012020400396 zhangyu 20120206 end > */
     }
+/*DTS2010062300810 lijianzhao 20100624 end >*/
     return 0;
 }
 
@@ -914,7 +961,9 @@ static int ov5647_sunny_probe_init_sensor(const struct msm_camera_sensor_info *d
         CDBG("gpio_direction_output(data->sensor_reset, 0) rc=%d \n", rc);
     }
 	
+/*<DTS2010070802638 penghai 20100708 begin*/
     mdelay(1);
+/*DTS2010070802638 penghai 20100708 end>*/
 
     rc = gpio_request(data->sensor_pwd, "ov5647_sunny");
     if (!rc)
@@ -929,7 +978,9 @@ static int ov5647_sunny_probe_init_sensor(const struct msm_camera_sensor_info *d
         CDBG("gpio_direction_output(data->sensor_pwd, 1) rc=%d \n", rc);
     }
 	
+/*<DTS2010070802638 penghai 20100708 begin*/
     mdelay(1);
+/*DTS2010070802638 penghai 20100708 end>*/
 
     rc = gpio_request(data->vcm_pwd, "ov5647_sunny");
     if (!rc)
@@ -944,17 +995,25 @@ static int ov5647_sunny_probe_init_sensor(const struct msm_camera_sensor_info *d
         CDBG("gpio_direction_output(data->vcm_pwd, 1) rc=%d \n", rc);
     }
 	
+/*<DTS2010070802638 penghai 20100708 begin*/
     mdelay(1);
+/*DTS2010070802638 penghai 20100708 end>*/
 
     if (data->vreg_enable_func)
     {
+        /*< DTS2012020400396 zhangyu 20120206 begin */
         data->vreg_enable_func(1);
+        /* DTS2012020400396 zhangyu 20120206 end > */
     }
+/*<DTS2010070802638 penghai 20100708 begin*/
     mdelay( 6 );
+/*DTS2010070802638 penghai 20100708 end>*/
 
     gpio_direction_output(data->sensor_pwd, 0);
 
+/*<DTS2010070802638 penghai 20100708 begin*/
     mdelay(22);
+/*DTS2010070802638 penghai 20100708 end>*/
 
     /*  Read sensor Model ID: */
     rc = ov5647_sunny_i2c_read_w(ov5647_sunny_client->addr,
@@ -1231,8 +1290,10 @@ int ov5647_sunny_sensor_release(void)
     gpio_free(ov5647_sunny_ctrl->sensordata->sensor_pwd);
 
     gpio_free(ov5647_sunny_ctrl->sensordata->vcm_pwd);
+/*< DTS2010062300810 lijianzhao 20100624 begin*/
 /*quit camera application ,power down camera*/
     rc = ov5647_sunny_power_down();
+/*DTS2010062300810 lijianzhao 20100624 end >*/
     kfree(ov5647_sunny_ctrl);
     ov5647_sunny_ctrl = NULL;
 
@@ -1313,15 +1374,20 @@ static int ov5647_sunny_sensor_probe(const struct msm_camera_sensor_info *info,
         goto probe_done;
     }
 
+    /* <DTS2011032104626 shenjinming 20110321 begin */
     #ifdef CONFIG_HUAWEI_HW_DEV_DCT
     /* detect current device successful, set the flag as present */
     set_hw_dev_flag(DEV_I2C_CAMERA_MAIN);
     #endif
+    /* <DTS2011032104626 shenjinming 20110321 end> */  
+/* < DTS2011052606009 jiaxianghong 20110527 end */
     s->s_init = ov5647_sunny_sensor_open_init;
     s->s_release = ov5647_sunny_sensor_release;
     s->s_config = ov5647_sunny_sensor_config;
+	/*<DTS2011042704563 penghai 20110427 begin*/
 	s->s_camera_type = BACK_CAMERA_2D;
 	s->s_mount_angle = 0;
+	/*DTS2011042704563 penghai 20110427 end>*/
     ov5647_sunny_probe_init_done(info);
 
 probe_done:

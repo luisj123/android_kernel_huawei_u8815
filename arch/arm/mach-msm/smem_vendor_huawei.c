@@ -1,3 +1,4 @@
+/*< DTS2012011801998 chenxi 20120203 begin */
 /* modify for platform 8255 and 7x25a/27a */
 /*
  * Copyright (C) 2012 The HUAWEI ,inc
@@ -102,4 +103,5 @@ void import_kernel_cmdline(void)
             usb_para_data.vender_para.country_name);
 }
 
+/* DTS2012011801998 chenxi 20120203 end >*/
 
