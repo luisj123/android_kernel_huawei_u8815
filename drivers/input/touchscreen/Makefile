@@ -69,3 +69,6 @@ obj-$(CONFIG_TOUCHSCREEN_TPS6507X)	+= tps6507x-ts.o
 obj-$(CONFIG_TOUCHSCREEN_MSM_LEGACY)		+= msm_touch.o
 obj-$(CONFIG_TOUCHSCREEN_CY8C_TS)	+= cy8c_ts.o
 obj-$(CONFIG_TOUCHSCREEN_CYTTSP_I2C)       += cyttsp-i2c.o
+obj-$(CONFIG_HUAWEI_FEATURE_AT42QT_TS)  += atmel_i2c_rmi_QT602240.o
+obj-$(CONFIG_HUAWEI_FEATURE_RMI_TOUCH)  += synaptics_i2c_rmi_1564.o
+obj-$(CONFIG_HUAWEI_MELFAS_TOUCHSCREEN)  += melfas_i2c_ts.o

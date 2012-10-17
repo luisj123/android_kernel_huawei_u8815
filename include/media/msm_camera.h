@@ -25,6 +25,8 @@
 #include <linux/time.h>
 #endif
 
+/* modify for 4125 baseline */
+#include <linux/slab.h>
 #ifdef __KERNEL__
 #include <linux/ion.h>
 #endif
@@ -205,7 +207,10 @@ struct msm_mctl_post_proc_cmd {
 #define MSM_CAMERA_LED_HIGH 2
 #define MSM_CAMERA_LED_INIT 3
 #define MSM_CAMERA_LED_RELEASE 4
-
+#define MSM_CAMERA_LED_TORCH 5
+#define MSM_CAMERA_LED_TORCH_LOW    6
+#define MSM_CAMERA_LED_TORCH_MIDDLE 7
+#define MSM_CAMERA_LED_TORCH_HIGH   8
 #define MSM_CAMERA_STROBE_FLASH_NONE 0
 #define MSM_CAMERA_STROBE_FLASH_XENON 1
 
@@ -759,7 +764,11 @@ struct msm_snapshot_pp_status {
 #define CFG_GET_EEPROM_DATA		33
 #define CFG_SET_ACTUATOR_INFO		34
 #define CFG_GET_ACTUATOR_INFO		35
-#define CFG_MAX			36
+/*lijuan add for AWB OTP*/
+
+#define CFG_SET_NR          37
+#define CFG_RESET           36
+#define CFG_MAX			38
 
 
 #define MOVE_NEAR	0
@@ -1070,6 +1079,7 @@ struct sensor_cfg_data {
 	union {
 		int8_t effect;
 		uint8_t lens_shading;
+		uint8_t lut_index;
 		uint16_t prevl_pf;
 		uint16_t prevp_pl;
 		uint16_t pictl_pf;
