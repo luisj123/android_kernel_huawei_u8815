@@ -1852,7 +1852,6 @@ void mmc_rescan(struct work_struct *work)
 		wake_lock(&host->detect_wake_lock);
 /*set 20s scan cycle*/
 #ifdef CONFIG_HUAWEI_KERNEL
-        /*U8860-51 is set to interupt mode*/
         if( (machine_is_msm8255_c8860()) 
             || (machine_is_msm8255_u8860())
             || (machine_is_msm8255_u8860_92())

@@ -30,7 +30,6 @@
 
 #define APP_TIMEREMOTE_PDEV_NAME "rs00000000"
 #ifdef CONFIG_HUAWEI_FEATURE_POWEROFF_ALARM
-/*define rpc case for rtc alarm set which defined in modem rpc server*/
 #define TIMEREMOTE_PROCEEDURE_SET_ALARM		3
 #endif /*CONFIG_HUAWEI_FEATURE_POWEROFF_ALARM*/
 #define TIMEREMOTE_PROCEEDURE_SET_JULIAN	6
@@ -183,7 +182,6 @@ static int msmrtcalarm_tod_proc_args(struct msm_rpc_client *client, void *buff,
 {
 	unsigned long temp = *((unsigned long *)data);
 	unsigned long *sec = buff;
-    /*mutiply 1000 to adatpe to modem */
 	*sec = cpu_to_be32(temp * 1000);
 	return sizeof(*sec);
 }
@@ -334,7 +332,6 @@ msmrtc_timeremote_set_time(struct device *dev, struct rtc_time *tm)
 	return 0;
 }
 #ifdef CONFIG_HUAWEI_FEATURE_POWEROFF_ALARM
-/*Use RPC set rtc alarm time to ARM9*/
 int
 msmrtc_remote_rtc_set_alarm(struct timespec *tm)
 {

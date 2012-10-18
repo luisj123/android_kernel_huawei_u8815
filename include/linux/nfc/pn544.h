@@ -24,7 +24,6 @@
  * 
  * when       who      what, where, why
  * -------------------------------------------------------------------------------
- * 20110106  genghua  create  SUPPORT PN544 NFC on Huawei Mobile
  */
 
 /*
@@ -123,6 +122,8 @@
 #define PN544_LLC_MAX_HCI_SIZE 		(PN544_LLC_MAX_DATA - 2) 
 #define PN544_NODATA				((PN544_I2C_ADDR << 1) + 1)
 #define PN544_RESET_SEND_SIZE 		6
+#define PN544_FWDLD_FIRST_SEND_SIZE 		3              /*we will send 010000 here*/
+#define PN544_RESET_SEND_TIMES             3
 #define PN544_RESET_RECEIVE_SIZE 	4
 #define PN544_MAX_PACK_LEN			512
 #define PN544_DEBUG_ON				1
@@ -172,11 +173,10 @@ struct pn544_nfc_platform_data {
 	/* no other func */
 #else	
     int (*pn544_clock_output_ctrl)(int);
-    int (*pn544_clock_output_mode_ctrl)(void);
+    int (*pn544_clock_output_mode_ctrl)(int);
 #endif	
 };
 
-/* the following functions are used for huawei MMI_TEST */ 
 
 int pn544_mmi_init(void);
 

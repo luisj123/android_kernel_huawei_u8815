@@ -27,6 +27,7 @@ config HUAWEI_FEATURE_ACCELEROMETER_ST_L1S35DE
 	default n 
 	help
 	  Say Y here if you have the ST LIS35DE accelerometer.
+#BK4D00610, add  freescale config, dingxifeng KF14049, 2009-5-25 begin#
 config HUAWEI_FEATURE_SENSORS_ACCELEROMETER_MMA8452
 	tristate "FREESCALE MMA8452 accelerometer"
 	default n 

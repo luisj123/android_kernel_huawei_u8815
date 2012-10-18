@@ -748,8 +748,6 @@ static struct adie_codec_dev_profile ihs_stereo_speaker_stereo_rx_profile = {
 	.setting_sz = ARRAY_SIZE(ihs_stereo_speaker_stereo_rx_settings),
 };
 
-/* acdb_id from ACDB_ID_HEADSET_STEREO_PLUS_SPKR_STEREO_RX to ACDB_ID_HEADSET_STEREO_PLUS_SPKR_MONO_RX */
-/* set msm_snddev_poweramp_4music_on as pamp_on func */
 static struct snddev_icodec_data snddev_ihs_stereo_speaker_stereo_rx_data = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
 	.name = "headset_stereo_speaker_stereo_rx",
@@ -969,11 +967,7 @@ static struct platform_device msm_auxpga_lb_hs_device = {
 	.dev = { .platform_data = &snddev_auxpga_lb_hs_data },
 };
 
-/****************************************************************/
-/**            HUAWEI ADDED DEVICE                             **/
-/****************************************************************/
 #ifdef CONFIG_HUAWEI_KERNEL
-/* RX EAR */
 static struct adie_codec_action_unit iearpiece_48KHz_osr256_actions_u8860[] =
 	EAR_PRI_MONO_8000_OSR_256_U8860;     /* 8000 profile also works for 48k */
 
@@ -992,9 +986,6 @@ static struct adie_codec_dev_profile iearpiece_profile_u8860 = {
 	.setting_sz = ARRAY_SIZE(iearpiece_settings_u8860),
 };
 
-/* rx volume from 0dB to 6dB */
-/* rx volume from 6dB to 0dB */
-/* rx volume from -7dB to 6dB */
 static struct snddev_icodec_data snddev_iearpiece_data_u8860 = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
 	.name = "handset_rx",
@@ -1020,7 +1011,6 @@ static struct platform_device msm_iearpiece_device_u8860 = {
 	.dev = { .platform_data = &snddev_iearpiece_data_u8860 },
 };
 
-/* AMIC Primary mono, common for SPEAKER MONO TX and HANDSET MONO TX */
 static struct adie_codec_action_unit imic_48KHz_osr256_actions_u8860[] =
 	AMIC_PRI_MONO_8000_OSR_256_U8860;   /* 8000 profile also works for 48k */
 
@@ -1061,7 +1051,6 @@ static struct platform_device msm_imic_device_u8860 = {
 	.dev = { .platform_data = &snddev_imic_data_u8860 },
 };
 
-/* SPEAKER STEREO RX */
 static struct adie_codec_action_unit ispkr_stereo_48KHz_osr256_actions_u8860[] =
 	SPEAKER_PRI_STEREO_48000_OSR_256_U8860;
 
@@ -1080,9 +1069,6 @@ static struct adie_codec_dev_profile ispkr_stereo_profile_u8860 = {
 	.setting_sz = ARRAY_SIZE(ispkr_stereo_settings_u8860),
 };
 
-/* rx volume from -8dB to 3dB */
-/* rx volume from -2dB to -8dB */
-/* set to mono device */
 static struct snddev_icodec_data snddev_ispkr_stereo_data_u8860 = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
 	.name = "speaker_stereo_rx",
@@ -1107,7 +1093,6 @@ static struct platform_device msm_ispkr_stereo_device_u8860 = {
 	.dev = { .platform_data = &snddev_ispkr_stereo_data_u8860 },
 };
 
-/* HEADSET MONO TX */
 static struct adie_codec_action_unit iheadset_mic_tx_osr256_actions_u8860[] =
 	AMIC1_HEADSET_TX_MONO_PRIMARY_OSR256_U8860;
 
@@ -1146,7 +1131,6 @@ static struct platform_device msm_headset_mic_device_u8860 = {
 	.dev = { .platform_data = &snddev_headset_mic_data_u8860 },
 };
 
-/* SPEAKER MONO TX */
 static enum hsed_controller ispk_pmctl_id_u8860[] = {PM_HSED_CONTROLLER_0};
 
 static struct snddev_icodec_data snddev_ispkr_mic_data_u8860 = {
@@ -1169,7 +1153,6 @@ static struct platform_device msm_ispkr_mic_device_u8860 = {
 	.dev = { .platform_data = &snddev_ispkr_mic_data_u8860 },
 };
 
-/* HEADSET STEREO */
 static struct adie_codec_action_unit headset_ab_cpls_48KHz_osr256_actions_u8860[] =
 	HEADSET_AB_CPLS_48000_OSR_256_U8860;
 
@@ -1188,9 +1171,6 @@ static struct adie_codec_dev_profile headset_ab_cpls_profile_u8860 = {
 	.setting_sz = ARRAY_SIZE(headset_ab_cpls_settings_u8860),
 };
 
-/* rxvolume from 2dB to 3dB */
-/* rxvolume from -4dB to 2dB */
-/* rxvolume from -7dB to -4dB */
 static struct snddev_icodec_data snddev_ihs_stereo_rx_data_u8860 = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
 	.name = "headset_stereo_rx",
@@ -1218,7 +1198,6 @@ static struct platform_device msm_headset_stereo_device_u8860 = {
 	.dev = { .platform_data = &snddev_ihs_stereo_rx_data_u8860 },
 };
 
-/* HANDSET DUAL MIC BROADSIDE */
 static struct adie_codec_action_unit idual_mic_bs_8KHz_osr256_actions_u8860[] =
 	AMIC_BROADSIDE_DUAL_8000_OSR_256_U8860; 
 
@@ -1268,7 +1247,6 @@ static struct platform_device msm_idual_mic_broadside_device_u8860 = {
 	.id = 13,
 	.dev = { .platform_data = &snddev_idual_mic_broadside_data_u8860 },
 };
-/* ES HANDSET DUAL MIC BROADSIDE */
 static struct adie_codec_action_unit idual_mic_bs_8KHz_osr256_actions_u8860_es[] =
 	AMIC_BROADSIDE_DUAL_8000_OSR_256_U8860_es; 
 
@@ -1319,7 +1297,6 @@ static struct platform_device msm_idual_mic_broadside_device_u8860_es = {
 	.dev = { .platform_data = &snddev_idual_mic_broadside_data_u8860_es },
 };
 
-/* SPEAKER MUSIC STEREO DEVICE */
 static struct adie_codec_action_unit ispkr_music_stereo_48KHz_osr256_actions_u8860[] =
 	SPEAKER_PRI_MUSIC_STEREO_48000_OSR_256_U8860;
 
@@ -1338,8 +1315,6 @@ static struct adie_codec_dev_profile ispkr_music_stereo_profile_u8860 = {
 	.setting_sz = ARRAY_SIZE(ispkr_music_stereo_settings_u8860),
 };
 
-/* set ACDB_ID_SPKR_PHONE_MUSIC_MONO as acdb_id */
-/* set to mono device, use music tpa parameter */
 static struct snddev_icodec_data snddev_ispkr_music_stereo_data_u8860 = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
 	.name = "speaker_music_rx",
@@ -1364,7 +1339,6 @@ static struct platform_device msm_ispkr_music_stereo_device_u8860 = {
 	.dev = { .platform_data = &snddev_ispkr_music_stereo_data_u8860 },
 };
 
-/* HEADSET MUSIC STEREO DEVICE */
 static struct adie_codec_action_unit headset_ab_cpls_music_48KHz_osr256_actions_u8860[] =
 	HEADSET_AB_CPLS_MUSIC_48000_OSR_256_U8860;
 
@@ -1383,7 +1357,6 @@ static struct adie_codec_dev_profile headset_ab_cpls_music_profile_u8860 = {
 	.setting_sz = ARRAY_SIZE(headset_ab_cpls_music_settings_u8860),
 };
 
-/* set ACDB_ID_HEADSET_SPKR_MUSIC_STEREO as acdb_id */
 static struct snddev_icodec_data snddev_ihs_music_stereo_rx_data_u8860 = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
 	.name = "headset_music_stereo_rx",
@@ -1411,7 +1384,6 @@ static struct platform_device msm_headset_music_stereo_device_u8860 = {
 	.dev = { .platform_data = &snddev_ihs_music_stereo_rx_data_u8860 },
 };
 
-/* EARPIECE HAC DEVICE */
 static struct adie_codec_action_unit iearpiece_hac_48KHz_osr256_actions_u8860[] =
 	EAR_HAC_PRI_MONO_8000_OSR_256_U8860; /* 8000 profile also works for 48k */
 
@@ -1430,7 +1402,6 @@ static struct adie_codec_dev_profile iearpiece_hac_profile_u8860 = {
 	.setting_sz = ARRAY_SIZE(iearpiece_hac_settings_u8860),
 };
 
-/* set ACDB_ID_HANDSET_HAC_SPKR as acdb_id */
 static struct snddev_icodec_data snddev_iearpiece_hac_data_u8860 = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
 	.name = "handset_hac_rx",
@@ -1441,7 +1412,6 @@ static struct snddev_icodec_data snddev_iearpiece_hac_data_u8860 = {
 	.pmctl_id = NULL,
 	.pmctl_id_sz = 0,
 	.default_sample_rate = 48000,
-    /* U8860 add hac gpio ctl func */
 	.pamp_on = msm_snddev_hac_on,  // when earpiece power on, pull up GPIO for hac
 	.pamp_off = msm_snddev_hac_off, // when earpiece power off, pull down GPIO for hac
 	.property = SIDE_TONE_MASK,
@@ -1457,7 +1427,6 @@ static struct platform_device msm_iearpiece_hac_device_u8860 = {
 	.dev = { .platform_data = &snddev_iearpiece_hac_data_u8860 },
 };
 
-/* HANDSET SECONDARY MIC DEVICE */
 static struct adie_codec_action_unit handset_secondary_mic_tx_48KHz_osr256_actions[] =
 	AMIC_SEC_MONO_8000_OSR_256; /* 8000 profile also works for 48k */
 
@@ -1498,7 +1467,6 @@ static struct platform_device msm_handset_secondary_mic_tx_device = {
 	.dev = { .platform_data = &snddev_handset_secondary_mic_tx_data },
 };
 
-/* ANALOG FM SPEAKER DEVICE */
 static struct adie_codec_action_unit ifm_analog_speaker_48KHz_osr256_actions[] =
 	FM_ANALOG_SPEAKER_48000_OSR_256; 
 
@@ -1517,7 +1485,6 @@ static struct adie_codec_dev_profile ifm_analog_speaker_profile = {
 	.setting_sz = ARRAY_SIZE(ifm_analog_speaker_settings),
 };
 
-/* set msm_snddev_poweramp_4music_on as pamp_on for FM Speaker */
 static struct snddev_icodec_data snddev_analog_fm_speaker_data = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
 	.name = "fmradio_analog_speaker",
@@ -1538,7 +1505,6 @@ static struct platform_device  msm_snddev_analog_fm_speaker_device = {
 	.dev = { .platform_data = &snddev_analog_fm_speaker_data},
 };
 
-/* ANALOG FM HEADSET DEVICE */
 static struct adie_codec_action_unit ifm_analog_hs_48KHz_osr256_actions[] =
 	FM_ANALOG_HEADSET_48000_OSR_256;
 
@@ -1576,10 +1542,6 @@ static struct platform_device msm_snddev_analog_fm_hs_device = {
 };
 
 #endif
-/****************************************************************/
-/**            HUAWEI ADDED DEVICE                             **/
-/****************************************************************/
-/* RX EAR */
 static struct snddev_icodec_data snddev_iearpiece_data_u8730 = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
 	.name = "handset_rx",
@@ -1606,7 +1568,6 @@ static struct platform_device msm_iearpiece_device_u8730 = {
 	.dev = { .platform_data = &snddev_iearpiece_data_u8730 },
 };
 
-/* SPEAKER STEREO RX */
 
 static struct snddev_icodec_data snddev_ispkr_stereo_data_u8730 = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
@@ -1631,7 +1592,6 @@ static struct platform_device msm_ispkr_stereo_device_u8730 = {
 	.id = 8,
 	.dev = { .platform_data = &snddev_ispkr_stereo_data_u8730 },
 };
-/* AMIC Primary mono, common for SPEAKER MONO TX and HANDSET MONO TX */
 static struct snddev_icodec_data snddev_imic_data_u8730 = {
 	.capability = (SNDDEV_CAP_TX | SNDDEV_CAP_VOICE),
 	.name = "handset_tx",
@@ -1653,7 +1613,6 @@ static struct platform_device msm_imic_device_u8730 = {
 };
 
 
-/* SPEAKER MONO TX */
 static struct snddev_icodec_data snddev_ispkr_mic_data_u8730 = {
 	.capability = (SNDDEV_CAP_TX | SNDDEV_CAP_VOICE),
 	.name = "speaker_mono_tx",
@@ -1673,7 +1632,6 @@ static struct platform_device msm_ispkr_mic_device_u8730 = {
 	.id = 18,
 	.dev = { .platform_data = &snddev_ispkr_mic_data_u8730 },
 };
-/* HANDSET DUAL MIC BROADSIDE */
 static struct adie_codec_action_unit idual_mic_bs_8KHz_osr256_actions_u8730[] =
 	AMIC_BROADSIDE_DUAL_8000_OSR_256_U8730; 
 
@@ -1723,7 +1681,6 @@ static struct platform_device msm_idual_mic_broadside_device_u8730 = {
 	.dev = { .platform_data = &snddev_idual_mic_broadside_data_u8730 },
 };
 
-/* HANDSET SECONDARY MIC DEVICE */
 
 static struct snddev_icodec_data snddev_handset_secondary_mic_tx_data_u8730 = {
 	.capability = (SNDDEV_CAP_TX | SNDDEV_CAP_VOICE),
@@ -1745,10 +1702,6 @@ static struct platform_device msm_handset_secondary_mic_tx_device_u8730 = {
 	.dev = { .platform_data = &snddev_handset_secondary_mic_tx_data_u8730 },
 };
 
-/****************************************************************/
-/**            HUAWEI ADDED DEVICE U8680                        **/
-/****************************************************************/
-/* HANDSET DUAL MIC BROADSIDE */
 static struct adie_codec_action_unit idual_mic_bs_8KHz_osr256_actions_u8680[] =
 	AMIC_BROADSIDE_DUAL_8000_OSR_256_U8680; 
 
@@ -1983,7 +1936,7 @@ void __ref msm_snddev_init_timpani(void)
 	if (!debugfs_hsed_config)
 		pr_err("failed to create msm_head_config debug fs entry\n");
 #endif
-#else  //#ifndef CONFIG_HUAWEI_KERNEL
+#else  
     smem_huawei_vender *vender_para_ptr;
     const char *country_name = "es";
     if (machine_is_msm7x30_ffa() || machine_is_msm8x55_ffa() ||
@@ -2011,7 +1964,6 @@ void __ref msm_snddev_init_timpani(void)
         }
         pr_info("vendor:%s,country:%s\n", vender_para_ptr->vender_para.vender_name, vender_para_ptr->vender_para.country_name);
 
-        /* choose audio parameter table according to the vender name */
         if(!memcmp(vender_para_ptr->vender_para.country_name, country_name, strlen(country_name)))
         {
           platform_add_devices(snd_devices_u8860_es, ARRAY_SIZE(snd_devices_u8860_es));
@@ -2036,6 +1988,6 @@ void __ref msm_snddev_init_timpani(void)
     {
         platform_add_devices(snd_devices_u8860, ARRAY_SIZE(snd_devices_u8860));
     }
-#endif  //#ifndef CONFIG_HUAWEI_KERNEL
+#endif  
 
 }

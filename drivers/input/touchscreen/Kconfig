@@ -850,6 +850,8 @@ config HUAWEI_TOUCHSCREEN_EXTRA_KEY
 	  to use touchscreen extra key.
 
 
+#/* < DTS2010061200552 zhangtao 20100612 begin */
+#/*<BU5D09205 zhangtao 20100503 begin*/
 config  HUAWEI_FEATURE_AT42QT_TS
 	depends on HUAWEI_KERNEL
 	default n
@@ -862,5 +864,7 @@ config  HUAWEI_FEATURE_AT42QT_TS
 
           To compile this driver as a module, choose M here: the
           module will be called AT42QT_TS_atmel.
+#/*BU5D09205 zhangtao 20100503 end>*/
 
 #/*delete some lines*/
+#/* DTS2010061200552 zhangtao 20100612 end > */	

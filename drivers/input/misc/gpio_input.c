@@ -208,7 +208,6 @@ static irqreturn_t gpio_event_input_irq_handler(int irq, void *dev_id)
 	}
 	return IRQ_HANDLED;
 }
-/*return slide status*/
 int get_slide_pressed(void)
 {
 	return slide_pressed;

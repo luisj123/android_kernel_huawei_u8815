@@ -47,7 +47,9 @@
 #define MT9V113_DEFAULT_CLOCK_RATE 24000000
 
 
+/* < DTS2012030105378 zhuqiwei 20120308 begin > */
 static int current_effect  = CAMERA_EFFECT_OFF;
+/* DTS2012030105378 zhuqiwei 20120308 end > */
 enum mt9v113_test_mode_t
 {
     TEST_OFF,
@@ -125,6 +127,7 @@ typedef enum
     E_REGISTER_CMD_8BIT,
     E_REGISTER_CMD_16BIT,
     E_REGISTER_WAIT,
+    E_REGISTER_DELAY,
     E_REGISTER_MAX,
 } e_cmd_type;
 
@@ -164,6 +167,9 @@ static struct mt9v113_i2c_reg_conf mt9v113_init_reg_config[] =
     {E_REGISTER_CMD_16BIT, 0x0010, 0x0631},
     {E_REGISTER_CMD_16BIT, 0x0012, 0x0000},
     {E_REGISTER_CMD_16BIT, 0x0014, 0x244B},
+
+    {E_REGISTER_DELAY    , 0     , 10    },
+
     {E_REGISTER_CMD_16BIT, 0x0014, 0x304B},
     {E_REGISTER_WAIT     , 0x0014, 0   },//delay 100   0x0014 bit15 --->1
     {E_REGISTER_CMD_16BIT, 0x0014, 0xB04A},
@@ -448,6 +454,22 @@ static struct mt9v113_i2c_reg_conf mt9v113_init_reg_config[] =
     {E_REGISTER_CMD_16BIT, 0x0990, 0x0280},
     {E_REGISTER_CMD_16BIT, 0x098C, 0x2705},
     {E_REGISTER_CMD_16BIT, 0x0990, 0x01E0},
+
+    {E_REGISTER_CMD_16BIT, 0x31E0, 0x0001},
+    {E_REGISTER_CMD_16BIT, 0x001A, 0x0010},
+    {E_REGISTER_CMD_16BIT, 0x3400, 0x7A28},
+    {E_REGISTER_CMD_16BIT, 0x321C, 0x8003},
+    {E_REGISTER_CMD_16BIT, 0x001E, 0x0777},
+    {E_REGISTER_CMD_16BIT, 0x0016, 0x42DF},
+    {E_REGISTER_CMD_16BIT, 0x0014, 0xB04B},
+    {E_REGISTER_CMD_16BIT, 0x0014, 0xB049},
+    {E_REGISTER_CMD_16BIT, 0x0010, 0x0631},
+    {E_REGISTER_CMD_16BIT, 0x0012, 0x0000},
+    {E_REGISTER_CMD_16BIT, 0x0014, 0x244B},
+    {E_REGISTER_DELAY    , 0     , 10    },
+    {E_REGISTER_CMD_16BIT, 0x0014, 0x304B},
+    {E_REGISTER_WAIT     , 0x0014, 0     },//delay 100   0x0014 bit15 --->1
+    {E_REGISTER_CMD_16BIT, 0x0014, 0xB04A},
     
     {E_REGISTER_CMD_16BIT, 0x098C, 0xA103},
     {E_REGISTER_CMD_16BIT, 0x0990, 0x0006},
@@ -456,7 +478,7 @@ static struct mt9v113_i2c_reg_conf mt9v113_init_reg_config[] =
     {E_REGISTER_CMD_16BIT, 0x0990, 0x0005},
     {E_REGISTER_WAIT     , 0xA103, 0     }, //delay 100
 
-    {E_REGISTER_CMD_16BIT, 0x3400, 0x7A28},
+//    {E_REGISTER_CMD_16BIT, 0x3400, 0x7A28},
     
 
 };
@@ -637,6 +659,9 @@ static struct  mt9v113_work_t *mt9v113sensorw = NULL;
 static struct  i2c_client *mt9v113_client  = NULL;
 static struct mt9v113_ctrl_t *mt9v113_ctrl = NULL;
 
+#define MODEL_SUNNY 0
+#define MODEL_BYD 1
+unsigned short model_id = 0;
 
 static DECLARE_WAIT_QUEUE_HEAD(mt9v113_wait_queue);
 DEFINE_MUTEX(mt9v113_sem);
@@ -910,6 +935,11 @@ int32_t mt9v113_i2c_write_table(struct mt9v113_i2c_reg_conf *reg_conf_tbl, int n
         {
            // mdelay(reg_conf_tbl->value);
            mt9v113_wait(reg_conf_tbl->reg);
+        }
+        /* delay some times */
+        else if(E_REGISTER_DELAY == reg_conf_tbl->type)
+        {
+            mdelay(reg_conf_tbl->value);
         }
         else
         {
@@ -1460,6 +1490,42 @@ int mt9v113_sensor_config(void __user *argp)
     return rc;
 }
 
+/* when cam_frame() is timeout, this function will be called to reset the sensor */
+static int mt9v113_reset_camera(void)
+{
+    int rc = 0;
+
+    const struct msm_camera_sensor_info *data = mt9v113_ctrl->sensordata;
+    if(NULL == data)
+    {
+        return  -EINVAL;
+    }
+
+    gpio_direction_output(data->sensor_pwd, 0);
+    mdelay(1);
+
+    rc = gpio_direction_output(data->sensor_reset, 1);
+    mdelay(10);
+
+    /*hardware reset*/
+    rc = gpio_direction_output(data->sensor_reset, 0);
+    mdelay(10);
+
+    rc = gpio_direction_output(data->sensor_reset, 1);
+    msleep(10);
+
+    rc = mt9v113_i2c_write_table(mt9v113_init_reg_config,
+        sizeof(mt9v113_init_reg_config) / sizeof(mt9v113_init_reg_config[0]));
+    if (rc < 0)
+    {
+        CDBG("%s:  write init regs fail.\n",__func__);
+        return rc;
+    }
+
+    CDBG("%s:  rc = %d\n",__func__, rc);
+        
+    return rc;
+}
 int mt9v113_sensor_release(void)
 {
     int rc = -EBADF;
@@ -1558,6 +1624,28 @@ static int mt9v113_sensor_probe(const struct msm_camera_sensor_info *info,
     }
     else
     {
+        rc = mt9v113_i2c_write_table(mt9v113_init_reg_config,
+                                     sizeof(mt9v113_init_reg_config) / sizeof(mt9v113_init_reg_config[0]));
+        mdelay(50);
+        /*
+        * after sensor is initialized ,we distinguish the model by CAM_ID gpio:
+        * sunny model's GPIO[1] connects DGND, byd model's GPIO[1] connects to DOVDD
+        * bit[9] of register 0x1070 is the value of GPIO[1] signal, so we read
+        * the value of 0x1070 and move right 9 bits to get the GPIO[1] value
+        */
+        rc = mt9v113_i2c_write_word(mt9v113_client->addr,0x098C, 0x1070);
+        rc = mt9v113_i2c_read_word(mt9v113_client->addr,0x0990, &model_id);  
+        model_id = (model_id & 0x0200) >> 9;
+        CDBG("cam_id gpio[1]= %d\n", model_id);
+
+        if(MODEL_SUNNY == model_id)
+        {
+            strncpy((char *)info->sensor_name, "23060075FF-MT-S", strlen("23060075FF-MT-S"));
+        }
+        else
+        {
+            strncpy((char *)info->sensor_name, "23060075FF-MT-B", strlen("23060075FF-MT-B"));
+        }
         CDBG("mt9v113 probe succeed!!!!\n");
     }
 
@@ -1573,7 +1661,7 @@ static int mt9v113_sensor_probe(const struct msm_camera_sensor_info *info,
 
     /*set the s_mount_angle value of sensor*/
     s->s_mount_angle = info->sensor_platform_info->mount_angle;
-	
+    s->s_reset_regs = mt9v113_reset_camera;
     mt9v113_sensor_init_done(info);
 	
     /* For go to sleep mode, follow the datasheet */

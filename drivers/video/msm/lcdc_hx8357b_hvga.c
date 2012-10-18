@@ -284,9 +284,9 @@ static int __init hx8357b_hvga_panel_init(void)
     {
         pinfo->clk_rate = 8192000;    /*for HVGA pixel clk*/
     }
-    pinfo->lcdc.h_back_porch = 7;
-    pinfo->lcdc.h_front_porch = 5;
-    pinfo->lcdc.h_pulse_width = 4;
+    pinfo->lcdc.h_back_porch = 3;
+    pinfo->lcdc.h_front_porch = 3;
+    pinfo->lcdc.h_pulse_width = 3;
     pinfo->lcdc.v_back_porch = 2;
     pinfo->lcdc.v_front_porch = 4;
     pinfo->lcdc.v_pulse_width = 2;

@@ -89,7 +89,8 @@ static uint16_t prev_line_length_pck;
 static uint16_t prev_frame_length_lines;
 static uint16_t snap_line_length_pck;
 static uint16_t snap_frame_length_lines;
-
+#define S5k4E1_CAMERA_ID_GPIO 9
+static enum S5k4E1_MODE_TYPE s5k4e1_mode_type = S5k4E1_MODE_LITEON;
 static int s5k4e1_i2c_rxdata(unsigned short saddr,
 		unsigned char *rxdata, int length)
 {
@@ -289,11 +290,16 @@ static int32_t s5k4e1_set_fps(struct fps_cfg   *fps)
 
 	s5k4e1_ctrl->fps_divider = fps->fps_div;
 	s5k4e1_ctrl->pict_fps_divider = fps->pict_fps_div;
-
+	/*support set 15fps,30fps*/
 	if (s5k4e1_ctrl->sensormode == SENSOR_PREVIEW_MODE) {
+		prev_frame_length_lines =((s5k4e1_regs.reg_prev[S5K4E1_REG_PREV_FRAME_LEN_1].wdata << 8) | \
+			s5k4e1_regs.reg_prev[S5K4E1_REG_PREV_FRAME_LEN_2].wdata);
+
 		total_lines_per_frame = (uint16_t)
 		((prev_frame_length_lines * s5k4e1_ctrl->fps_divider) / 0x400);
 	} else {
+		snap_frame_length_lines =((s5k4e1_regs.reg_snap[S5K4E1_REG_SNAP_FRAME_LEN_1].wdata << 8) | \
+			s5k4e1_regs.reg_snap[S5K4E1_REG_SNAP_FRAME_LEN_2].wdata);
 		total_lines_per_frame = (uint16_t)
 		((snap_frame_length_lines * s5k4e1_ctrl->fps_divider) / 0x400);
 	}
@@ -305,6 +311,12 @@ static int32_t s5k4e1_set_fps(struct fps_cfg   *fps)
 			(total_lines_per_frame & 0x00FF));
 	s5k4e1_group_hold_off();
 
+	if(s5k4e1_ctrl->sensormode == SENSOR_PREVIEW_MODE)
+		prev_frame_length_lines = total_lines_per_frame;
+	else
+		snap_frame_length_lines = total_lines_per_frame;
+
+	printk("%s: total_lines_per_frame = %d\n",__func__,total_lines_per_frame);
 	return rc;
 }
 
@@ -411,65 +423,6 @@ static int32_t s5k4e1_set_pict_exp_gain(uint16_t gain, uint32_t line)
 	return rc;
 }
 
-/*
-static int32_t s5k4e1_set_pict_exp_gain(uint16_t gain, uint32_t line)
-{
-	uint16_t max_legal_gain = 0x0200;
-	uint16_t min_ll_pck = 0x0AB2;
-	uint32_t ll_pck, fl_lines;
-	uint32_t ll_ratio;
-	int32_t rc = 0;
-	uint8_t gain_msb, gain_lsb;
-	uint8_t intg_time_msb, intg_time_lsb;
-	uint8_t ll_pck_msb, ll_pck_lsb;
-
-	if (gain > max_legal_gain) {
-		pr_debug("Max legal gain Line:%d\n", __LINE__);
-		gain = max_legal_gain;
-	}
-	
-	CDBG("+++++s5k4e1_write_exp_gain : gain = %d line = %d  #####\n", gain, line);
-
-	line = (uint32_t) (line * s5k4e1_ctrl->pict_fps_divider);
-	fl_lines = snap_frame_length_lines;
-	ll_pck = snap_line_length_pck;
-	CDBG("+++++s5k4e1_write_exp_gain : gain = %d line = %d  #####fl_lines = %d, ll_pck = %d\n", gain, line, fl_lines, ll_pck);
-
-	if (fl_lines < (line / 0x400))
-		ll_ratio = (line / (fl_lines - 4));
-	else
-		ll_ratio = 0x400;
-
-	ll_pck = ll_pck * ll_ratio / 0x400;
-	line = line / ll_ratio;
-	if (ll_pck < min_ll_pck)
-		ll_pck = min_ll_pck;
-
-	CDBG("------s5k4e1_write_exp_gain : gain = %d line = %d  #####fl_lines = %d, ll_pck = %d\n", gain, line, fl_lines, ll_pck);
-	gain_msb = (uint8_t) ((gain & 0xFF00) >> 8);
-	gain_lsb = (uint8_t) (gain & 0x00FF);
-
-	intg_time_msb = (uint8_t) ((line & 0xFF00) >> 8);
-	intg_time_lsb = (uint8_t) (line & 0x00FF);
-
-	ll_pck_msb = (uint8_t) ((ll_pck & 0xFF00) >> 8);
-	ll_pck_lsb = (uint8_t) (ll_pck & 0x00FF);
-
-	s5k4e1_group_hold_on();
-	s5k4e1_i2c_write_b_sensor(0x0204, gain_msb);
-	s5k4e1_i2c_write_b_sensor(0x0205, gain_lsb);
-
-	s5k4e1_i2c_write_b_sensor(0x0342, ll_pck_msb);
-	s5k4e1_i2c_write_b_sensor(0x0343, ll_pck_lsb);
-
-
-	s5k4e1_i2c_write_b_sensor(0x0202, intg_time_msb);
-	s5k4e1_i2c_write_b_sensor(0x0203, intg_time_lsb);
-	s5k4e1_group_hold_off();
-
-	return rc;
-}
-*/
 static int32_t s5k4e1_move_focus(int direction,
 		int32_t num_steps)
 {
@@ -740,7 +693,26 @@ static int s5k4e1_probe_init_sensor(const struct msm_camera_sensor_info *data)
 
 	CDBG("ID: %d\n", chipid1);
 	CDBG("ID: %d\n", chipid1);
-
+	//check mode type
+	if(!gpio_request(S5k4E1_CAMERA_ID_GPIO,  "s5k4e1"))
+	{
+		/* if the moudle is liteon, the value is 0, if the moudle is samsuny,the value is 1 */
+		if(gpio_get_value(S5k4E1_CAMERA_ID_GPIO) == 1)
+		{
+			s5k4e1_mode_type = S5k4E1_MODE_SAMSUNG;
+		}
+		else
+		{
+			s5k4e1_mode_type = S5k4E1_MODE_LITEON;
+		}
+		gpio_free(S5k4E1_CAMERA_ID_GPIO);
+	}
+	else
+	{
+		printk("%s: gpio request fail\n",__func__);
+		s5k4e1_mode_type = S5k4E1_MODE_LITEON;
+	}
+	printk("%s: s5k4e1_mode_type = %d\n",__func__,s5k4e1_mode_type);
 	return rc;
 
 init_probe_fail:
@@ -1117,7 +1089,15 @@ static int s5k4e1_sensor_probe(const struct msm_camera_sensor_info *info,
 	rc = s5k4e1_probe_init_sensor(info);
 	if (rc < 0)
 		goto probe_fail_3;
-
+    /*camera name for project menu to display*/
+    if(s5k4e1_mode_type == S5k4E1_MODE_SAMSUNG)
+    {
+        strncpy((char *)info->sensor_name, "23060069FA-SAM-3", strlen("23060069FA-SAM-3"));
+    }
+    else
+    {
+        strncpy((char *)info->sensor_name, "23060069FA-SAM-L", strlen("23060069FA-SAM-L"));
+    }
 	s->s_init = s5k4e1_sensor_open_init;
 	s->s_release = s5k4e1_sensor_release;
 	s->s_config  = s5k4e1_sensor_config;

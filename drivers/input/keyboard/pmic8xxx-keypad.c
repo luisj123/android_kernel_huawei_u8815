@@ -25,6 +25,9 @@
 #include <linux/input/pmic8xxx-keypad.h>
 #include <asm/mach-types.h>
 #include <linux/hardware_self_adapt.h>
+#include <asm/mach-types.h>
+#define PM8058_GPIO_PM_TO_SYS(pm_gpio)     (pm_gpio + NR_GPIO_IRQS)
+#define PM_GPIO_13	PM8058_GPIO_PM_TO_SYS(12)
 
 #define PM8XXX_MAX_ROWS		18
 #define PM8XXX_MAX_COLS		8
@@ -239,7 +242,6 @@ static int pmic8xxx_kp_read_matrix(struct pmic8xxx_kp *kp, u16 *new_state,
 				"Error reading KEYP_OLD_DATA, rc=%d\n", rc);
 			return rc;
 		}
-/*it is reslove the problem of ghost , becuse the six column  just one key */ 
 #ifdef CONFIG_HUAWEI_KERNEL
 		if(machine_is_msm8255_u8730())
 		{
@@ -261,7 +263,6 @@ static int pmic8xxx_kp_read_matrix(struct pmic8xxx_kp *kp, u16 *new_state,
 			"Error reading KEYP_RECENT_DATA, rc=%d\n", rc);
 		return rc;
 	}
-/*it is reslove the problem of ghost , becuse the six column  just one key */ 
 #ifdef CONFIG_HUAWEI_KERNEL
 		if(machine_is_msm8255_u8730())
 		{
@@ -313,7 +314,6 @@ static void __pmic8xxx_kp_scan_matrix(struct pmic8xxx_kp *kp, u16 *new_state,
 
 			code = MATRIX_SCAN_CODE(row, col, PM8XXX_ROW_SHIFT);
 
-			/*reduce invalid input event*/
 #ifdef CONFIG_HUAWEI_KERNEL	
             if (kp->keycodes[code])
             {
@@ -322,7 +322,6 @@ static void __pmic8xxx_kp_scan_matrix(struct pmic8xxx_kp *kp, u16 *new_state,
 				input_report_key(kp->input,
 						kp->keycodes[code],
 						!(new_state[row] & (1 << col)));
-				/* use mmi_keystate save the key state */
 	       		mmi_keystate[kp->keycodes[code]] = (!(new_state[row]&(1<<col)))? MMI_KEY_DOWN :MMI_KEY_UP ;
 				input_sync(kp->input);
 #ifdef CONFIG_HUAWEI_KERNEL		
@@ -337,19 +336,13 @@ static bool pmic8xxx_detect_ghost_keys(struct pmic8xxx_kp *kp, u16 *new_state)
 	int row, found_first = -1;
 	u16 check, row_state;
 
-/*
-	* for u8860, c8860 and u8860lp, add the codes means:
-	* when volumn-up and volumn-down keys are pressed in the sametime,
-	* the state of kp scan matrix read from the register is wrong because of hardwared's wrong,
-	* and it will make system think the state as ghost keys mistakenly , 
-	* so these board ids should not be check for ghost keys
-*/
 #ifdef CONFIG_HUAWEI_KERNEL
 	if (machine_is_msm8255_u8860() 
 	 || machine_is_msm8255_c8860() 
 	 || machine_is_msm8255_u8860lp() 
      || machine_is_msm8255_u8860_r()
-	 || machine_is_msm8255_u8860_51())
+	 || machine_is_msm8255_u8860_51()
+	 || machine_is_msm8255_u8680())
 	{
 		return 0;
 	}
@@ -524,6 +517,10 @@ static int  __devinit pmic8xxx_kp_config_gpio(int gpio_start, int num_gpios,
 		return -EINVAL;
 
 	for (i = 0; i < num_gpios; i++) {
+	    if ((machine_is_msm8255_c8860()) && (PM_GPIO_13 == (gpio_start + i)))
+	    {
+		    continue;
+		}
 		rc = pm8xxx_gpio_config(gpio_start + i, gpio_config);
 		if (rc) {
 			dev_err(kp->dev, "%s: FAIL pm8xxx_gpio_config():"

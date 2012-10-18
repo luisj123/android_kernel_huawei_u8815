@@ -12,8 +12,6 @@
  * GNU General Public License for more details.
  *
  */
-/* kernel29 -> kernel32 driver modify*/
-/* modify for 4125 baseline */
 #include <linux/slab.h>
 #include <linux/module.h>
 #include <linux/delay.h>
@@ -32,12 +30,7 @@
 #include <linux/hw_dev_dec.h>
 #endif
 #include <asm/mach-types.h>
-/*
- * DEBUG SWITCH
- *
- */ 
 
-//#define TS_DEBUG
 #undef TS_DEBUG 
 #ifdef TS_DEBUG
 #define TS_DEBUG_TS(fmt, args...) printk(KERN_INFO fmt, ##args)
@@ -45,7 +38,6 @@
 #define TS_DEBUG_TS(fmt, args...)
 #endif
 
-/*use this to contrl the debug message*/
 static int atmel_debug_mask;
 module_param_named(atmel_debug, atmel_debug_mask, int,
 		S_IRUGO | S_IWUSR | S_IWGRP);
@@ -69,8 +61,6 @@ module_param_named(atmel_debug, atmel_debug_mask, int,
 #define TS_Y_OFFSET  TS_X_OFFSET
 #ifdef CONFIG_HUAWEI_TOUCHSCREEN_EXTRA_KEY
 
-/*max y for the key region. total height of the touchscreen is 91.5mm,
-and the height of the key region is 8.5mm, TS_Y_MAX * 8.5 /91.5 */
 #define TS_KEY_Y_MAX 94//248
 
 
@@ -136,7 +126,6 @@ typedef struct {
 	bool                touch_region_first;           /* to record first touch event*/
 } RECORD_EXTRA_KEYCODE;
 /*modify the value of HOME key*/ 
-/* to init extra region and touch virt key region */
 static extra_key_region   touch_extra_key_region =
 {
     {X_START, X_END,Y_START,Y_END},								/* extra region */
@@ -149,8 +138,6 @@ static extra_key_region   touch_extra_key_region =
     },
 };
 
-/* to record the key pressed */
-//static RECORD_EXTRA_KEYCODE  record_extra_keycode = {KEY_RESERVED, TRUE, TRUE, FALSE};
 #endif
 
 #define LCD_X_MAX 479
@@ -294,7 +281,6 @@ static u8 atmel_timer = 0;
 static uint32_t resume_time = 0;
 static u8 cal_check_flag = 1; 
 
-/* Unique ID allocation */
 static struct i2c_client *g_client;
 
 static struct workqueue_struct *atmel_wq;
@@ -806,14 +792,6 @@ int write_power_config(int on)
 	return 0;
 }
 
-/*!
- * \brief Writes power config. 
- * 
- * @param cfg power config struct.
- * 
- * @return 0 if successful.
- * 
- */
 
 int write_acquisition_config(u8 instance,int flag)
 {
@@ -871,18 +849,6 @@ int write_acquisition_config(u8 instance,int flag)
 	return 0;
 }
 
-/*!
- * \brief read multitouchscreen config. 
- * 
- * 
- * This function will read the configuration of multitouchscreen
- * instance number.
- * 
- * @param instance the instance number of the multitouchscreen.
- * @param cfg multitouchscreen config struct.
- * @return 0 if successful.
- * 
- */
 
 int read_multitouchscreen_config(u8 instance)
 {
@@ -966,7 +932,6 @@ int write_multitouchscreen_config(u8 instance,int flag)
 	}
 	memset(tmp, 0, object_size);
 	
-/* delete some lines. */
 	*(tmp + 0) = 139; //0x83//ctrl
 	*(tmp + 1) = 0; //xorigin
 	*(tmp + 2) = 0; //yorigin
@@ -988,7 +953,6 @@ int write_multitouchscreen_config(u8 instance,int flag)
 	*(tmp + 9) = 1; //orientate
 	*(tmp + 10) = 0; //mrgtimeout
 	*(tmp + 11) = 3; //movhysti
-	/*  make the point report every pix */
 	*(tmp + 12) = 1; //movhystn
 	*(tmp + 13) = 0;//0x2e; //movfilter
 	*(tmp + 14) = 2; //numtouch
@@ -1116,7 +1080,6 @@ int write_gripfacesuppression_config(u8 instance)
 	}
 	memset(tmp, 0, object_size);
 
-	/* turn off the fripfacesuppression */
 	*(tmp + 0) = 0x00; //0x05; //ctrl
 	*(tmp + 1) = 0; //xlogrip
 	*(tmp + 2) = 0; //xhigrip
@@ -1512,7 +1475,6 @@ int reset_chip(void)
  * 
  */
 
-/* delete some lines which is not used anymore */
    
 /*!
  * \brief Backups config area.
@@ -1628,10 +1590,8 @@ uint8_t get_max_report_id(void)
 	return max_report_id;
 }
 
-/* delete some lines. */
 static void touch_input_report_key(struct atmel_ts_data *ts, unsigned int code, int value)
 {
-/* delete some lines which is not needed anymore*/
 	input_report_key(ts->input_dev, code, value);
 }
 
@@ -1644,15 +1604,8 @@ uint8_t calibrate_chip_error(void)
 {
 	uint8_t data = 1u;
 	int ret;
-	/* resume calibration must be performed with zero settings */
-    /* write the acquisition config to 0*/
 	ret = write_acquisition_config(0,1);
 	TS_DEBUG_TS("write_acquisition_config's ret is %d!\n",ret);
-	/* Restore settings to the local structure so that when we confirm the
-	 *      * cal is good we can correct them in the chip.
-	 *      * This must be done before returning. */
-	/* send calibration command to the chip */
-    /* Write temporary acquisition config to chip. */	
 	if(0 == ret)
 	{
 		/* Change calibration suspend settings to zero until calibration confirmed good. */
@@ -1863,7 +1816,6 @@ static int atmel_ts_initchip(void)
 /*===========================================================================
 FUNCTION      is_in_extra_region
 DESCRIPTION
-              是否在附加TOUCH区
 DEPENDENCIES
   None
 RETURN VALUE
@@ -1887,7 +1839,6 @@ static bool is_in_extra_region(int pos_x, int pos_y)
 /*===========================================================================
 FUNCTION      touch_get_extra_keycode
 DESCRIPTION
-              取得附加区键值
 DEPENDENCIES
   None
 RETURN VALUE
@@ -1928,6 +1879,7 @@ static void atmel_ts_work_func(struct work_struct *work)
 /* delete some lines the multi_touch_mode and is_multi_touch will not use anymore*/
 	static bool first_point_pressed = FALSE;
 	static bool second_point_pressed = FALSE;
+    static int finger_press_num = 0;
     static bool last_is_2points = FALSE;//if it's 2 points pressed last time.
     static char first_point_id = 1; 
     static int point_1_x;
@@ -2005,10 +1957,8 @@ static void atmel_ts_work_func(struct work_struct *work)
 		    point_index,((1 << 5) & status) ? "yes":"no", ts->touch_x, ts->touch_y);
 
             
- /* move the key area down so we can touch the key area as the touch screen */
 			if(ts->is_support_multi_touch)
 			{
-                /*the 5-bit in STATUS register specifies the current point just released*/
 				if((1 == point_index) && !((1 << 5) & status))
 					first_point_pressed = TRUE;
 				else if((1 == point_index) && ((1 << 5) & status))
@@ -2018,9 +1968,6 @@ static void atmel_ts_work_func(struct work_struct *work)
 						second_point_pressed = TRUE;
 					else if((2 == point_index) && ((1 << 5) & status))
 						second_point_pressed = FALSE;
-				    /*when two points are pressed, multi_touch mode is triggered.*/
-/* delete the goto function so if the touch is in the key area this will not be run */
-                    /*if pressed, need to save the current coordinates*/
                     if(!((1 << 5) & status))
                     {   
                         if(1 == point_index)
@@ -2030,7 +1977,6 @@ static void atmel_ts_work_func(struct work_struct *work)
                             point_1_y = ts->touch_y;
                             point_1_amplitude = ts->touchamplitude;
                             point_1_width = ts->sizeoftouch;
-                            /* record point */
             				if((cal_check_flag != 0) && !(first_in_point))
             				{
              				    first_in_point = 1;
@@ -2101,16 +2047,13 @@ static void atmel_ts_work_func(struct work_struct *work)
         					    first_in_point = 0;
                      	    }
 
-                            /*if index-1 released, index-2 point remains working*/
                             first_point_id = 2;
                         }
                         else
                         {
-                            /*if index-2 released, index-1 point remains working*/
                             first_point_id =1;
                         }
                     }
-                    /*if both two points are released, we need to reset first_point_id*/
                     if(!first_point_pressed && !second_point_pressed)
                     {
                         point_1_amplitude = 0;
@@ -2119,7 +2062,6 @@ static void atmel_ts_work_func(struct work_struct *work)
                         point_2_width = 0;
                         first_point_id =1;
                     }
-                    /*to report the first point event*/
                     if(1 == first_point_id)
                     {
                         input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR, point_1_amplitude);
@@ -2136,7 +2078,6 @@ static void atmel_ts_work_func(struct work_struct *work)
 				        input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, point_2_y);
 				        input_mt_sync(ts->input_dev);
                     }
-                    /*if there are two points pressed at present, we should report the second point event*/
                     if(first_point_pressed && second_point_pressed)
                     {
                         if(1 == first_point_id)
@@ -2162,6 +2103,12 @@ static void atmel_ts_work_func(struct work_struct *work)
         				input_report_abs(ts->input_dev, ABS_MT_WIDTH_MAJOR, 0);
         				input_mt_sync(ts->input_dev);
                     }
+                    /* Report if there is any fingure on the TP */
+                    if(machine_is_msm8255_u8800_pro())
+                    {
+                        finger_press_num = first_point_pressed + second_point_pressed;
+                        input_report_key(ts->input_dev, BTN_TOUCH, finger_press_num);
+					}
                     input_sync(ts->input_dev);
                     if(first_point_pressed && second_point_pressed)
                         last_is_2points = TRUE;
@@ -2187,7 +2134,6 @@ static void atmel_ts_work_func(struct work_struct *work)
 					input_sync(ts->input_dev);
 
 				}
-                /* move the key area code to here */
                 #ifdef CONFIG_HUAWEI_TOUCHSCREEN_EXTRA_KEY
     			if(is_in_extra_region(ts->touch_x, ts->touch_y))
     			{
@@ -2334,7 +2280,6 @@ static void atmel_ts_work_func(struct work_struct *work)
 static enum hrtimer_restart atmel_ts_timer_func(struct hrtimer *timer)
 {
 	struct atmel_ts_data *ts = container_of(timer, struct atmel_ts_data, timer);
-	//TS_DEBUG_TS(" atmel_ts_timer_func\n");
 	queue_work(atmel_wq, &ts->work);
 	hrtimer_start(&ts->timer, ktime_set(0, 200000000), HRTIMER_MODE_REL);
 	return HRTIMER_NORESTART;
@@ -2345,7 +2290,6 @@ static irqreturn_t atmel_ts_irq_handler(int irq, void *dev_id)
 	struct atmel_ts_data *ts = dev_id;
 	TS_DEBUG_TS(KERN_ERR "atmel_ts_irq_handler,irq occured  disable irq\n");
 
-/* In the kernel32 disable_irq is not safe so we use disable_irq_nosync to avoid the irq occured in the probe*/
     disable_irq_nosync(ts->client->irq);
     queue_work(atmel_wq, &ts->work);
 	return IRQ_HANDLED;
@@ -2371,12 +2315,10 @@ static int atmel_ts_probe(
 	
 	g_client = client;
 	
-    /* power on touchscreen removed form board-hw7x30.c */   
     v_gp4 = vreg_get(NULL,"gp4");   
     ret = IS_ERR(v_gp4); 
     if(ret)         
         goto err_power_on_failed;    
-    /* set gp4 voltage as 2700mV for all */
     ret = vreg_set_level(v_gp4,VREG_GP4_VOLTAGE_VALUE_2700);
     if (ret)        
         goto err_power_on_failed;    
@@ -2411,7 +2353,6 @@ static int atmel_ts_probe(
 		goto err_probe_IC_fail;
 	}
 	
-	/* Read object table. */
 	object_table = (struct object_t *) kzalloc(info_block.id.num_declared_objects * sizeof(struct object_t), GFP_KERNEL);
 	if (object_table == NULL)
 	{
@@ -2422,7 +2363,6 @@ static int atmel_ts_probe(
 	
 	info_block.pobject_table = object_table;
 
-	/* Reading the whole object table block to memory directly doesn't work cause sizeof object_t
 	isn't necessarily the same on every compiler/platform due to alignment issues. Endianness
 	can also cause trouble. */
 	current_address = OBJECT_TABLE_START_ADDRESS;
@@ -2430,10 +2370,8 @@ static int atmel_ts_probe(
 	for (i = 0; i < info_block.id.num_declared_objects; i++)
 	{
 		read_object_table_element(current_address + i * OBJECT_TABLE_ELEMENT_SIZE, object_table + i);
-/* delete some lines. */
 		max_report_id += (object_table + i)->num_report_ids;
       
-	      /* Find out the maximum message length. */
 		if ((object_table + i)->object_type == GEN_MESSAGEPROCESSOR_T5)
 		{
 			max_message_length = (object_table + i)->size + 1;
@@ -2453,8 +2391,6 @@ static int atmel_ts_probe(
 		goto err_power_failed;
 	}
 	
-	/* Allocate memory for report id map now that the number of report id's 
-	* is known. */
 	report_id_map = (struct report_id_map_t *)kzalloc(sizeof(struct report_id_map_t) * max_report_id, GFP_KERNEL);
 	if (report_id_map == NULL)
 	{
@@ -2463,7 +2399,6 @@ static int atmel_ts_probe(
 		goto err_alloc_data_failed2;
 	}
 
-	/* Report ID 0 is reserved, so start from 1. */
 
 	report_id_map[0].instance = 0;
 	report_id_map[0].object_type = 0;
@@ -2492,16 +2427,12 @@ static int atmel_ts_probe(
 		}
 	}
 
-	/* Store message processor address, it is needed often on message reads. */
 	message_processor_address = get_object_address(GEN_MESSAGEPROCESSOR_T5, 0);
 
-	/* Store command processor address. */
 	command_processor_address = get_object_address(GEN_COMMANDPROCESSOR_T6, 0);
 	
-	/* Store command processor address. */
 	debug_diagnostic_address = get_object_address(DEBUG_DIAGNOSTIC_T37, 0);
 		
-	/* msg. */
 	touch_msg = (u8 *) kzalloc(max_message_length, GFP_KERNEL);
 	if (touch_msg == NULL)
 	{
@@ -2517,7 +2448,6 @@ static int atmel_ts_probe(
     
 	msleep(10);
 
-/* delete some lines. */
 goto succeed_find_device;
 	
 
@@ -2558,13 +2488,12 @@ succeed_find_device:
 	
 	set_bit(EV_SYN, ts->input_dev->evbit);
 	set_bit(EV_KEY, ts->input_dev->evbit);
-/* delete some lines. */
 	set_bit(BTN_TOUCH, ts->input_dev->keybit);
+/* DTS2010062400225 zhangtao 20100624 end > */
 	set_bit(EV_ABS, ts->input_dev->evbit);
 	set_bit(ABS_X, ts->input_dev->absbit);
 	set_bit(ABS_Y, ts->input_dev->absbit);
 
-/* delete some lines. */
 	input_set_abs_params(ts->input_dev, ABS_X, 0, TS_X_MAX, 0, 0);
 #ifdef CONFIG_HUAWEI_TOUCHSCREEN_EXTRA_KEY
 	input_set_abs_params(ts->input_dev, ABS_Y, 0, TS_Y_MAX - TS_KEY_Y_MAX, 0, 0);
@@ -2582,7 +2511,6 @@ succeed_find_device:
 		input_set_abs_params(ts->input_dev, ABS_MT_POSITION_Y, 0, TS_Y_MAX, 0, 0);
 #endif
 		input_set_abs_params(ts->input_dev, ABS_MT_TOUCH_MAJOR, 0, 255, 0, 0);
-        /* changge the report limit to make the touch receive phone well */
 		input_set_abs_params(ts->input_dev, ABS_MT_WIDTH_MAJOR, 0, 30, 0, 0);
 	}
 	ret = input_register_device(ts->input_dev);
@@ -2596,7 +2524,6 @@ succeed_find_device:
 			ret = -ENOMEM;
 			goto err_input_register_device_failed;
 		}
-		/*changge the input key device name for enter the safemode*/
 		ts->key_input->name = "touchscreen-keypad";
 		
 		set_bit(EV_KEY, ts->key_input->evbit);
@@ -2608,7 +2535,6 @@ succeed_find_device:
 		ret = input_register_device(ts->key_input);
 		if (ret)
 			goto err_key_input_register_device_failed;
-/* delete some lines. */
 #endif
 
 
@@ -2621,7 +2547,6 @@ succeed_find_device:
 		ret = -EIO;
 		goto err_key_input_register_device_failed;
 	}
-/* delete some lines because the kernel32's gpio_configure is changged and we needed to use it */
 
 	ts->test = 0;
        /* need clean the code later zhangtao */
@@ -2666,10 +2591,8 @@ succeed_find_device:
     set_hw_dev_flag(DEV_I2C_TOUCH_PANEL);
     #endif
 
-	//important, read msg to clear interrupt
 	get_message();
     
-/* delete some lines. */
 #ifdef CONFIG_HAS_EARLYSUSPEND
 	ts->early_suspend.level = EARLY_SUSPEND_LEVEL_BLANK_SCREEN + 1;
 	ts->early_suspend.suspend = atmel_ts_early_suspend;

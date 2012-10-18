@@ -19,6 +19,7 @@
 #include<linux/fs.h>
 #include<asm/atomic.h>
 #include<mach/camera.h>
+#include <asm/mach-types.h>
 
 #define PRINT_BUG
 
@@ -82,43 +83,60 @@ static int hw_camera_led_open(struct inode *inode,struct file *file)
 
 static long hw_camera_led_ioctl(struct file *filep ,unsigned int cmd, unsigned long arg)
 {
-	int ret = 0;
-	unsigned int camera_led_state;
-	
-	CDBG("function %s enterence\n",__func__);
-	switch(cmd)
-	{
-		case CAMERA_LED_GET :
-			
-			camera_led_state = atomic_read(&camera_led_flag);
-			if(copy_to_user((void __user *)arg,&camera_led_state,sizeof(camera_led_state))) 
-			{
-				pr_err("function copy_to_user fail");
-				ret = -EFAULT;
-			}
-			break;
-		case CAMERA_LED_SET :
-			if(copy_from_user(&camera_led_state,(void __user *)arg,sizeof(camera_led_state)))
-			{
-				pr_err("function copy_from_user fail");
-				ret = -EFAULT;
-			}
-			else
-			{
-				ret = msm_camera_flash_set_led_state(&hw_camera_led_data,camera_led_state);
-				if(!ret)
-				{
-					atomic_set(&camera_led_flag,camera_led_state);
-				}
-			}
-			break;
-		default:
-			pr_err("hw_camera_led_ioctl:error ioctl cmd");
-			ret = -EINVAL;
-		
-	}
-	
-	return ret;
+    int ret = 0;
+    unsigned int camera_led_state;
+
+    CDBG("function %s enterence\n", __func__);
+    switch (cmd)
+    {
+    case CAMERA_LED_GET:
+
+        camera_led_state = atomic_read(&camera_led_flag);
+        if (copy_to_user((void __user *)arg, &camera_led_state, sizeof(camera_led_state)))
+        {
+            pr_err("function copy_to_user fail");
+            ret = -EFAULT;
+        }
+
+        break;
+    case CAMERA_LED_SET:
+        if (copy_from_user(&camera_led_state, (void __user *)arg, sizeof(camera_led_state)))
+        {
+            pr_err("function copy_from_user fail");
+            ret = -EFAULT;
+        }
+        else
+        {
+            /* U8680 and U8730 use tps61310 flash driver IC, so set led with tps61310 function */
+#ifdef CONFIG_ARCH_MSM7X27A
+			ret = tps61310_set_flash(camera_led_state);
+#else
+            if (machine_is_msm8255_u8680() 
+               || machine_is_msm8255_u8730()
+               //|| machine_is_msm8255_u8867z()
+				)
+            {
+                tps61310_set_flash(camera_led_state);
+            }
+            else
+            {
+                ret = msm_camera_flash_set_led_state(&hw_camera_led_data, camera_led_state);
+            }
+#endif
+
+            if (!ret)
+            {
+                atomic_set(&camera_led_flag, camera_led_state);
+            }
+        }
+
+        break;
+    default:
+        pr_err("hw_camera_led_ioctl:error ioctl cmd");
+        ret = -EINVAL;
+    }
+
+    return ret;
 }
 
 static int hw_camera_led_release(struct inode *inode,struct file *file)

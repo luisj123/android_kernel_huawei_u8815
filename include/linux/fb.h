@@ -312,7 +312,6 @@ enum {
 	/* screen: blanked,   hsync: off, vsync: off */
 	FB_BLANK_POWERDOWN     = VESA_POWERDOWN + 1, 
 #ifdef CONFIG_HUAWEI_KERNEL   
-	/* The cmd for power down charge to resume LCD */
 	FB_BLANK_PWDN_GHG_RESUME     = 5,
 #endif
 };

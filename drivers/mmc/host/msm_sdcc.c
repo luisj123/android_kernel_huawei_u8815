@@ -58,10 +58,16 @@
 
 #include "msm_sdcc.h"
 #include "msm_sdcc_dml.h"
+#include <linux/hardware_self_adapt.h>
 
 #ifdef CONFIG_HUAWEI_KERNEL
 #include <asm/mach-types.h>
+#ifdef CONFIG_ARCH_MSM7X30
 #define SDCC_SDCARD_SLOT	4
+#endif
+#ifdef CONFIG_ARCH_MSM7X27A
+#define SDCC_SDCARD_SLOT	1
+#endif
 #endif
 
 int sdcc_wifi_slot = -1;
@@ -1308,11 +1314,17 @@ msmsdcc_pio_irq(int irq, void *dev_id)
 		/* Map the current scatter buffer */
 		local_irq_save(flags);
 #ifdef CONFIG_HUAWEI_WIFI_SDCC
-		if ( NULL == host->pio.sg ) {
-			local_irq_restore(flags);
-			printk(KERN_ERR"host->pio.sg is NULL\n");
-			break;
-		}
+        if (host->pdev_id == SDCC_WIFI_SLOT) 
+        {
+            if(WIFI_BROADCOM == get_hw_wifi_device_type())
+            {
+        		if ( NULL == host->pio.sg ) {
+        			local_irq_restore(flags);
+        			printk(KERN_ERR"host->pio.sg is NULL\n");
+        			break;
+                }
+            }
+        }
 #endif
 		
 		buffer = kmap_atomic(sg_page(host->pio.sg),
@@ -2256,7 +2268,6 @@ msmsdcc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 			host->clks_on = 1;
 			if (mmc->card && mmc->card->type == MMC_TYPE_SDIO) {
 				if (!host->plat->sdiowakeup_irq) {
-					/* roll back xuke modification */
 					writel_relaxed(host->mci_irqenable,
 							host->base + MMCIMASK0);
 					mb();
@@ -2423,7 +2434,6 @@ msmsdcc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 	if (!(clk & MCI_CLK_ENABLE) && host->clks_on) {
 		if (mmc->card && mmc->card->type == MMC_TYPE_SDIO) {
 			if (!host->plat->sdiowakeup_irq) {
-				/* roll back xuke modification */
 				writel_relaxed(MCI_SDIOINTMASK,
 						host->base + MMCIMASK0);
 				mb();
@@ -3715,14 +3725,29 @@ set_polling(struct device *dev, struct device_attribute *attr,
 		mmc->caps |= MMC_CAP_NEEDS_POLL;
 #ifdef CONFIG_HUAWEI_WIFI_SDCC
 		if (host->pdev_id == SDCC_WIFI_SLOT) {
-			printk("%s : no need to enable polling for slot %d (as host->pdev_id) \n", __FUNCTION__ , \
+			if(WIFI_BROADCOM == get_hw_wifi_device_type())
+            {
+				printk("%s : no need to enable polling for slot %d (as host->pdev_id) \n", __FUNCTION__ , \
 							host->pdev_id );
-			mmc->caps &= ~MMC_CAP_NEEDS_POLL;
+				mmc->caps &= ~MMC_CAP_NEEDS_POLL;
 	        }
+        }
 #endif
 		mmc_detect_change(host->mmc, 0);
 	} else {
 		mmc->caps &= ~MMC_CAP_NEEDS_POLL;
+#ifdef CONFIG_HUAWEI_KERNEL 
+        if( !machine_is_msm8255_u8860_51() &&
+            !machine_is_msm8255_u8680() &&
+            !machine_is_msm8255_u8730())
+        {
+           if (SDCC_SDCARD_SLOT == host->pdev_id )
+           {
+                printk("%s: can not to disable polling for slot 1 \n",__FUNCTION__);
+                mmc->caps |= MMC_CAP_NEEDS_POLL;
+           }
+        }
+#endif
 	}
 #ifdef CONFIG_HAS_EARLYSUSPEND
 	host->polling_enabled = mmc->caps & MMC_CAP_NEEDS_POLL;
@@ -4301,9 +4326,15 @@ msmsdcc_probe(struct platform_device *pdev)
 	mmc->caps |= MMC_CAP_SDIO_IRQ;
 #endif
 #ifdef CONFIG_HUAWEI_KERNEL
-    if (4 == host->pdev_id )
-	{
-        mmc->caps |= MMC_CAP_NEEDS_POLL;
+    if( !machine_is_msm8255_u8860_51() &&
+        !machine_is_msm8255_u8680() &&
+        !machine_is_msm8255_u8730())
+    {
+        if (SDCC_SDCARD_SLOT == host->pdev_id )
+    	{
+            mmc->caps |= MMC_CAP_NEEDS_POLL;
+
+        }
     }
 #endif
 	if (plat->is_sdio_al_client)
@@ -4432,8 +4463,28 @@ msmsdcc_probe(struct platform_device *pdev)
 	 * for every claim/release operation on a host. We use this
 	 * notification to increment/decrement runtime pm usage count.
 	 */
-	mmc->caps |= MMC_CAP_DISABLE;
-	pm_runtime_enable(&(pdev)->dev);
+	 
+#ifdef CONFIG_HUAWEI_KERNEL
+#ifdef CONFIG_ARCH_MSM7X27A
+	/*
+	 * Don't disable the vdd of sd card. The sd card use sdcc1.
+	 * To fix the sd card resume fail issue.
+	 */
+    if (SDCC_SDCARD_SLOT != host->pdev_id)
+    {
+        mmc->caps |= MMC_CAP_DISABLE;
+        pm_runtime_enable(&(pdev)->dev);
+	}
+#else
+    mmc->caps |= MMC_CAP_DISABLE;
+    pm_runtime_enable(&(pdev)->dev);
+#endif
+
+#else
+    mmc->caps |= MMC_CAP_DISABLE;
+    pm_runtime_enable(&(pdev)->dev);
+#endif
+
 #else
 	if (mmc->caps & MMC_CAP_NONREMOVABLE) {
 		mmc->caps |= MMC_CAP_DISABLE;
@@ -4447,9 +4498,12 @@ msmsdcc_probe(struct platform_device *pdev)
 			(unsigned long)host);
 
 /* ignore pm notify while system resume */
-#ifdef CONFIG_HUAWEI_KERNEL
+#ifdef CONFIG_HUAWEI_WIFI_SDCC
 	if( SDCC_WIFI_SLOT == host->pdev_id ) {
-		mmc->pm_flags |= MMC_PM_IGNORE_PM_NOTIFY;
+        if(WIFI_BROADCOM == get_hw_wifi_device_type())
+        {
+			mmc->pm_flags |= MMC_PM_IGNORE_PM_NOTIFY;
+        }
 	}
 #endif
 
@@ -4721,7 +4775,18 @@ msmsdcc_runtime_suspend(struct device *dev)
 		return 0;
 	pr_debug("%s: %s: start\n", mmc_hostname(mmc), __func__);
 	if (mmc) {
+#ifdef CONFIG_HUAWEI_WIFI_SDCC
+	    if ((host->pdev_id==SDCC_WIFI_SLOT) && WIFI_QUALCOMM==get_hw_wifi_device_type())
+	    {
+		    host->sdcc_suspending = 0;
+    	}
+        else
+        {
+            host->sdcc_suspending = 1;
+	    }
+#else
 		host->sdcc_suspending = 1;
+#endif
 		mmc->suspend_task = current;
 
 		/*
@@ -4752,11 +4817,10 @@ msmsdcc_runtime_suspend(struct device *dev)
 		 * the host so that any resume requests after this will
 		 * simple become pm usage counter increment operations.
 		 */
-/* roll back xuke modification */
 		pm_runtime_get_noresume(dev);
-#ifdef CONFIG_HUAWEI_KERNEL
+#ifdef CONFIG_HUAWEI_WIFI_SDCC
 		/* If there is pending detect work abort runtime suspend */
-		if (host->pdev_id == SDCC_WIFI_SLOT) {
+		if ((host->pdev_id==SDCC_WIFI_SLOT) && WIFI_BROADCOM==get_hw_wifi_device_type()){
 			/* If there is pending detect work abort runtime suspend */
 			if (unlikely(work_busy(&mmc->detect.work))) {
 				printk("sdcc debug :work_busy!!\n");
@@ -4855,9 +4919,8 @@ msmsdcc_runtime_resume(struct device *dev)
 
 			spin_unlock_irqrestore(&host->lock, flags);
 		}
-/* roll back xuke modification */
-#ifdef CONFIG_HUAWEI_KERNEL
-		if (host->pdev_id == SDCC_WIFI_SLOT) {
+#ifdef CONFIG_HUAWEI_WIFI_SDCC
+		if ((host->pdev_id==SDCC_WIFI_SLOT) && WIFI_BROADCOM==get_hw_wifi_device_type()){
 			if(host->clks_on) {   /*if it is the wifi slot ,check clock on at mmc->ops->set_ios() */               
 				printk("sdcc debug :WIFI slot clock on!!\n");
 			}

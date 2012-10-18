@@ -83,9 +83,7 @@ static struct platform_device msm_iearpiece_device = {
 	.dev = { .platform_data = &snddev_iearpiece_data },
 };
 
-/* Add huawei devices */
 #ifdef CONFIG_HUAWEI_KERNEL
-/*< U8800 device begin */
 static struct adie_codec_action_unit iearpiece_48KHz_osr256_actions_u8800[] =
 	HANDSET_RX_48000_OSR_256_U8800;
 
@@ -128,9 +126,7 @@ static struct platform_device msm_iearpiece_device_u8800 = {
 	.id = 0,
 	.dev = { .platform_data = &snddev_iearpiece_data_u8800 },
 };
-/* U8800 device end >*/
 
-/*< U8820 device begin */
 static struct adie_codec_action_unit iearpiece_48KHz_osr256_actions_u8820[] =
 	HANDSET_RX_48000_OSR_256_U8820;
 
@@ -173,9 +169,7 @@ static struct platform_device msm_iearpiece_device_u8820 = {
 	.id = 0,
 	.dev = { .platform_data = &snddev_iearpiece_data_u8820 },
 };
-/* U8820 device end >*/
 
-/*< U8800-51 device begin */
 static struct adie_codec_action_unit iearpiece_48KHz_osr256_actions_u8800_51[] =
 	HANDSET_RX_48000_OSR_256_U8800_51;
 
@@ -218,10 +212,8 @@ static struct platform_device msm_iearpiece_device_u8800_51 = {
 	.id = 0,
 	.dev = { .platform_data = &snddev_iearpiece_data_u8800_51 },
 };
-/* U8800-51 device end >*/
 #endif
 
-/* HAC handset */
 static struct adie_codec_action_unit iearpiece_hac_48KHz_osr256_actions[] =
 	HANDSET_HAC_RX_48000_OSR_256;
 
@@ -322,9 +314,7 @@ static struct platform_device msm_imic_device = {
 	.dev = { .platform_data = &snddev_imic_data },
 };
 
-/* Add huawei devices */
 #ifdef CONFIG_HUAWEI_KERNEL
-/*< U8800 device begin */
 static struct adie_codec_action_unit imic_8KHz_osr256_actions_u8800[] =
 	HANDSET_TX_8000_OSR_256_U8800;
 
@@ -382,9 +372,7 @@ static struct platform_device msm_imic_device_u8800 = {
 	.id = 1,
 	.dev = { .platform_data = &snddev_imic_data_u8800 },
 };
-/* U8800 device end >*/
 
-/*< U8820 device begin */
 static struct adie_codec_action_unit imic_8KHz_osr256_actions_u8820[] =
 	HANDSET_TX_8000_OSR_256_U8820;
 
@@ -442,9 +430,7 @@ static struct platform_device msm_imic_device_u8820 = {
 	.id = 1,
 	.dev = { .platform_data = &snddev_imic_data_u8820 },
 };
-/* U8820 device end >*/
 
-/*< U8800-51 device begin */
 static struct adie_codec_action_unit imic_8KHz_osr256_actions_u8800_51[] =
 	HANDSET_TX_8000_OSR_256_U8800_51;
 
@@ -502,7 +488,6 @@ static struct platform_device msm_imic_device_u8800_51 = {
 	.id = 1,
 	.dev = { .platform_data = &snddev_imic_data_u8800_51 },
 };
-/* U8800-51 device end >*/
 #endif
 static struct adie_codec_action_unit ihs_stereo_rx_48KHz_osr256_actions[] =
 	HEADSET_STEREO_RX_LEGACY_48000_OSR_256;
@@ -545,9 +530,7 @@ static struct platform_device msm_ihs_stereo_rx_device = {
 	.dev = { .platform_data = &snddev_ihs_stereo_rx_data },
 };
 
-/* Add huawei devices */
 #ifdef CONFIG_HUAWEI_KERNEL
-/*< U8800 device begin */
 static struct adie_codec_action_unit ihs_stereo_rx_48KHz_osr256_actions_u8800[] =
 	HEADSET_STEREO_RX_CAPLESS_48000_OSR_256_U8800;
 
@@ -587,9 +570,7 @@ static struct platform_device msm_ihs_stereo_rx_device_u8800 = {
 	.id = 2,
 	.dev = { .platform_data = &snddev_ihs_stereo_rx_data_u8800 },
 };
-/* U8800 device end >*/
 
-/*< U8820 device begin */
 static struct adie_codec_action_unit ihs_stereo_rx_48KHz_osr256_actions_u8820[] =
 	HEADSET_STEREO_RX_CAPLESS_48000_OSR_256_U8820;
 
@@ -629,9 +610,7 @@ static struct platform_device msm_ihs_stereo_rx_device_u8820 = {
 	.id = 2,
 	.dev = { .platform_data = &snddev_ihs_stereo_rx_data_u8820 },
 };
-/* U8820 device end >*/
 
-/*< U8800-51 device begin */
 static struct adie_codec_action_unit ihs_stereo_rx_48KHz_osr256_actions_u8800_51[] =
 	HEADSET_STEREO_RX_CAPLESS_48000_OSR_256_U8800_51;
 
@@ -671,11 +650,8 @@ static struct platform_device msm_ihs_stereo_rx_device_u8800_51 = {
 	.id = 2,
 	.dev = { .platform_data = &snddev_ihs_stereo_rx_data_u8800_51 },
 };
-/* U8800-51 device end >*/
 #endif
-/* Add huawei devices */
 #ifdef CONFIG_HUAWEI_KERNEL
-/*< U8800 device begin */
 static struct adie_codec_action_unit ihs_music_stereo_rx_48KHz_osr256_actions_u8800[] =
 	HEADSET_MUSIC_STEREO_RX_CAPLESS_48000_OSR_256_U8800;
 
@@ -716,9 +692,7 @@ static struct platform_device msm_ihs_music_stereo_rx_device_u8800 = {
 	.id = 34,
 	.dev = { .platform_data = &snddev_ihs_music_stereo_rx_data_u8800 },
 };
-/* U8800 device end >*/
 
-/*< U8820 device begin */
 static struct adie_codec_action_unit ihs_music_stereo_rx_48KHz_osr256_actions_u8820[] =
 	HEADSET_MUSIC_STEREO_RX_CAPLESS_48000_OSR_256_U8820;
 
@@ -759,9 +733,7 @@ static struct platform_device msm_ihs_music_stereo_rx_device_u8820 = {
 	.id = 34,
 	.dev = { .platform_data = &snddev_ihs_music_stereo_rx_data_u8820 },
 };
-/* U8820 device end >*/
 
-/*< U8800-51 device begin */
 static struct adie_codec_action_unit ihs_music_stereo_rx_48KHz_osr256_actions_u8800_51[] =
 	HEADSET_MUSIC_STEREO_RX_CAPLESS_48000_OSR_256_U8800_51;
 
@@ -802,7 +774,6 @@ static struct platform_device msm_ihs_music_stereo_rx_device_u8800_51 = {
 	.id = 34,
 	.dev = { .platform_data = &snddev_ihs_music_stereo_rx_data_u8800_51 },
 };
-/* U8800-51 device end >*/
 #endif
 
 static struct adie_codec_action_unit ihs_mono_rx_48KHz_osr256_actions[] =
@@ -1017,9 +988,7 @@ static struct platform_device msm_ihs_mono_tx_device = {
 	.dev = { .platform_data = &snddev_ihs_mono_tx_data },
 };
 
-/* Add huawei devices */
 #ifdef CONFIG_HUAWEI_KERNEL
-/*< U8800 device begin */
 static struct adie_codec_action_unit ihs_mono_tx_8KHz_osr256_actions_u8800[] =
 	HEADSET_MONO_TX_8000_OSR_256_U8800;
 
@@ -1075,9 +1044,7 @@ static struct platform_device msm_ihs_mono_tx_device_u8800 = {
 	.id = 6,
 	.dev = { .platform_data = &snddev_ihs_mono_tx_data_u8800 },
 };
-/* U8800 device end >*/
 
-/*< U8820 device begin */
 static struct adie_codec_action_unit ihs_mono_tx_8KHz_osr256_actions_u8820[] =
 	HEADSET_MONO_TX_8000_OSR_256_U8820;
 
@@ -1133,9 +1100,7 @@ static struct platform_device msm_ihs_mono_tx_device_u8820 = {
 	.id = 6,
 	.dev = { .platform_data = &snddev_ihs_mono_tx_data_u8820 },
 };
-/* U8820 device end >*/
 
-/*< U8800-51 device begin */
 static struct adie_codec_action_unit ihs_mono_tx_8KHz_osr256_actions_u8800_51[] =
 	HEADSET_MONO_TX_8000_OSR_256_U8800_51;
 
@@ -1191,7 +1156,6 @@ static struct platform_device msm_ihs_mono_tx_device_u8800_51 = {
 	.id = 6,
 	.dev = { .platform_data = &snddev_ihs_mono_tx_data_u8800_51 },
 };
-/* U8800-51 device end >*/
 #endif
 
 static struct adie_codec_action_unit ifmradio_handset_osr64_actions[] =
@@ -1275,9 +1239,7 @@ static struct platform_device msm_ispeaker_rx_device = {
 
 };
 
-/* Add huawei devices */
 #ifdef CONFIG_HUAWEI_KERNEL
-/*< U8800 device begin */
 static struct adie_codec_action_unit ispeaker_rx_48KHz_osr256_actions_u8800[] =
    SPEAKER_RX_48000_OSR_256_U8800;
 
@@ -1300,9 +1262,9 @@ static struct snddev_icodec_data snddev_ispeaker_rx_data_u8800 = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
 	.name = "speaker_stereo_rx",
 	.copp_id = 0,
-	.acdb_id = ACDB_ID_SPKR_PHONE_MONO, //7,
+	.acdb_id = ACDB_ID_SPKR_PHONE_MONO, 
 	.profile = &ispeaker_rx_profile_u8800,
-	.channel_mode = 1,//single channel for u8800
+	.channel_mode = 1,
 	.pmctl_id = NULL,
 	.pmctl_id_sz = 0,
 	.default_sample_rate = 48000,
@@ -1319,9 +1281,7 @@ static struct platform_device msm_ispeaker_rx_device_u8800 = {
 	.id = 8,
 	.dev = { .platform_data = &snddev_ispeaker_rx_data_u8800 },
 };
-/* U8800 device end >*/
 
-/*< U8820 device begin */
 static struct adie_codec_action_unit ispeaker_rx_48KHz_osr256_actions_u8820[] =
    SPEAKER_RX_48000_OSR_256_U8820;
 
@@ -1346,7 +1306,7 @@ static struct snddev_icodec_data snddev_ispeaker_rx_data_u8820 = {
 	.copp_id = 0,
 	.acdb_id = ACDB_ID_SPKR_PHONE_MONO, //7,
 	.profile = &ispeaker_rx_profile_u8820,
-	.channel_mode = 1,//single channel for u8800_51
+	.channel_mode = 1,
 	.pmctl_id = NULL,
 	.pmctl_id_sz = 0,
 	.default_sample_rate = 48000,
@@ -1363,9 +1323,7 @@ static struct platform_device msm_ispeaker_rx_device_u8820 = {
 	.id = 8,
 	.dev = { .platform_data = &snddev_ispeaker_rx_data_u8820 },
 };
-/* U8820 device end >*/
 
-/*< U8800-51 device begin */
 static struct adie_codec_action_unit ispeaker_rx_48KHz_osr256_actions_u8800_51[] =
    SPEAKER_RX_48000_OSR_256_U8800_51;
 
@@ -1390,7 +1348,7 @@ static struct snddev_icodec_data snddev_ispeaker_rx_data_u8800_51 = {
 	.copp_id = 0,
 	.acdb_id = ACDB_ID_SPKR_PHONE_MONO, //7,
 	.profile = &ispeaker_rx_profile_u8800_51,
-	.channel_mode = 1,//single channel for u8800_51
+	.channel_mode = 1,
 	.pmctl_id = NULL,
 	.pmctl_id_sz = 0,
 	.default_sample_rate = 48000,
@@ -1407,9 +1365,7 @@ static struct platform_device msm_ispeaker_rx_device_u8800_51 = {
 	.id = 8,
 	.dev = { .platform_data = &snddev_ispeaker_rx_data_u8800_51 },
 };
-/* U8800-51 device end >*/
 #endif
-/*< speaker ptt rx device begin */
 static struct adie_codec_action_unit ispeaker_ptt_rx_48KHz_osr256_actions[] =
    SPEAKER_PTT_RX_48000_OSR_256;
 
@@ -1451,9 +1407,6 @@ static struct platform_device msm_ispeaker_ptt_rx_device = {
 	.id = 252,
 	.dev = { .platform_data = &snddev_ispeaker_ptt_rx_data },
 };
-/* speaker ptt rx device end >*/
-
-/*< speaker ptt tx device begin */
 static struct adie_codec_action_unit ispeaker_ptt_tx_8KHz_osr256_actions[] =
 	SPEAKER_PTT_TX_8000_OSR_256;
 
@@ -1467,7 +1420,7 @@ static struct adie_codec_hwsetting_entry ispeaker_ptt_tx_settings[] = {
 		.actions = ispeaker_ptt_tx_8KHz_osr256_actions,
 		.action_sz = ARRAY_SIZE(ispeaker_ptt_tx_8KHz_osr256_actions),
 	},
-	{ /* 8KHz profile is good for 16KHz */
+	{ 
 		.freq_plan = 16000,
 		.osr = 256,
 		.actions = ispeaker_ptt_tx_8KHz_osr256_actions,
@@ -1508,10 +1461,7 @@ static struct platform_device msm_ispeaker_ptt_tx_device = {
 	.id = 253,
 	.dev = { .platform_data = &snddev_ispeaker_ptt_tx_data },
 };
-/* speaker ptt tx device end >*/
-/* Add huawei devices */
 #ifdef CONFIG_HUAWEI_KERNEL
-/*< U8800 device begin */
 static struct adie_codec_action_unit ispeaker_music_mono_rx_48KHz_osr256_actions_u8800[] =
    SPEAKER_MUSIC_MONO_RX_48000_OSR_256_U8800;
 
@@ -1554,9 +1504,7 @@ static struct platform_device msm_ispeaker_music_mono_rx_device_u8800 = {
 	.dev = { .platform_data = &snddev_ispeaker_music_mono_rx_data_u8800 },
 
 };
-/* U8800 device end >*/
 
-/*< U8820 device begin */
 static struct adie_codec_action_unit ispeaker_music_mono_rx_48KHz_osr256_actions_u8820[] =
    SPEAKER_MUSIC_MONO_RX_48000_OSR_256_U8820;
 
@@ -1599,9 +1547,7 @@ static struct platform_device msm_ispeaker_music_mono_rx_device_u8820 = {
 	.dev = { .platform_data = &snddev_ispeaker_music_mono_rx_data_u8820 },
 
 };
-/* U8820 device end >*/
 
-/*< U8800-51 device begin */
 static struct adie_codec_action_unit ispeaker_music_mono_rx_48KHz_osr256_actions_u8800_51[] =
    SPEAKER_MUSIC_MONO_RX_48000_OSR_256_U8800_51;
 
@@ -1644,7 +1590,6 @@ static struct platform_device msm_ispeaker_music_mono_rx_device_u8800_51 = {
 	.dev = { .platform_data = &snddev_ispeaker_music_mono_rx_data_u8800_51 },
 
 };
-/* U8800-51 device end >*/
 #endif
 
 static struct adie_codec_action_unit ifmradio_speaker_osr64_actions[] =
@@ -1684,7 +1629,6 @@ static struct platform_device msm_ifmradio_speaker_device = {
 	.dev = { .platform_data = &snddev_ifmradio_speaker_data },
 };
 
-//configure to capless mode due to SR.00329728 and our headset is class AB rather than class D.
 #ifdef CONFIG_HUAWEI_KERNEL
 static struct adie_codec_action_unit ifmradio_headset_osr64_actions[] =
 	FM_HEADSET_CLASS_AB_STEREO_CAPLESS_OSR_64;
@@ -1818,9 +1762,7 @@ struct platform_device msm_bt_sco_mic_device = {
 	.dev = { .platform_data = &snddev_bt_sco_mic_data },
 };
 
-/* Add huawei devices */
 #ifdef CONFIG_HUAWEI_KERNEL
-/*< U8800 device begin */
 static struct snddev_ecodec_data snddev_bt_sco_earpiece_data_u8800 = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
 	.name = "bt_sco_rx",
@@ -1841,9 +1783,7 @@ struct platform_device msm_bt_sco_earpiece_device_u8800 = {
 	.id = 0,
 	.dev = { .platform_data = &snddev_bt_sco_earpiece_data_u8800 },
 };
-/* U8800 device end >*/
 
-/*< U8820 device begin */
 static struct snddev_ecodec_data snddev_bt_sco_earpiece_data_u8820 = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
 	.name = "bt_sco_rx",
@@ -1864,9 +1804,7 @@ struct platform_device msm_bt_sco_earpiece_device_u8820 = {
 	.id = 0,
 	.dev = { .platform_data = &snddev_bt_sco_earpiece_data_u8820 },
 };
-/* U8820 device end >*/
 
-/*< U8800-51 device begin */
 static struct snddev_ecodec_data snddev_bt_sco_earpiece_data_u8800_51 = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
 	.name = "bt_sco_rx",
@@ -1887,7 +1825,6 @@ struct platform_device msm_bt_sco_earpiece_device_u8800_51 = {
 	.id = 0,
 	.dev = { .platform_data = &snddev_bt_sco_earpiece_data_u8800_51 },
 };
-/* U8800-51 device end >*/
 #endif
 
 static struct adie_codec_action_unit idual_mic_endfire_8KHz_osr256_actions[] =
@@ -2021,9 +1958,7 @@ static struct platform_device msm_idual_mic_broadside_device = {
 	.dev = { .platform_data = &snddev_idual_mic_broadside_data },
 };
 
-/* Add huawei devices */
 #ifdef CONFIG_HUAWEI_KERNEL
-/*< U8800 device begin */
 static struct adie_codec_action_unit idual_mic_bs_8KHz_osr256_actions_u8800[] =
 	MIC1_LEFT_AUX_IN_RIGHT_8000_OSR_256_U8800;
 
@@ -2033,13 +1968,13 @@ static struct adie_codec_hwsetting_entry idual_mic_broadside_settings_u8800[] = 
 		.osr = 256,
 		.actions = idual_mic_bs_8KHz_osr256_actions_u8800,
 		.action_sz = ARRAY_SIZE(idual_mic_bs_8KHz_osr256_actions_u8800),
-	}, /* 8KHz profile can be used for 16KHz */
+	}, 
 	{
 		.freq_plan = 16000,
 		.osr = 256,
 		.actions = idual_mic_bs_8KHz_osr256_actions_u8800,
 		.action_sz = ARRAY_SIZE(idual_mic_bs_8KHz_osr256_actions_u8800),
-	}, /* 8KHz profile can be used for 16KHz */
+	}, 
 	{
 		.freq_plan = 48000,
 		.osr = 256,
@@ -2077,9 +2012,7 @@ static struct platform_device msm_idual_mic_broadside_device_u8800 = {
 	.id = 13,
 	.dev = { .platform_data = &snddev_idual_mic_broadside_data_u8800 },
 };
-/* U8800 device end >*/
 
-/*< U8820 device begin */
 static struct adie_codec_action_unit idual_mic_bs_8KHz_osr256_actions_u8820[] =
 	MIC1_LEFT_AUX_IN_RIGHT_8000_OSR_256_U8820;
 
@@ -2089,13 +2022,13 @@ static struct adie_codec_hwsetting_entry idual_mic_broadside_settings_u8820[] = 
 		.osr = 256,
 		.actions = idual_mic_bs_8KHz_osr256_actions_u8820,
 		.action_sz = ARRAY_SIZE(idual_mic_bs_8KHz_osr256_actions_u8820),
-	}, /* 8KHz profile can be used for 16KHz */
+	}, 
 	{
 		.freq_plan = 16000,
 		.osr = 256,
 		.actions = idual_mic_bs_8KHz_osr256_actions_u8820,
 		.action_sz = ARRAY_SIZE(idual_mic_bs_8KHz_osr256_actions_u8820),
-	}, /* 8KHz profile can be used for 16KHz */
+	}, 
 	{
 		.freq_plan = 48000,
 		.osr = 256,
@@ -2133,9 +2066,7 @@ static struct platform_device msm_idual_mic_broadside_device_u8820 = {
 	.id = 13,
 	.dev = { .platform_data = &snddev_idual_mic_broadside_data_u8820 },
 };
-/* U8820 device end >*/
 
-/*< U8800-51 device begin */
 static struct adie_codec_action_unit idual_mic_bs_8KHz_osr256_actions_u8800_51[] =
 	MIC1_LEFT_AUX_IN_RIGHT_8000_OSR_256_U8800_51;
 
@@ -2145,13 +2076,13 @@ static struct adie_codec_hwsetting_entry idual_mic_broadside_settings_u8800_51[]
 		.osr = 256,
 		.actions = idual_mic_bs_8KHz_osr256_actions_u8800_51,
 		.action_sz = ARRAY_SIZE(idual_mic_bs_8KHz_osr256_actions_u8800_51),
-	}, /* 8KHz profile can be used for 16KHz */
+	}, 
 	{
 		.freq_plan = 16000,
 		.osr = 256,
 		.actions = idual_mic_bs_8KHz_osr256_actions_u8800_51,
 		.action_sz = ARRAY_SIZE(idual_mic_bs_8KHz_osr256_actions_u8800_51),
-	}, /* 8KHz profile can be used for 16KHz */
+	}, 
 	{
 		.freq_plan = 48000,
 		.osr = 256,
@@ -2189,7 +2120,6 @@ static struct platform_device msm_idual_mic_broadside_device_u8800_51 = {
 	.id = 13,
 	.dev = { .platform_data = &snddev_idual_mic_broadside_data_u8800_51 },
 };
-/* U8800-51 device end >*/
 #endif
 
 static struct adie_codec_action_unit ispk_dual_mic_ef_8KHz_osr256_actions[] =
@@ -2347,7 +2277,6 @@ static struct adie_codec_action_unit itty_hs_mono_rx_8KHz_osr256_actions[] =
 
 static struct adie_codec_action_unit itty_hs_mono_rx_16KHz_osr256_actions[] =
 	TTY_HEADSET_MONO_RX_CLASS_D_16000_OSR_256;
-/* huawei TTY devices did not use Class D*/
 #ifdef CONFIG_HUAWEI_KERNEL
 static struct adie_codec_action_unit itty_hs_mono_rx_48KHz_osr256_actions[] =
 	TTY_HEADSET_MONO_RX_CLASS_AB_48000_OSR_256;
@@ -2460,9 +2389,7 @@ static struct platform_device msm_ispeaker_tx_device = {
 	.dev = { .platform_data = &snddev_ispeaker_tx_data },
 };
 
-/* Add huawei devices */
 #ifdef CONFIG_HUAWEI_KERNEL
-/*< U8800 device begin */
 static struct adie_codec_action_unit ispeaker_tx_8KHz_osr256_actions_u8800[] =
 	SPEAKER_TX_8000_OSR_256_U8800;
 
@@ -2476,7 +2403,7 @@ static struct adie_codec_hwsetting_entry ispeaker_tx_settings_u8800[] = {
 		.actions = ispeaker_tx_8KHz_osr256_actions_u8800,
 		.action_sz = ARRAY_SIZE(ispeaker_tx_8KHz_osr256_actions_u8800),
 	},
-	{ /* 8KHz profile is good for 16KHz */
+	{ 
 		.freq_plan = 16000,
 		.osr = 256,
 		.actions = ispeaker_tx_8KHz_osr256_actions_u8800,
@@ -2517,9 +2444,7 @@ static struct platform_device msm_ispeaker_tx_device_u8800 = {
 	.id = 18,
 	.dev = { .platform_data = &snddev_ispeaker_tx_data_u8800 },
 };
-/* U8800 device end >*/
 
-/*< U8820 device begin */
 static struct adie_codec_action_unit ispeaker_tx_8KHz_osr256_actions_u8820[] =
 	SPEAKER_TX_8000_OSR_256_U8820;
 
@@ -2533,7 +2458,7 @@ static struct adie_codec_hwsetting_entry ispeaker_tx_settings_u8820[] = {
 		.actions = ispeaker_tx_8KHz_osr256_actions_u8820,
 		.action_sz = ARRAY_SIZE(ispeaker_tx_8KHz_osr256_actions_u8820),
 	},
-	{ /* 8KHz profile is good for 16KHz */
+	{ 
 		.freq_plan = 16000,
 		.osr = 256,
 		.actions = ispeaker_tx_8KHz_osr256_actions_u8820,
@@ -2574,9 +2499,7 @@ static struct platform_device msm_ispeaker_tx_device_u8820 = {
 	.id = 18,
 	.dev = { .platform_data = &snddev_ispeaker_tx_data_u8820 },
 };
-/* U8820 device end >*/
 
-/*< U8800-51 device begin */
 static struct adie_codec_action_unit ispeaker_tx_8KHz_osr256_actions_u8800_51[] =
 	SPEAKER_TX_8000_OSR_256_U8800_51;
 
@@ -2590,7 +2513,7 @@ static struct adie_codec_hwsetting_entry ispeaker_tx_settings_u8800_51[] = {
 		.actions = ispeaker_tx_8KHz_osr256_actions_u8800_51,
 		.action_sz = ARRAY_SIZE(ispeaker_tx_8KHz_osr256_actions_u8800_51),
 	},
-	{ /* 8KHz profile is good for 16KHz */
+	{ 
 		.freq_plan = 16000,
 		.osr = 256,
 		.actions = ispeaker_tx_8KHz_osr256_actions_u8800_51,
@@ -2631,7 +2554,6 @@ static struct platform_device msm_ispeaker_tx_device_u8800_51 = {
 	.id = 18,
 	.dev = { .platform_data = &snddev_ispeaker_tx_data_u8800_51 },
 };
-/* U8800-51 device end >*/
 #endif
 
 static struct adie_codec_action_unit iearpiece_ffa_48KHz_osr256_actions[] =
@@ -2785,10 +2707,7 @@ static struct platform_device msm_ihs_stereo_speaker_stereo_rx_device = {
 	.dev = { .platform_data = &snddev_ihs_stereo_speaker_stereo_rx_data },
 };
 
-/* Add huawei devices */
 #ifdef CONFIG_HUAWEI_KERNEL
-/*< U8800 device begin */
-/* set mono capless headset and mono speaker for U8800 */
 static struct adie_codec_action_unit
 	ihs_stereo_speaker_stereo_rx_48KHz_osr256_actions_u8800[] =
 	HEADSET_MONO_SPEAKER_MONO_RX_CAPLESS_48000_OSR_256_U8800;
@@ -2833,10 +2752,7 @@ static struct platform_device msm_ihs_stereo_speaker_stereo_rx_device_u8800 = {
 	.id = 21,
 	.dev = { .platform_data = &snddev_ihs_stereo_speaker_stereo_rx_data_u8800 },
 };
-/* U8800 device end >*/
 
-/*< U8820 device begin */
-/* set mono capless headset and mono speaker for U8820, maybe need change to stereo speaker afterwards */
 static struct adie_codec_action_unit
 	ihs_stereo_speaker_stereo_rx_48KHz_osr256_actions_u8820[] =
 	HEADSET_MONO_SPEAKER_MONO_RX_CAPLESS_48000_OSR_256_U8820;
@@ -2881,10 +2797,6 @@ static struct platform_device msm_ihs_stereo_speaker_stereo_rx_device_u8820 = {
 	.id = 21,
 	.dev = { .platform_data = &snddev_ihs_stereo_speaker_stereo_rx_data_u8820 },
 };
-/* U8820 device end >*/
-
-/*< U8800-51 device begin */
-/* set mono capless headset and mono speaker for U8800-51 */
 static struct adie_codec_action_unit
 	ihs_stereo_speaker_stereo_rx_48KHz_osr256_actions_u8800_51[] =
 	HEADSET_MONO_SPEAKER_MONO_RX_CAPLESS_48000_OSR_256_U8800_51;
@@ -2929,7 +2841,6 @@ static struct platform_device msm_ihs_stereo_speaker_stereo_rx_device_u8800_51 =
 	.id = 21,
 	.dev = { .platform_data = &snddev_ihs_stereo_speaker_stereo_rx_data_u8800_51 },
 };
-/* U8800-51 device end >*/
 #endif
 
 
@@ -2971,7 +2882,6 @@ static struct adie_codec_dev_profile handset_secondary_mic_tx_profile = {
 	.setting_sz = ARRAY_SIZE(handset_secondary_mic_tx_settings),
 };
 
-/* set default_sample_rate to 48000, keep the same as handset_tx device */
 static struct snddev_icodec_data snddev_handset_secondary_mic_tx_data = {
 	.capability = (SNDDEV_CAP_TX | SNDDEV_CAP_VOICE),
 	.name = "handset_secondary_mic_tx",
@@ -3031,7 +2941,6 @@ static struct platform_device  msm_snddev_mi2s_fm_tx_device = {
 };
 
 #ifdef CONFIG_HUAWEI_KERNEL
-/* ANALOG FM SPEAKER DEVICE */
 static struct adie_codec_action_unit ifm_analog_speaker_48KHz_osr256_actions[] =
 	FM_ANALOG_SPEAKER_48000_OSR_256; 
 
@@ -3070,7 +2979,6 @@ static struct platform_device  msm_snddev_analog_fm_speaker_device = {
 	.dev = { .platform_data = &snddev_analog_fm_speaker_data},
 };
 
-/* ANALOG FM HEADSET DEVICE */
 static struct adie_codec_action_unit ifm_analog_hs_48KHz_osr256_actions[] =
 	FM_ANALOG_HEADSET_48000_OSR_256;
 
@@ -3106,7 +3014,7 @@ static struct platform_device msm_snddev_analog_fm_hs_device = {
 	.id = 251,
 	.dev = { .platform_data = &snddev_analog_fm_hs_data },
 };
-#endif //#ifdef CONFIG_HUAWEI_KERNEL
+#endif 
 
 static struct snddev_icodec_data snddev_fluid_imic_tx_data = {
 	.capability = (SNDDEV_CAP_TX | SNDDEV_CAP_VOICE),
@@ -3332,9 +3240,7 @@ static struct platform_device *snd_devices_u8800[] __initdata = {
 	&msm_itty_hs_mono_rx_device,
 	&msm_ispeaker_tx_device_u8800,
 	&msm_snddev_mi2s_fm_tx_device,
-	//delete &msm_idual_mic_endfire_device,
 	&msm_idual_mic_broadside_device_u8800,
-	//delete &msm_spk_idual_mic_endfire_device,
 	&msm_spk_idual_mic_broadside_device,    
 	&msm_handset_secondary_mic_tx_device,              
 	&msm_ihs_stereo_speaker_stereo_rx_device_u8800,

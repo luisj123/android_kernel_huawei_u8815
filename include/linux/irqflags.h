@@ -14,7 +14,6 @@
 #include <linux/typecheck.h>
 #include <asm/irqflags.h>
 
-/* merge qcom DEBUG_CODE for RPC crashes */
 #ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 extern int hw_debug_irq_disabled;
 #endif
@@ -91,7 +90,6 @@ extern int hw_debug_irq_disabled;
  * if !TRACE_IRQFLAGS.
  */
 #ifdef CONFIG_TRACE_IRQFLAGS_SUPPORT
-/* merge qcom DEBUG_CODE for RPC crashes */
 #ifndef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 #define local_irq_enable() \
 	do { trace_hardirqs_on(); raw_local_irq_enable(); } while (0)

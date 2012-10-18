@@ -218,7 +218,6 @@ msm_i2c_interrupt(int irq, void *devid)
 		}
     	if( (dev->msg->addr == 0x1E))//st303_compass address 0x1e
 		{
-			//printk(KERN_ERR "msg->addr=:0x%x \n",dev->msg->addr);
 			udelay(10);
 		}
 

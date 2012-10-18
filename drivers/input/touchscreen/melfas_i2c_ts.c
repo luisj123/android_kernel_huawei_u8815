@@ -50,7 +50,7 @@ module_param_named(melfas_debug, melfas_debug_mask, int, S_IRUGO | S_IWUSR | S_I
 		printk(KERN_ERR fmt, ##args); \
 		} \
 } while(0)
-
+static bool first_int_flag = true;
 #define TS_X_OFFSET		1
 #define TS_Y_OFFSET		TS_X_OFFSET
 #define TS_SCL_GPIO		131
@@ -753,6 +753,57 @@ static void clear_pressed_point_status(struct melfas_ts_data *ts)
     input_sync(ts->input_dev);
     memset(g_Mtouch_info, 0, sizeof(g_Mtouch_info));
 }
+#define OFILM_MODULE 0X00
+#define MUTTO_MODULE 0X01
+#define TRULY_MODULE 0X02
+#define BYD_MODULE   0X03
+#define TPK_MODULE   0X04
+#define CMI_MODULE   0X05
+#define EELY_MODULE  0X06
+
+static char touch_info[50] = {0};
+char * get_melfas_touch_info(void)
+{
+	int ret = 0;
+	char * module_name = NULL;
+
+	if (g_client == NULL)
+		return NULL;
+	ret = tp_read_input_name();
+	if (ret < 0)
+		return NULL;
+
+	switch(query_name[4])
+	{
+		case OFILM_MODULE:
+			module_name = "OFILM";
+			break;
+		case MUTTO_MODULE:
+			module_name = "MUTTO";
+			break;
+		case TRULY_MODULE:
+			module_name = "TRULY";
+			break;
+		case BYD_MODULE:
+			module_name = "BYD";
+			break;
+		case TPK_MODULE:
+			module_name = "TPK";
+			break;
+		case CMI_MODULE:
+			module_name = "CMI";
+			break;
+		case EELY_MODULE:
+			module_name = "EELY";
+			break;
+		default:
+			break;
+	}
+	
+	sprintf(touch_info,"melfas-%s.%d",module_name,query_name[2]);
+
+	return touch_info;
+}
 static void melfas_ts_work_func(struct work_struct *work)
 {
 	struct melfas_ts_data *ts = container_of(work, struct melfas_ts_data, work);
@@ -908,6 +959,11 @@ static enum hrtimer_restart melfas_ts_timer_func(struct hrtimer *timer)
 static irqreturn_t melfas_ts_irq_handler(int irq, void *dev_id)
 {
 	struct melfas_ts_data *ts = dev_id;
+	if (first_int_flag)
+	{
+		first_int_flag = false;
+		return IRQ_HANDLED;
+	}
 	disable_irq_nosync(ts->client->irq);
  	MELFAS_DEBUG("melfas_ts_irq_handler: disable irq\n");
 	queue_work(ts->melfas_wq, &ts->work);
@@ -1245,7 +1301,7 @@ static int melfas_ts_suspend(struct i2c_client *client, pm_message_t mesg)
 	{
 		enable_irq(client->irq);
 	}
-
+	first_int_flag = true;
 	ret = melfas_ts_power(client,0);
 	if (ret < 0)
 	{

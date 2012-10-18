@@ -1,7 +1,6 @@
 /* drivers/input/misc/aps-9900.h
  *
  * Copyright (C) 2010 HUAWEI, Inc.
- * Author: Benjamin Gao <gaohuajiang@huawei.com>
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -86,8 +85,9 @@
 
 #define U8655_WAVE  35
 #define U8655_WINDOW  115
-#define U8815_WAVE  150
-#define U8815_WINDOW 150
+/* update the parameters of proximity in 881X serials, it will affect 8818S and 8815 */
+#define U8815_WAVE  158
+#define U8815_WINDOW 356
 #define C8655_WAVE  40
 #define C8655_WINDOW 225
 
@@ -107,9 +107,9 @@ static uint16_t lsensor_adc_table_c8655[LSENSOR_MAX_LEVEL] = {
 static uint16_t lsensor_adc_table_m660[LSENSOR_MAX_LEVEL] = {
 	33, 100, 150, 332, 400, 480, 553
 };
-/* the values below are all experience value */
+/* the values below are all experience value and provide by wenjuan*/
 static uint16_t lsensor_adc_table_c8812[LSENSOR_MAX_LEVEL] = {
-	39, 52, 170, 389, 475, 561, 648
+	8, 80, 470, 900, 1200, 1500, 2200
 };
 static uint16_t lsensor_adc_table_u8680[LSENSOR_MAX_LEVEL] = {
 	10, 26, 210, 560, 860, 1200, 1500

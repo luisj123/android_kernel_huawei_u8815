@@ -25,10 +25,12 @@
 #include <linux/hardware_self_adapt.h>
 #ifdef CONFIG_HUAWEI_CAMERA
 #define S5K5CA_IS_NOT_ON 0 
-/*we use the variable to sign whether s5k5ca is on*/
 static int s5k5ca_is_on = S5K5CA_IS_NOT_ON;
 #endif
-
+#ifdef CONFIG_HUAWEI_CAMERA
+char  back_camera_name[128];
+char  front_camera_name[128];
+#endif
 #ifdef CONFIG_MSM_CAMERA_V4L2
 static uint32_t camera_off_gpio_table[] = {
 	GPIO_CFG(15, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
@@ -314,29 +316,27 @@ static struct i2c_board_info i2c_camera_devices[] = {
 #else
 static uint32_t camera_off_gpio_table[] = {
 	GPIO_CFG(8, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), /* RESET For mt9v113 */
+	GPIO_CFG(9, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), /* camera id */
 	GPIO_CFG(15, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_16MA),
 	GPIO_CFG(32, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), /*PWD for M660 camera*/
 	GPIO_CFG(37, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), /*PWD for U8185 camera*/
 	GPIO_CFG(49, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), /* RESET */
 
-	/* Camera I2C config like normal gpio with value 0 when camera turn off */
 	GPIO_CFG(60, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_8MA), 
 	GPIO_CFG(61, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_8MA), 
 	GPIO_CFG(119, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), /*PWD*/
 	GPIO_CFG(120, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), /*PWD for mt9v113 */
 };
 
-/* add the camera reset gpio 49*/
 static uint32_t camera_on_gpio_table[] = {
 	GPIO_CFG(8,  0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), /* RESET For mt9v113 */
-	/*increase the driving capability of  MCLK*/
+	GPIO_CFG(9,  0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), /* camera id */
 	GPIO_CFG(15, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_16MA), /* MCLK */
 	GPIO_CFG(32, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), /*PWD for M660 camera*/
 	GPIO_CFG(37, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), /*PWD for U8185 camera*/
 	GPIO_CFG(49, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), /* RESET */
 
     GPIO_CFG(7, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), /* VCM_PWD */
-	/* Camera I2C config to I2C when camera start */
 	GPIO_CFG(60, 1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA), 
 	GPIO_CFG(61, 1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA), 
 	GPIO_CFG(119, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), /* PWD */
@@ -356,6 +356,14 @@ static struct regulator_bulk_data regs_camera[] = {
 	{ .supply = "bt",   .min_uV = 2850000, .max_uV = 2850000 },
 };
 
+static struct regulator_bulk_data regs_camera_WIFI_QUALCOMM[] = {
+	{ .supply = "wlan2", .min_uV = 1300000, .max_uV = 1300000 },
+	{ .supply = "usim2",   .min_uV = 2850000, .max_uV = 2850000 },
+};
+
+static struct regulator_bulk_data regs_camera_HW_DS[] = {
+	{ .supply = "wlan2", .min_uV = 1300000, .max_uV = 1300000 },
+};
 static void qrd1_camera_gpio_cfg(void)
 {
 
@@ -415,13 +423,54 @@ static void qrd1_camera_gpio_cfg(void)
 
 static void msm_camera_vreg_config(int vreg_en)
 {
-	int rc = vreg_en ?
-		regulator_bulk_enable(ARRAY_SIZE(regs_camera), regs_camera) :
-		regulator_bulk_disable(ARRAY_SIZE(regs_camera), regs_camera);
+	int rc = 0;
+
+	if (vreg_en)
+	{		
+		if (WIFI_QUALCOMM == get_hw_wifi_device_type())
+		{
+			if (HW_DS != get_hw_ds_type())
+			{
+				rc = regulator_bulk_enable(ARRAY_SIZE(regs_camera_WIFI_QUALCOMM), 
+				regs_camera_WIFI_QUALCOMM);
+			}
+			else
+			{
+				rc = regulator_bulk_enable(ARRAY_SIZE(regs_camera_HW_DS), 
+				regs_camera_HW_DS);
+			}
+		}
+		else
+		{
+				rc = regulator_bulk_enable(ARRAY_SIZE(regs_camera), 
+				regs_camera);
+		}
+	} 
+	else 
+	{
+		if (WIFI_QUALCOMM == get_hw_wifi_device_type())
+		{
+			if (HW_DS != get_hw_ds_type())
+			{
+				rc = regulator_bulk_disable(ARRAY_SIZE(regs_camera_WIFI_QUALCOMM), 
+				regs_camera_WIFI_QUALCOMM);
+			}
+			else
+			{
+				rc = regulator_bulk_disable(ARRAY_SIZE(regs_camera_HW_DS), 
+				regs_camera_HW_DS);
+			}
+		}
+		else
+		{
+			rc = regulator_bulk_disable(ARRAY_SIZE(regs_camera), regs_camera);
+		}
+	}
 
 	if (rc)
-		pr_err("%s: could not %sable regulators: %d\n",
-				__func__, vreg_en ? "en" : "dis", rc);
+	pr_err("%s: could not %sable regulators: %d\n",
+			__func__, vreg_en ? "en" : "dis", rc);
+
 }
 
 static int config_gpio_table(uint32_t *table, int len)
@@ -442,7 +491,6 @@ static int config_gpio_table(uint32_t *table, int len)
 }
 
 #ifdef CONFIG_HUAWEI_CAMERA
-/* set and get the value of s5k5ca_is_on*/
 static void set_s5k5ca_is_on(int s5k5ca_probe_success)
 {
 	s5k5ca_is_on = s5k5ca_probe_success ;
@@ -456,7 +504,6 @@ static int get_s5k5ca_is_on(void)
 static int config_camera_on_gpios_rear(void)
 {
 	int rc = 0;
-/*delete some lines for power enable*/
 	
 	rc = config_gpio_table(camera_on_gpio_table,
 			ARRAY_SIZE(camera_on_gpio_table));
@@ -471,7 +518,6 @@ static int config_camera_on_gpios_rear(void)
 
 static void config_camera_off_gpios_rear(void)
 {
-/*delete some lines for power disable*/
 
 	config_gpio_table(camera_off_gpio_table,
 			ARRAY_SIZE(camera_off_gpio_table));
@@ -481,7 +527,6 @@ static int config_camera_on_gpios_front(void)
 {
 	int rc = 0;
 
-	/*delete one line for power enable*/
 
 	rc = config_gpio_table(camera_on_gpio_table,
 			ARRAY_SIZE(camera_on_gpio_table));
@@ -496,7 +541,6 @@ static int config_camera_on_gpios_front(void)
 
 static void config_camera_off_gpios_front(void)
 {
-	/*delete one line for power disable*/
 
 	config_gpio_table(camera_off_gpio_table,
 			ARRAY_SIZE(camera_off_gpio_table));
@@ -540,7 +584,7 @@ static struct msm_camera_sensor_flash_data flash_s5k4e1 = {
 };
 
 static struct msm_camera_sensor_info msm_camera_sensor_s5k4e1_data = {
-	.sensor_name    = "s5k4e1",
+	.sensor_name    = (char*)back_camera_name,
 	.sensor_reset_enable = 1,
 	.sensor_reset   = 49,
 	.sensor_pwd             = 119,
@@ -552,7 +596,6 @@ static struct msm_camera_sensor_info msm_camera_sensor_s5k4e1_data = {
 	.csi_if                 = 1,
 	.vreg_enable_func = msm_camera_vreg_config,
 	.vreg_disable_func = msm_camera_vreg_config,
-	/*back camera is not slave_sensor, below as the same*/
 	.slave_sensor           = 0
 };
 
@@ -641,7 +684,7 @@ static struct msm_camera_sensor_flash_data flash_mt9e013 = {
 
 #ifdef CONFIG_HUAWEI_SENSOR_MT9E013
 static struct msm_camera_sensor_info msm_camera_sensor_mt9e013_data = {
-	.sensor_name    = "mt9e013",
+	.sensor_name    = (char*)back_camera_name,
 	.sensor_reset   = 49,
 	.sensor_reset_enable = 1,
 	.sensor_pwd     = 119,
@@ -675,7 +718,7 @@ static struct msm_camera_sensor_flash_data flash_mt9p017 = {
 };
 
 static struct msm_camera_sensor_info msm_camera_sensor_mt9p017_data = {
-	.sensor_name    = "mt9p017",
+	.sensor_name    =(char*)back_camera_name,
 	.sensor_reset   = 49,
 	.sensor_reset_enable = 1,
 	.sensor_pwd     = 119,
@@ -709,7 +752,7 @@ static struct msm_camera_sensor_flash_data flash_s5k5ca = {
 };
 
 static struct msm_camera_sensor_info msm_camera_sensor_s5k5ca_data = {
-	.sensor_name    = "s5k5ca",
+	.sensor_name    = (char*)back_camera_name,
 	.sensor_reset   = 49,
 	.sensor_reset_enable = 1,
 	.sensor_pwd     = 119,
@@ -743,7 +786,7 @@ static struct msm_camera_sensor_flash_data flash_mt9t113 = {
 };
 
 static struct msm_camera_sensor_info msm_camera_sensor_mt9t113_data = {
-	.sensor_name    = "mt9t113",
+	.sensor_name    =(char*)back_camera_name,
 	.sensor_reset   = 49,
 	.sensor_reset_enable = 1,
 	.sensor_pwd     = 119,
@@ -752,7 +795,6 @@ static struct msm_camera_sensor_info msm_camera_sensor_mt9t113_data = {
 	.pdata          = &msm_camera_device_data_rear,
 	.flash_data     = &flash_mt9t113,
 	.sensor_platform_info   = &mt9t113_sensor_info,
-	/*delete one line*/
 	.csi_if         = 1,
 	.vreg_enable_func = msm_camera_vreg_config,
 	.vreg_disable_func = msm_camera_vreg_config,
@@ -777,7 +819,7 @@ static struct msm_camera_sensor_flash_data flash_mt9d113 = {
 };
 
 static struct msm_camera_sensor_info msm_camera_sensor_mt9d113_data = {
-	.sensor_name    = "mt9d113",
+	.sensor_name    = (char*)back_camera_name,
 	.sensor_reset   = 49,
 	.sensor_reset_enable = 1,
 	.sensor_pwd     = 119,
@@ -810,7 +852,7 @@ static struct msm_camera_sensor_flash_data flash_mt9v113 = {
 };
 
 static struct msm_camera_sensor_info msm_camera_sensor_mt9v113_data = {
-	.sensor_name    = "mt9v113",
+	.sensor_name    =(char*)front_camera_name,
 	.sensor_reset   = 8,
 	.sensor_reset_enable = 1,
 	.sensor_pwd     = 120,
@@ -833,7 +875,6 @@ static struct platform_device msm_camera_sensor_mt9v113 = {
 	},
 };
 #endif
-/* driver for hw device detect */
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
 static struct platform_device huawei_device_detect = {
 	.name = "hw-dev-detect",
@@ -947,7 +988,6 @@ static struct i2c_board_info i2c_camera_devices[] = {
 	#endif
 	#ifdef CONFIG_HUAWEI_CAMERA_SENSOR_MT9T113
 	{
-		/* mt9t113 real i2c address is 0x3C*/
 		I2C_BOARD_INFO("mt9t113", 0x3C),
 	},
 	#endif
@@ -1020,7 +1060,25 @@ static struct platform_device *camera_devices_qrd[] __initdata = {
 enum {
 	SX150X_CAM,
 };
-
+#ifdef CONFIG_HUAWEI_CAMERA
+static void camera_sensor_pwd_config(void)
+{
+	if(LCD_IS_RGB == get_hw_lcd_interface_type())
+	{
+		int gpio_pwd = 37;
+		if(machine_is_msm7x27a_M660())
+		{
+			gpio_pwd = 32;
+		}
+		pr_err("camera sensor pwd gpio is %d\n",gpio_pwd);
+		
+		msm_camera_sensor_mt9p017_data.sensor_pwd = gpio_pwd;
+		msm_camera_sensor_s5k4e1_data.sensor_pwd = gpio_pwd;
+		msm_camera_sensor_s5k5ca_data.sensor_pwd = gpio_pwd;
+		msm_camera_sensor_mt9t113_data.sensor_pwd = gpio_pwd;
+	}
+}
+#endif
 static struct sx150x_platform_data sx150x_data[] __initdata = {
 	[SX150X_CAM]    = {
 		.gpio_base	      = GPIO_CAM_EXPANDER_BASE,
@@ -1049,7 +1107,9 @@ static void __init register_i2c_devices(void)
 void __init msm7627a_camera_init(void)
 {
 	int rc;
-
+#ifdef CONFIG_HUAWEI_CAMERA
+		camera_sensor_pwd_config();
+#endif
 #ifndef CONFIG_MSM_CAMERA_V4L2
 	if (machine_is_msm7627a_qrd1()) {
 		qrd1_camera_gpio_cfg();
@@ -1061,18 +1121,58 @@ void __init msm7627a_camera_init(void)
 #endif
 	if (!machine_is_msm7627a_qrd1())
 		register_i2c_devices();
-	rc = regulator_bulk_get(NULL, ARRAY_SIZE(regs_camera), regs_camera);
+	if (WIFI_QUALCOMM == get_hw_wifi_device_type())
+	{
+		if (HW_DS != get_hw_ds_type())
+		{
+			rc = regulator_bulk_get(NULL, 
+			ARRAY_SIZE(regs_camera_WIFI_QUALCOMM), regs_camera_WIFI_QUALCOMM);
 
-	if (rc) {
-		pr_err("%s: could not get regulators: %d\n", __func__, rc);
-		return;
+			if (rc) {
+				pr_err("%s: could not get regs_camera_WIFI_QUALCOMM: %d\n", __func__, rc);
+					return;
+			}
+
+			rc = regulator_bulk_set_voltage(ARRAY_SIZE(regs_camera_WIFI_QUALCOMM), regs_camera_WIFI_QUALCOMM);
+
+			if (rc) {
+				pr_err("%s: could not set regs_camera_WIFI_QUALCOMM: %d\n", __func__, rc);
+				return;
+			}
+		}
+		else
+		{
+			rc = regulator_bulk_get(NULL, 
+			ARRAY_SIZE(regs_camera_HW_DS), regs_camera_HW_DS);
+
+			if (rc) {
+				pr_err("%s: could not get regs_camera_HW_DSs: %d\n", __func__, rc);
+				return;
+			}
+
+			rc = regulator_bulk_set_voltage(ARRAY_SIZE(regs_camera_HW_DS), regs_camera_HW_DS);
+
+			if (rc) {
+				pr_err("%s: could not set regs_camera_HW_DS: %d\n", __func__, rc);
+				return;
+			}
+		}
 	}
+	else
+	{
+		rc = regulator_bulk_get(NULL, ARRAY_SIZE(regs_camera), regs_camera);
 
-	rc = regulator_bulk_set_voltage(ARRAY_SIZE(regs_camera), regs_camera);
+		if (rc) {
+			pr_err("%s: could not get regulators: %d\n", __func__, rc);
+			return;
+		}
 
-	if (rc) {
-		pr_err("%s: could not set voltages: %d\n", __func__, rc);
-		return;
+		rc = regulator_bulk_set_voltage(ARRAY_SIZE(regs_camera), regs_camera);
+
+		if (rc) {
+			pr_err("%s: could not set voltages: %d\n", __func__, rc);
+			return;
+		}
 	}
 
 #if defined(CONFIG_MSM_CAMERA_V4L2)

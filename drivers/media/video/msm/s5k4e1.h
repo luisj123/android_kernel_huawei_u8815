@@ -93,4 +93,9 @@ struct s5k4e1_reg {
 	const struct s5k4e1_i2c_reg_conf *reg_snap;
 	const unsigned short reg_snap_size;
 };
+enum S5k4E1_MODE_TYPE
+{
+	S5k4E1_MODE_LITEON,
+	S5k4E1_MODE_SAMSUNG,
+};
 #endif /* S5K4E1_H */

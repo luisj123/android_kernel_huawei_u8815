@@ -250,14 +250,9 @@ struct msm_camera_sensor_info {
 	enum msm_camera_type camera_type;
 	struct msm_actuator_info *actuator_info;
 	#ifdef CONFIG_HUAWEI_CAMERA
-	/*we can stop camera probe after one probe succeed via the variable*/
 	int slave_sensor;
-	/*funcs for camera sensor to enable and disable power*/
 	void (*vreg_enable_func) (int);
 	void (*vreg_disable_func) (int);
-	/* set_s5k5ca_is_on used to set whether s5k5ca is on or not 
-	 * get_s5k5ca_is_on used to get whether s5k5ca is on or not
-	 */
 	void (*set_s5k5ca_is_on)(int);
 	int  (*get_s5k5ca_is_on)(void);
 	#endif
@@ -524,7 +519,6 @@ void msm_snddev_tx_route_config(void);
 void msm_snddev_tx_route_deconfig(void);
 #ifdef CONFIG_HUAWEI_KERNEL
 void msm_snddev_poweramp_4music_on(void);
-/* u8860 add hac gpio ctl */
 void msm_snddev_hac_on(void);
 void msm_snddev_hac_off(void);
 #endif

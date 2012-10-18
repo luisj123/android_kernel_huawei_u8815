@@ -30,10 +30,8 @@ when       who      what, where, why
 =========================================================================== */
 #define IC_PM_ON   1
 #define IC_PM_OFF  0
-/*fengwei begin*/
 /* updated for regulator interface */
 #define IC_PM_VDD 2700000   /*set gp4 voltage as 2700mV for all*/
-/*fengwei end*/
 
 #define MMI_KEY_UP   	false
 #define MMI_KEY_DOWN 	true
@@ -114,6 +112,8 @@ typedef enum
 	MDDI_HX8357C_TIANMA_HVGA,
 	MDDI_HX8357C_CHIMEI_HVGA,
 	MDDI_HX8357C_CHIMEI_IPS_HVGA,
+	MDDI_HX8357C_TIANMA_IPS_HVGA,
+    MDDI_RSP61408_TRULY_WVGA,
 	MIPI_HX8357C_TIANMA_IPS_HVGA,
 	MIPI_RSP61408_TRULY_WVGA, 
 
@@ -200,6 +200,19 @@ typedef enum
    WIFI_UNKNOW = 0xFF,	
 }hw_wifi_device_model;
 hw_wifi_device_model get_hw_wifi_device_model(void);
+typedef enum
+{
+   BT_BCM4329,
+   BT_BCM4330,
+   BT_WCN2243,
+   BT_UNKNOWN,	
+} hw_bt_device_model;
+
+struct bt_device
+{
+    hw_bt_device_model dev_model;
+    char *dev_name;
+};
 typedef enum
 {
    HW_NODS = 0,    /* single sim card type */
@@ -309,6 +322,8 @@ char *get_compass_gs_position_name(void);
 char *get_sensors_list_name(void);
 char *get_wifi_device_name(void);
 lcd_panel_type get_lcd_panel_type(void);
+hw_bt_device_model get_hw_bt_device_model(void);
+char *get_bt_device_name(void);
 hw_lcd_ctrl_bl_type get_hw_lcd_ctrl_bl_type(void);
 lcd_type get_hw_lcd_resolution_type(void);
 lcd_align_type get_lcd_align_type(void);
@@ -329,6 +344,22 @@ void get_frame_buffer_mem_region(__u32 *start_addr, __u32 *size);
 void get_cust_buffer_mem_region(__u32 * start_addr, __u32 * size);
 
 bool qwerty_is_supported(void);
+
+/* named Rule
+ * 2202 3200 : syanptics-IC-Module.ver
+ * for example: syanptics-3200-tpk.2
+ *
+ * 2000 2100 3000 :syanptics-Module.ver
+ * for example: syanptics-tpk.2
+ *
+ * melfas :melfas-Module.ver
+ * for example: melfas-tpk.2
+ *
+ * return touch info
+ */
+char *get_touch_info(void);
+char *get_synaptics_touch_info(void);
+char *get_melfas_touch_info(void);
 
 #ifdef CONFIG_HUAWEI_FEATURE_PROXIMITY_EVERLIGHT_APS_9900
 #define MSM_7X27A_APS9900_INT 17

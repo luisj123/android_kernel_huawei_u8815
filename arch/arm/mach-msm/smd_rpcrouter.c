@@ -1098,7 +1098,6 @@ static void do_read_data(struct work_struct *work)
 			xid = ntohl(rq->xid);
 		}
 		#ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
-		/*add log for debug rpc issue*/
         printk("RPC receive deubg #1: xid=0x%03x\n",xid);
 		#endif
 		if ((pm >> 31 & 0x1) || (pm >> 30 & 0x1))
@@ -1113,7 +1112,6 @@ static void do_read_data(struct work_struct *work)
 
 	if (smd_rpcrouter_debug_mask & SMEM_LOG) {
 		rq = (struct rpc_request_hdr *) frag->data;
-		/*add log for debug rpc issue*/
 		#ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
         printk("RPC receive deubg #2: xid=0x%03x, ntohl(xid)=0x%03x\n",rq->xid, ntohl(rq->xid));
 		printk("RPC debug #3 prog=0x%x, ver=0x%x,proc=0x%x\n", ntohl(rq->prog), ntohl(rq->vers), ntohl(rq->procedure));
@@ -2515,7 +2513,6 @@ static int __init rpcrouter_init(void)
 #ifndef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 	smd_rpcrouter_debug_mask |= SMEM_LOG;
 #else
-	/* merge qcom SBA from 7x30 2030 baseline*/
 	smd_rpcrouter_debug_mask = 511;
 #endif
 	debugfs_init();

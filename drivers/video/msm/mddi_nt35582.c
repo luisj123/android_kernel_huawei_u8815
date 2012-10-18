@@ -54,7 +54,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
-/*creat by lijuan 00152865 2010/03/30*/
 
 
 #include "msm_fb.h"
@@ -184,10 +183,6 @@ static int __init nt35582_init(void)
 		pinfo->pdest = DISPLAY_1;
 		pinfo->mddi.vdopkt = MDDI_DEFAULT_PRIM_PIX_ATTR;
 		pinfo->wait_cycle = 0;
-/* Set MDDI clk 192MHz,set 24bit per pixel,
- * adjust the start of data to sync with vsync signal
- */
-/* change 24bit into 16bit */
 		pinfo->bpp = 16;
 		pinfo->fb_num = 2;
         pinfo->clk_rate = 192000000;
@@ -195,7 +190,6 @@ static int __init nt35582_init(void)
 	    pinfo->clk_max = 192000000;
         LCD_DEBUG("%s: BYD LCD and Truly LCD,set MDDI_CLK=%d \n",__func__, pinfo->clk_rate);
 		pinfo->lcd.vsync_enable = TRUE;
-/* Reduce the fps,sync depend on the vsync signal*/
         pinfo->lcd.refx100 = 4000;
 		pinfo->lcd.v_back_porch = 0;
 		pinfo->lcd.v_front_porch = 0;

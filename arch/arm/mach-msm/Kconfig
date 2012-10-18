@@ -914,7 +914,6 @@ config HUAWEI_KEY_TEST
 	default n
 	help
 	  Select Y if use auto key test.
-# changed by durui
 config  HUAWEI_KERNEL
 	bool  "HUAWEI BSP"
 	default n

@@ -96,7 +96,6 @@ enum mschine_type{
     HW_MACHINE_7X2725A,
 };
 static int get_current_machine(void);
-/* creates /sys/module/rpc_server_handset/parameters/oeminfo_rpc_debug_mask file */
 static int oeminfo_rpc_debug_mask = 0;
 module_param(oeminfo_rpc_debug_mask, int, S_IRUGO | S_IWUSR | S_IWGRP);
 
@@ -362,13 +361,6 @@ struct oeminfo_type
 
 #define RMT_OEMINFO_WAIT_FOR_REQ 0x5555
 #define RMT_OEMINFO_SEND_STATUS  0x6666
-/*
-#define RMT_OEMINFO_WAIT_FOR_REQ \
-	_IOR(RMT_OEMINFO_SERVER_IOCTL_MAGIC, 1, struct oeminfo_type)
-
-#define RMT_OEMINFO_SEND_STATUS \
-	_IOW(RMT_OEMINFO_SERVER_IOCTL_MAGIC, 2, struct rmt_oeminfo_cb)
-*/
 
 struct rmt_oeminfo_server_info {
 	unsigned long cids;
@@ -378,9 +370,7 @@ struct rmt_oeminfo_server_info {
 	wait_queue_head_t event_q;
 	struct list_head event_list;
 	struct list_head data_list;
-	/* Lock to protect event list and client info list */
 	spinlock_t lock;
-	/* Wakelock to be acquired when processing requests from modem */
 	struct wake_lock wlock;
 	atomic_t wcount;
 };
@@ -451,8 +441,6 @@ static int rmt_oeminfo_server_probe(struct platform_device *pdev)
 	atomic_set(&rms->total_events, 0);
 	INIT_LIST_HEAD(&rms->event_list);
 	INIT_LIST_HEAD(&rms->data_list);
-	/* The client expects a non-zero return value for
-	 * its open requests. Hence reserve 0 bit.  */
 	__set_bit(0, &rms->cids);
 	atomic_set(&rms->wcount, 0);
 	wake_lock_init(&rms->wlock, WAKE_LOCK_SUSPEND, "rmt_oeminfo");
@@ -573,13 +561,11 @@ static int rmt_oeminfo_handle_key(uint32_t key_parm)
 	OEMINFO_RPC_DEBUG("emmc_oeminfo: %s(). malloc kdata OK. \n",__func__);
   }
 
-  // share_ptr = (void *)be32_to_cpu(key_parm);
   share_ptr = smem_alloc(SMEM_LCD_CUR_PANEL, sizeof(struct oeminfo_type));
   OEMINFO_RPC_DEBUG("emmc_oeminfo: share_ptr is 0x%x. \n",(int)share_ptr);
   
   print_oeminfo_data(share_ptr);
   
-  // memcpy(&kevent->event, share_ptr , sizeof(struct oeminfo_type));
   kevent->event = share_ptr;
 
   msm_rpc_server_get_requesting_client(&kdata->cinfo);
@@ -603,7 +589,6 @@ static long rmt_oeminfo_ioctl(struct file *fp, unsigned int cmd,
 {
 	int ret = 0;
 	int rc = -1;
-	/* notify modem to run tmc_huawei_init only once, on boot */
 	static bool firstboot = true;
 	struct rmt_oeminfo_server_info *rms = _rms;
 	struct rmt_oeminfo_kevent *kevent;
@@ -620,7 +605,6 @@ static long rmt_oeminfo_ioctl(struct file *fp, unsigned int cmd,
 			if (firstboot == true)
 			{
 				firstboot = false;
-				/* use rpc to set sig TMC_KERNEL_READY_SIG */
 				rc = msm_rpc_client_req(rpc_client, OEMINFO_READY_PROC,
 					NULL, NULL,
 					NULL, NULL, -1);
@@ -779,7 +763,6 @@ static void update_state(void)
 static void report_hs_key(uint32_t key_code, uint32_t key_parm)
 {
 	int key, temp_key_code;
-/* add it for get UTC */
 #ifdef CONFIG_HUAWEI_KERNEL 
     struct timespec ts;  
     struct rtc_time tm;
@@ -798,7 +781,6 @@ static void report_hs_key(uint32_t key_code, uint32_t key_parm)
 	case KEY_POWER:
 		break;
 	case KEY_END:
-   /* add log,print key code and UTC */
     #ifdef CONFIG_HUAWEI_KERNEL
         getnstimeofday(&ts);  
         rtc_time_to_tm(ts.tv_sec, &tm);
@@ -812,8 +794,6 @@ static void report_hs_key(uint32_t key_code, uint32_t key_parm)
 		break;
 	case KEY_MEDIA:
 #ifdef CONFIG_HUAWEI_KERNEL
-        /* add 2s wake lock here to fix issue that time of press headset key  
-         * is not enough when AP seelp during incall */
         wake_lock_timeout(&headset_unplug_wake_lock, HEADSET_WAKE_DURING*HZ);
 #endif
 	case KEY_VOLUMEUP:
@@ -827,11 +807,7 @@ static void report_hs_key(uint32_t key_code, uint32_t key_parm)
 #ifdef CONFIG_HUAWEI_KERNEL
         printk(KERN_ERR "%s: SW_HEADPHONE_INSERT: key_code = %d\n",__func__, key_code);
 
-		//delete
-            /* add 2s wake lock here to fix issue that time of swtiching audio-output 
-             * is not enough when headset unpluging during incall */
             wake_lock_timeout(&headset_unplug_wake_lock, HEADSET_WAKE_DURING*HZ);
-		//delete
 #endif
 		hs->mic_on = hs->hs_on = (key_code != HS_REL_K) ? 1 : 0;
 		input_report_switch(hs->ipdev, SW_HEADPHONE_INSERT,
@@ -1290,11 +1266,9 @@ static struct platform_driver hs_driver = {
 
 static int __init hs_init(void)
 {
-    /* <emmc_oeminfo duangan 2010-4-25 begin */
 	#ifdef CONFIG_HUAWEI_FEATURE_OEMINFO
     platform_driver_register(&rmt_oeminfo_driver);
 	#endif
-    /* emmc_oeminfo duangan 2010-4-25 end> */
     
 	return platform_driver_register(&hs_driver);
 }

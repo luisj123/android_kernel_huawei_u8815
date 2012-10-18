@@ -1991,7 +1991,6 @@ static int msm_get_sensor_info(struct msm_sync *sync, void __user *arg)
 #else
 	if(sdata->pdata->get_board_support_flash != NULL)
 	{
-		/*board support flash should be added as another condition*/
 		info.flash_enabled = (sdata->flash_data->flash_type != MSM_CAMERA_FLASH_NONE)
 			 && (true == sdata->pdata->get_board_support_flash());
 	}
@@ -2902,16 +2901,18 @@ static long msm_ioctl_config(struct file *filep, unsigned int cmd,
 			rc = -EFAULT;
 		} else
 		{
-            /*Condition that the flash is tps61310 */
+#ifdef CONFIG_ARCH_MSM7X30
 			if(machine_is_msm8255_u8680())
 			{
+#endif
 				if(LED_FLASH == flash_info.flashtype)
 				{
 					CDBG("tps61310_set_flash enter");
 					rc = tps61310_set_flash(flash_info.ctrl_data.led_state);
 				}
+#ifdef CONFIG_ARCH_MSM7X30
 			}
-            /*other flashes*/
+#endif
 			else
 			{
 				CDBG("msm_flash_ctrl enter");
@@ -2946,7 +2947,27 @@ static long msm_ioctl_config(struct file *filep, unsigned int cmd,
 }
 
 static int msm_unblock_poll_frame(struct msm_sync *);
+static int msm_reset_camera_esd(struct msm_sync *sync,void __user *arg)
+{
+    int rc = -EINVAL;
+    int esd_debug_count = 0;
+    
+    if(sync->sctrl.s_reset_regs)
+    {
+        if (copy_from_user(&esd_debug_count,arg,sizeof(int))) {
+            ERR_COPY_FROM_USER();
+            return -EFAULT;
+        }
 
+        printk(KERN_DEBUG "%s:%d real_count=%d\n",__func__,__LINE__,esd_debug_count);
+
+        rc = sync->sctrl.s_reset_regs();
+        if(rc < 0)
+            printk("%s:%d fail\n",__func__,__LINE__);
+    }
+
+    return rc;
+}
 static long msm_ioctl_frame(struct file *filep, unsigned int cmd,
 	unsigned long arg)
 {
@@ -2966,6 +2987,9 @@ static long msm_ioctl_frame(struct file *filep, unsigned int cmd,
 		break;
 	case MSM_CAM_IOCTL_UNBLOCK_POLL_FRAME:
 		rc = msm_unblock_poll_frame(pmsm->sync);
+		break;
+	case MSM_CAM_IOCTL_RESETCAMERA_FOR_ESD:
+		rc = msm_reset_camera_esd(pmsm->sync, argp);
 		break;
 	default:
 		break;
@@ -3099,7 +3123,6 @@ static int __msm_release(struct msm_sync *sync)
 
 		wake_unlock(&sync->wake_lock);
 #ifdef CONFIG_HUAWEI_EVALUATE_POWER_CONSUMPTION 
-        /* turn down inside and outside camera consume */
         huawei_rpc_current_consuem_notify(EVENT_CAMERA_STATE, DEVICE_POWER_STATE_OFF);
 #endif
 		sync->apps_id = NULL;
@@ -3794,7 +3817,6 @@ static int __msm_open(struct msm_cam_device *pmsm, const char *const apps_id,
 			goto msm_open_err;
 		}
 #ifdef CONFIG_HUAWEI_EVALUATE_POWER_CONSUMPTION 
-        /* calculate consume for ins and outs camera */
         if(sync->sdata->slave_sensor) /* inside camera open */       
         {   
             huawei_rpc_current_consuem_notify(EVENT_INS_CAMERA_STATE, DEVICE_POWER_STATE_ON);
@@ -3981,14 +4003,13 @@ static int msm_sync_init(struct msm_sync *sync,
 	int rc = 0;
 	struct msm_sensor_ctrl sctrl;
 	sync->sdata = pdev->dev.platform_data;
-
+	memset(&sctrl, 0, sizeof(struct msm_sensor_ctrl));
 	msm_queue_init(&sync->event_q, "event");
 	msm_queue_init(&sync->frame_q, "frame");
 	msm_queue_init(&sync->pict_q, "pict");
 	msm_queue_init(&sync->vpe_q, "vpe");
 
 #ifdef CONFIG_HUAWEI_KERNEL
-    /** do not sleep in camera to help lower the crash probability. qinwei **/
 	wake_lock_init(&sync->wake_lock, WAKE_LOCK_SUSPEND, "msm_camera");
 #else
 	wake_lock_init(&sync->wake_lock, WAKE_LOCK_IDLE, "msm_camera");
@@ -4005,7 +4026,6 @@ static int msm_sync_init(struct msm_sync *sync,
 		sync->sctrl = sctrl;
 	}
 	msm_camio_probe_off(pdev);
-	/*add a 10ms delay between camera probes for IOVDD to down*/
 	mdelay(10);
 	if (rc < 0) {
 		pr_err("%s: failed to initialize %s\n",

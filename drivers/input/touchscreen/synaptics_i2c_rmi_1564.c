@@ -73,7 +73,6 @@ DEVICE_ATTR(_pre##_##_name,_mode,_pre##_##_name##_show,_pre##_##_name##_store)
 #define TS_DEBUG_RMI(fmt, args...)
 #endif
 
-/* add the reg which will use */
 #ifdef CONFIG_SYNAPTICS_UPDATE_RMI_TS_FIRMWARE
 #define SYNAPITICS_DEBUG(fmt, args...) printk(KERN_DEBUG fmt, ##args)
 static struct i2c_client *g_client = NULL;
@@ -83,14 +82,12 @@ static ssize_t update_firmware_store(struct kobject *kobj, struct kobj_attribute
 static int ts_firmware_file(void);
 static int i2c_update_firmware(struct i2c_client *client); 
 
-/* change the firmware file authority 664 */
 static struct kobj_attribute update_firmware_attribute = {
 	.attr = {.name = "update_firmware", .mode = 0664},
 	.show = update_firmware_show,
 	.store = update_firmware_store,
 };
 #endif /* CONFIG_SYNAPTICS_UPDATE_RMI_TS_FIRMWARE */
-/*use this to contrl the debug message*/
 static int synaptics_debug_mask;
 module_param_named(synaptics_debug, synaptics_debug_mask, int,
 		S_IRUGO | S_IWUSR | S_IWGRP);
@@ -106,7 +103,6 @@ static struct workqueue_struct *synaptics_wq;
 static struct synaptics_rmi4 *ts = NULL;
 
 
-/* Register: EGR_0 */
 #define EGR_PINCH_REG		0
 #define EGR_PINCH 		(1 << 6)
 #define EGR_PRESS_REG 		0
@@ -125,21 +121,15 @@ static struct synaptics_rmi4 *ts = NULL;
 #define EGR_PALM_DETECT_REG	1
 #define EGR_PALM_DETECT		(1 << 0)
 
-/* delete some lines which is not needed anymore*/
 
-/* kernel29 -> kernel32 driver modify*/
 
-/* delete some lines which is not needed anymore*/
-/* Past to beginning of Relative axes events just past Relative axes comment. */
 #define FINGER_MAX 9
 #define FINGER_CNT (FINGER_MAX+1)
 #define SYNAPTICS_I2C_RMI_NAME "Synaptics_RMI4"
 
-/* delete some lines which is not needed anymore*/
 
 
 
-/* Past at end of the Absolute axes events - replace ABS_MAX with this one. */
 
 #define ABS_XF			0
 #define ABS_YF			1
@@ -158,7 +148,6 @@ struct synaptics_function_descriptor {
 	__u8 commandBase;
 	__u8 controlBase;
 	__u8 dataBase;
-/* delete some lines which is not needed anymore*/
 	__u8 intSrc;
 #define FUNCTION_VERSION(x) ((x >> 5) & 3)
 #define INTERRUPT_SOURCE_COUNT(x) (x & 7)
@@ -170,7 +159,6 @@ struct synaptics_function_descriptor {
 #define FD_BYTE_COUNT 6
 
 
-/* synaptics module name and id table*/
 #define BYD     1
 #define CMI     2
 #define TRULY   3
@@ -197,7 +185,6 @@ static int ts_y_max = 0;
 static int lcd_x = 0;
 static int lcd_y = 0;
 static int lcd_all = 0;
-/*delete some lines we don't used*/
 static __u8 point_supported_huawei = 0;
 
 
@@ -205,14 +192,12 @@ static __u8 point_supported_huawei = 0;
 
 
 
-/* define in platform/board file(s) */
 extern struct i2c_device_id synaptics_rmi4_id[];
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
 static void synaptics_rmi4_early_suspend(struct early_suspend *h);
 static void synaptics_rmi4_late_resume(struct early_suspend *h);
 #endif
-/*check the scope of X  axes*/
 u12 check_scope_X(u12 x)
 {
 	u12 temp = x;
@@ -242,7 +227,13 @@ static int synaptics_rmi4_read_pdt(struct synaptics_rmi4 *ts)
 	struct i2c_msg query_i2c_msg[2];
 	__u8 query[14];
 	__u8 *egr;
-
+    /* check whether rmi page is 0 */
+    ret = i2c_smbus_write_byte_data(ts->client, 0xff, 0x00);
+	if(ret < 0) {
+		printk(KERN_ERR "failed to set rmi page\n");
+	} else {
+		printk("set rmi page to zero successfull\n");
+	}
 	fd_i2c_msg[0].addr = ts->client->addr;
 	fd_i2c_msg[0].flags = 0;
 	fd_i2c_msg[0].buf = &fd_reg;
@@ -278,7 +269,6 @@ static int synaptics_rmi4_read_pdt(struct synaptics_rmi4 *ts)
 			printk(KERN_ERR "I2C read failed querying RMI4 $%02X capabilities\n", ts->client->addr);
 			return ret;
 		}
-/* delete some lines which is not needed anymore*/
 		if (!fd.functionNumber) 
         {
 			/* End of PDT */
@@ -331,8 +321,10 @@ static int synaptics_rmi4_read_pdt(struct synaptics_rmi4 *ts)
 
 				ts->f11_has_gestures = (query[1] >> 5) & 1;
 				ts->f11_has_relative = (query[1] >> 3) & 1;
+				/* < DTS2010090603538 zhangtao 20100913 begin */
 				/* if the sensitivity adjust exist */
                 ts->f11_has_Sensitivity_Adjust = (query[1] >> 6) & 1;
+				/* DTS2010090603538 zhangtao 20100913 end > */
 				egr = &query[7];
 
  
@@ -434,9 +426,7 @@ pdt_next_iter:
 	ts->data_length -= ts->data_reg;
     // I want to read the register from F01_data_reg
     ts->data_reg = ts->f01.data_offset; 
-    //only need to read F01 data and F11 data per interrupt
     ts->data_length = (ts->f01.data_length) + (ts->f11.data_length);
-	/*Change all data offsets to be relative to first register read */
  	ts->f01.data_offset -= ts->data_reg;
 	ts->f11.data_offset -= ts->data_reg;
 	ts->f19.data_offset -= ts->data_reg;
@@ -464,16 +454,13 @@ pdt_next_iter:
 	return ret;
 }
 
-/*we don't use the CONFIG_HUAWEI_TOUCHSCREEN_EXTRA_KEY so delete all the CONFIG_HUAWEI_TOUCHSCREEN_EXTRA_KEY code*/
 
 static void synaptics_rmi4_work_func(struct work_struct *work)
 {
 	int ret;
-/* delete some lines*/
     __u8 finger_status = 0x00;
     
 
-/*we don't use the CONFIG_HUAWEI_TOUCHSCREEN_EXTRA_KEY so delete all the CONFIG_HUAWEI_TOUCHSCREEN_EXTRA_KEY code*/
     __u8 reg = 0;
     __u8 *finger_reg = NULL;
     u12 x = 0;
@@ -481,9 +468,7 @@ static void synaptics_rmi4_work_func(struct work_struct *work)
     u4 wx = 0;
     u4 wy = 0;
     u8 z = 0 ;
-/* Add new variable */
 	__u8 prev_state = 0;
-/* Add new variable */
 	u8 finger_pressed_count = 0;
 
 	struct synaptics_rmi4 *ts = container_of(work,
@@ -504,15 +489,9 @@ static void synaptics_rmi4_work_func(struct work_struct *work)
             int f = 0;
 			__u8 finger_status_reg = 0;
 			__u8 fsr_len = (ts->f11.points_supported + 3) / 4;
-			//int fastest_finger = -1;
-			/*< fengwei 20111207 begin */
-			//int touch = 0;
-			/* fengwei 20111207 end >*/
             TS_DEBUG_RMI("f11.points_supported is %d\n",ts->f11.points_supported);
             if(ts->is_support_multi_touch)
             {
-				/*delete some lines, not used*/
-/*delete some lines we don't used*/
                 for (f = 0; f < point_supported_huawei; ++f)
                 {
 
@@ -534,7 +513,6 @@ static void synaptics_rmi4_work_func(struct work_struct *work)
 
                     if(machine_is_msm7x30_u8820())
                     {
-					    /* don't read the interrupt again  */
                         if(interrupt[ts->f11.interrupt_offset] & 0x02)
                         {
                             ret = i2c_smbus_read_byte_data(ts->client, fd_01.dataBase);
@@ -547,7 +525,6 @@ static void synaptics_rmi4_work_func(struct work_struct *work)
                         }
                     }
                     x = x * lcd_x / ts_x_max;
-					/*Coordinates is the opposite in S2000 IC for U8661*/
 					if (machine_is_msm7x27a_U8661())
                     {
                         y = ((ts_y_max - y) * lcd_all ) / ts_y_max;
@@ -556,22 +533,17 @@ static void synaptics_rmi4_work_func(struct work_struct *work)
                     {
                         y = ( y * lcd_all ) / ts_y_max;
                     }
-					/*check the scope of X  axes*/
                     x = check_scope_X(x);
 
                     DBG_MASK("the x is %d the y is %d the stauts is %d!\n",x,y,finger_status);
-                	/* Linux 2.6.31 multi-touch */
-					/* Modify the tp_report information to adapt the framework change */
 					prev_state = ts->f11_fingers[f].status;
 
 					if (prev_state && !finger_status ) 
 					{
-						/* this is a release */
 						z = wx = wy = 0;
 					}
 					else if (!prev_state && !finger_status ) 
 					{
-						/* nothing to report */
 						continue;
 					} 
 	                input_report_abs(ts->input_dev, ABS_MT_PRESSURE, z);
@@ -589,7 +561,6 @@ static void synaptics_rmi4_work_func(struct work_struct *work)
 						finger_pressed_count++;
                     
                 }
-				/* Report if there is any fingure on the TP */
 				input_report_key(ts->input_dev, BTN_TOUCH, finger_pressed_count);
             }
             else /* else with "if(ts->is_support_multi_touch)"*/
@@ -617,23 +588,17 @@ static void synaptics_rmi4_work_func(struct work_struct *work)
 				input_report_abs(ts->input_dev, ABS_Y, y);
 
 				input_report_abs(ts->input_dev, ABS_PRESSURE, z);
-				/* Delete*/
                 input_report_key(ts->input_dev, BTN_TOUCH, finger_status);
                 input_sync(ts->input_dev);
             
                 
-                /*we don't use the CONFIG_HUAWEI_TOUCHSCREEN_EXTRA_KEY so delete all the CONFIG_HUAWEI_TOUCHSCREEN_EXTRA_KEY code*/
             }
 
 
  
-            /* f == ts->f11.points_supported */
-			/* set f to offset after all absolute data */
 			f = (f + 3) / 4 + f * 5;
 			if (ts->f11_has_relative) 
             {
-				/* NOTE: not reporting relative data, even if available */
-				/* just skipping over relative data registers */
 				f += 2;
 			}
 			if (ts->hasEgrPalmDetect) 
@@ -686,7 +651,6 @@ static void synaptics_rmi4_work_func(struct work_struct *work)
 	{
        enable_irq(ts->client->irq);
     }
-/* delete some lines which is not needed anymore*/
 }
 
 static enum hrtimer_restart synaptics_rmi4_timer_func(struct hrtimer *timer)
@@ -713,7 +677,6 @@ irqreturn_t synaptics_rmi4_irq_handler(int irq, void *dev_id)
 
 static void synaptics_rmi4_enable(struct synaptics_rmi4 *ts)
 {  
-/* delete some lines. */
 	if (ts->use_irq)
 		enable_irq(ts->client->irq);
 	else
@@ -792,7 +755,7 @@ static char * get_touch_module_name(u8 module_id)
 		case ALPS:
 			return "ALPS";
 		default:
-			return "unknow";
+			return NULL;
 	}
 
 	return NULL;
@@ -833,7 +796,7 @@ char * get_synaptics_touch_info(void)
 
 	return touch_info;
 }
-/* get touch info */
+#if 0
 char * get_touch_info(void)
 {
 	char * touch_info = NULL;
@@ -846,6 +809,7 @@ char * get_touch_info(void)
 	return NULL;
 	
 }
+#endif
 
 static void get_ic_name(void)
 {
@@ -955,7 +919,6 @@ static u8 get_config_version(void)
 
 	return (u8)config_ver;
 }
-/* same as in proc_misc.c */
 static int
 proc_calc_metrics(char *page, char **start, off_t off, int count, int *eof, int len)
 {
@@ -971,7 +934,6 @@ proc_calc_metrics(char *page, char **start, off_t off, int count, int *eof, int 
 }
 static void tp_read_fn34_input_name(void)
 {
-	/* set random number for query_name[0] and query_name[1] because we don't have the real value */
     query_name[0] = 1;
     query_name[1] = 1;
     query_name[2] = get_module_id();
@@ -1022,7 +984,6 @@ static int synaptics_rmi4_probe(
     int i ;
     int ret = 0;
 	struct proc_dir_entry *d_entry;
-    /*when the probe is come in we first detect the probe for touch is ready?*/
     struct touch_hw_platform_data *touch_pdata = NULL;
     struct tp_resolution_conversion tp_type_self_check = {0};
     
@@ -1106,16 +1067,7 @@ static int synaptics_rmi4_probe(
         goto error_wq_creat_failed; 
     }
 	INIT_WORK(&ts->work, synaptics_rmi4_work_func);
-	/* Disable the mutil touch function*/
-	if(machine_is_msm7x27a_M660())
-	{
-		ts->is_support_multi_touch = false;
-	}
-	else
-	{
-        ts->is_support_multi_touch = client->flags;
-	}
-    /*delete some lines we do not use*/
+	ts->is_support_multi_touch = client->flags;
 	ts->client = client;
 	i2c_set_clientdata(client, ts);
 
@@ -1133,7 +1085,6 @@ static int synaptics_rmi4_probe(
 		ret = -ENODEV;
 		goto err_pdt_read_failed;
 	}
-/*create the right file used for update*/
 #ifdef CONFIG_SYNAPTICS_UPDATE_RMI_TS_FIRMWARE
     g_client = client;  
     for (i = 0 ; i < 3; i++) 
@@ -1150,7 +1101,6 @@ static int synaptics_rmi4_probe(
     ts_y_max =  ts->f11_max_y;
         
     get_ic_name();
-/* if IC name is 3200 or 2202, we should use a different way to read the touch_info */
     if ((3200 == touch_ic_name)||(2202 == touch_ic_name))
     {
         tp_read_fn34_input_name();
@@ -1191,10 +1141,7 @@ static int synaptics_rmi4_probe(
 	set_bit(ABS_X, ts->input_dev->absbit);
 	set_bit(ABS_Y, ts->input_dev->absbit);
     set_bit(KEY_NUMLOCK, ts->input_dev->keybit);
-	/*< fengwei 20111207 begin */
 	set_bit(INPUT_PROP_DIRECT,ts->input_dev->propbit);
-	/* fengwei 20111207 end >*/
-/*we removed it to here to register the touchscreen first */
 	ret = input_register_device(ts->input_dev);
 	if (ret) 
     {
@@ -1209,9 +1156,19 @@ static int synaptics_rmi4_probe(
 	}
 	
 	if (ts->hasF11) {
-/*C8812 only support five points*/
 #ifdef CONFIG_ARCH_MSM7X27
-        if (machine_is_msm7x27a_C8820())
+        if (machine_is_msm7x27a_M660())
+        {
+            if (ts->f11.points_supported > 2)
+            {
+                point_supported_huawei = 2;
+            }
+            else
+            {
+                point_supported_huawei = ts->f11.points_supported;
+            }  
+        }
+        else
         {
             if (ts->f11.points_supported > 5)
             {
@@ -1222,12 +1179,7 @@ static int synaptics_rmi4_probe(
                 point_supported_huawei = ts->f11.points_supported;
             }
         }
-        else
-        {
-            point_supported_huawei = ts->f11.points_supported;
-        }
 #endif
-/*C8860 support two points only*/
 #ifdef CONFIG_ARCH_MSM7X30
        	if (machine_is_msm8255_c8860())
         {
@@ -1244,12 +1196,26 @@ static int synaptics_rmi4_probe(
 			}
 			else
 			{
-			    point_supported_huawei = ts->f11.points_supported;
+			    if (ts->f11.points_supported > 5)
+                {
+                    point_supported_huawei = 5;
+                }
+                else
+                {
+                    point_supported_huawei = ts->f11.points_supported;
+                }
 			}		
         }
         else
         {
-            point_supported_huawei = ts->f11.points_supported;
+            if (ts->f11.points_supported > 5)
+            {
+                point_supported_huawei = 5;
+            }
+            else
+            {
+                point_supported_huawei = ts->f11.points_supported;
+            }
         }
 #endif
 
@@ -1257,17 +1223,13 @@ static int synaptics_rmi4_probe(
           if(ts->is_support_multi_touch)
           {
 
-			/* Linux 2.6.31 multi-touch */
 			input_set_abs_params(ts->input_dev, ABS_MT_TRACKING_ID, 1,
                     			ts->f11.points_supported, 0, 0);
-            /* reduce the max of report range */
 			input_set_abs_params(ts->input_dev, ABS_MT_POSITION_X, 0, lcd_x - 1, 0, 0);
 			input_set_abs_params(ts->input_dev, ABS_MT_POSITION_Y, 0, lcd_y - 1, 0, 0);
-			/* Move down */
 			input_set_abs_params(ts->input_dev, ABS_MT_TOUCH_MAJOR, 0, 0xF, 0, 0);
 			input_set_abs_params(ts->input_dev, ABS_MT_TOUCH_MINOR, 0, 0xF, 0, 0);
 			input_set_abs_params(ts->input_dev, ABS_MT_ORIENTATION, 0, 1, 0, 0);
-			/* Change report information */
 			input_set_abs_params(ts->input_dev, ABS_MT_PRESSURE, 0,	255, 0, 0);
           }
           else
@@ -1275,7 +1237,6 @@ static int synaptics_rmi4_probe(
             input_set_abs_params(ts->input_dev, ABS_X, 0, lcd_x-1, 0, 0);
             input_set_abs_params(ts->input_dev, ABS_Y, 0, lcd_y-1, 0, 0);
             input_set_abs_params(ts->input_dev, ABS_PRESSURE, 0, 255, 0, 0);
-            /* Delete*/
                 
           }
 
@@ -1299,17 +1260,14 @@ static int synaptics_rmi4_probe(
 			set_bit(BTN_F30 + i, ts->input_dev->keybit);
 		}
 	}
-    /*we don't use the CONFIG_HUAWEI_TOUCHSCREEN_EXTRA_KEY so delete all the CONFIG_HUAWEI_TOUCHSCREEN_EXTRA_KEY code*/
 
 
-	/*int this area the gpio config is not configed here anymore*/
     
     if(touch_pdata->touch_gpio_config_interrupt)
     {
         ret = touch_pdata->touch_gpio_config_interrupt();
     }
 
-/* delete some lines which is not use anymore */
 
 	if (client->irq) {
 		gpio_request(client->irq, client->name);
@@ -1337,11 +1295,6 @@ static int synaptics_rmi4_probe(
 		hrtimer_start(&ts->timer, ktime_set(1, 0), HRTIMER_MODE_REL);
 	}
 
-	/*
-	 * Device will be /dev/input/event#
-	 * For named device files, use udev
-	 */
-/* delete some lines which is not use anymore */
 
 	ts->enable = 1;
 
@@ -1359,12 +1312,10 @@ static int synaptics_rmi4_probe(
 	printk(KERN_ERR "probing for Synaptics RMI4 device %s at $%02X...\n", client->name, client->addr);
 
     #ifdef CONFIG_HUAWEI_HW_DEV_DCT
-    /* detect current device successful, set the flag as present */
     set_hw_dev_flag(DEV_I2C_TOUCH_PANEL);
     #endif
     
 	return 0;
-/*we don't use the CONFIG_HUAWEI_TOUCHSCREEN_EXTRA_KEY so delete all the CONFIG_HUAWEI_TOUCHSCREEN_EXTRA_KEY code*/
 err_input_register_device_failed:
     if(NULL != ts->input_dev)
 	    input_free_device(ts->input_dev);
@@ -1674,7 +1625,6 @@ static int RMI4_write_image(struct i2c_client *client,unsigned char type_cmd,con
 	for(block_index = 0; block_index < img_blocks; ++block_index)
 	{
 		printk("#");
-		// Write Block Number
 		if(i2c_smbus_write_word_data(client, fd_34.dataBase,block_index) < 0)
 		{
 			SYNAPITICS_DEBUG("write block number error\n");
@@ -1693,14 +1643,12 @@ static int RMI4_write_image(struct i2c_client *client,unsigned char type_cmd,con
 		
 		p_data += block_size;	
 
-		// Issue Write Firmware or configuration Block command
 		if(i2c_smbus_write_word_data(client, fd_34.dataBase+18, type_cmd) < 0) //write Flash Control
 		{
 			SYNAPITICS_DEBUG("issue write command error\n");
 			goto error;
 		}
 
-		// Wait ATTN. Read Flash Command register and check error
 		if(RMI4_wait_attn(client,5) != 0)
 		{
 			goto error;
@@ -1740,25 +1688,24 @@ static int RMI4_program_firmware(struct i2c_client *client,const unsigned char *
 
 	printk("RMI4 program UI firmware...\n");
 
-	//read and write back bootloader ID
 	bootloader_id = i2c_smbus_read_word_data(client,fd_34.queryBase);
 	i2c_smbus_write_word_data(client,fd_34.dataBase+2, bootloader_id ); //write Block Data0
 
-	//issue erase commander
 	if(i2c_smbus_write_byte_data(client, fd_34.dataBase+18, 0x03) < 0) //write Flash Control
 	{
 		SYNAPITICS_DEBUG("RMI4_program_firmware error, erase firmware error \n");
 		return -1;
 	}
+
+    mdelay(1000);
+
 	RMI4_wait_attn(client,300);
 
-	//check status
 	if((ret = i2c_smbus_read_byte_data(client,fd_34.dataBase+18)) != 0x80) //check Flash Control
 	{
 		return -1;
 	}
 
-	//write firmware
 	if( RMI4_write_image(client,0x02,pgm_data) <0 )
 	{
 		SYNAPITICS_DEBUG("write UI firmware error!\n");
@@ -1821,7 +1768,6 @@ static int i2c_update_firmware(struct i2c_client *client)
 	int ret = 0;
 	const char filename[]="/sdcard/update/synaptics.img";
 
-	/* open file */
 	oldfs = get_fs();
 	set_fs(KERNEL_DS);
 	filp = filp_open(filename, O_RDONLY, S_IRUSR);
@@ -1849,7 +1795,6 @@ static int i2c_update_firmware(struct i2c_client *client)
         return -1;
     }
 
-    /* file's size */
     length = i_size_read(inode->i_mapping->host);
     if (!( length > 0 && length < 62*1024 ))
     {
@@ -1859,7 +1804,6 @@ static int i2c_update_firmware(struct i2c_client *client)
         return -1;
     }
 
-	/* allocation buff size */
 	buf = vmalloc(length+(length%2));		/* buf size if even */
 	if (!buf) 
 	{
@@ -1869,7 +1813,6 @@ static int i2c_update_firmware(struct i2c_client *client)
 		return -1;
 	}
 
-    /* read data */
     if (filp->f_op->read(filp, buf, length, &filp->f_pos) != length)
     {
         printk("%s: file read error\n", __FUNCTION__);

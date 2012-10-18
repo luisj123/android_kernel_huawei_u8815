@@ -144,8 +144,9 @@ char *get_wifi_device_name(void)
   hw_wifi_device_model wifi_device_model = WIFI_UNKNOW;  
   char *wifi_device_id = NULL;                       
                                                              
-  wifi_device_model = get_hw_wifi_device_model();        
-  printk("wifi_device_id = %d\n",wifi_device_model);    
+  wifi_device_model = get_hw_wifi_device_model(); 
+  //don't print the wifi_device_id log when some program read the app_info         
+  //printk("wifi_device_id = %d\n",wifi_device_model);
   if(WIFI_BROADCOM_4329 == wifi_device_model)                 
   {                                                  
 	wifi_device_id = "1.1";
@@ -167,6 +168,58 @@ char *get_wifi_device_name(void)
   return wifi_device_id;                             
 } 
 
+/* store bt device model and bt device name in bt_device_array[] */
+struct bt_device bt_device_array[] = 
+{
+    { BT_BCM4329, "1.1" },
+	{ BT_BCM4330, "1.2" },
+	{ BT_WCN2243, "2.1" },
+	{ BT_UNKNOWN, "Unknown" }
+};
+
+/* get bt device model by board id */
+hw_bt_device_model get_hw_bt_device_model(void)
+{
+  if(machine_is_msm7x27a_U8185()|| machine_is_msm7x27a_U8661()|| machine_is_msm7x27a_C8668D()
+  	 || (machine_is_msm7x27a_U8815() && (HW_VER_SUB_VC == get_hw_sub_board_id())))
+  {
+      return BT_WCN2243;
+  }
+  else if(machine_is_msm8255_u8860() 
+		|| machine_is_msm8255_c8860() 
+		|| machine_is_msm8255_u8860lp()
+		|| machine_is_msm8255_u8860_92()
+		|| machine_is_msm8255_u8860_51()
+		|| machine_is_msm7x30_u8820()
+		|| machine_is_msm7x30_u8800_51()
+		|| machine_is_msm8255_u8800_pro())
+  {
+      return BT_BCM4329;
+  }
+  else
+  {
+      return BT_BCM4330;
+  }
+}
+
+char *get_bt_device_name(void)
+{                   
+    hw_bt_device_model bt_device_model = BT_UNKNOWN;
+    int i = 0;
+
+    bt_device_model = get_hw_bt_device_model();
+
+    /* lookup bt_device_model in bt_device_array[] */
+    for(i = 0; i < BT_UNKNOWN; i++)
+    {
+        if(bt_device_model == bt_device_array[i].dev_model)
+        {
+            break; 
+        }
+    }
+	
+	return bt_device_array[i].dev_name;
+} 
 void get_audio_property(char *audio_property)
 {
   unsigned int property = AUDIO_PROPERTY_INVALID;
@@ -205,7 +258,6 @@ lcd_type atag_get_lcd_y_res(void)
    return (lcd_type)lcd_y_res;
 }
 
-/* the function interface to check boot mode in kernel */
 unsigned char bootimage_is_recovery(void)
 {
   return recovery_boot_mode;
@@ -228,9 +280,6 @@ hw_lcd_interface_type get_hw_lcd_interface_type(void)
 	{
 		lcd_interface_type = LCD_IS_MDDI_TYPE1;
 	}	
-	/* U8820 board version A is MMDI type1, so config it type1 
-	 * Version B and other is MDDI type2, so config it according to LCD
-	 */
 	else if(machine_is_msm7x30_u8820())
 	{
 		if(HW_VER_SUB_VA == get_hw_sub_board_id())
@@ -304,12 +353,9 @@ hw_lcd_interface_type get_hw_lcd_interface_type(void)
 	}
 	return lcd_interface_type;
 }
-/* C8820VC uses PM pwm. */
 hw_lcd_ctrl_bl_type get_hw_lcd_ctrl_bl_type(void)
 {
     hw_lcd_ctrl_bl_type ctrl_bl_type = CTRL_BL_BY_UNKNOW;
-	/*control backlight by MSM pwm*/
-	/* C8668D uses PM pwm. */
 	if (machine_is_msm7x27a_umts() 
 		|| machine_is_msm7x27a_cdma()
 		|| machine_is_msm7x27a_U8815() 
@@ -331,14 +377,15 @@ hw_lcd_ctrl_bl_type get_hw_lcd_ctrl_bl_type(void)
 	{
 		ctrl_bl_type = CTRL_BL_BY_MSM;
 	}
-	/*control backlight by LCD output pwm*/
 	else if(machine_is_msm7x27a_C8655_NAND()
 		|| (machine_is_msm7x27a_C8820() && (HW_VER_SUB_VA == get_hw_sub_board_id()))
 		|| machine_is_msm7x27a_C8825D()
         || machine_is_msm8255_u8860_r()
 		|| machine_is_msm8255_u8860lp()
 		|| machine_is_msm8255_u8860_51()
-		|| machine_is_msm8255_u8667())
+		|| machine_is_msm8255_u8667()
+     	|| machine_is_msm8255_u8680()
+	 	|| machine_is_msm8255_u8730())
 	{
 		ctrl_bl_type = CTRL_BL_BY_LCD;
 	}
@@ -348,14 +395,10 @@ hw_lcd_ctrl_bl_type get_hw_lcd_ctrl_bl_type(void)
 	}
     return ctrl_bl_type;
 }
-/*
- *brief: get lcd panel resolution
- */
 lcd_type get_hw_lcd_resolution_type(void)
 {
     lcd_type lcd_resolution = LCD_IS_HVGA;
 
-/* add 8x55 paltform products */
 	if ( machine_is_msm7x27a_U8815() 
 		|| machine_is_msm7x27a_C8820()
 		|| machine_is_msm7x27a_C8825D()
@@ -377,7 +420,6 @@ lcd_type get_hw_lcd_resolution_type(void)
 	{
 		lcd_resolution = LCD_IS_FWVGA;
 	}
-	/* C8668D uses HVGA. */
 	else if ( machine_is_msm7x27a_M660() 
 		|| machine_is_msm7x27a_U8655()	
 		|| machine_is_msm7x27a_U8655_EMMC()
@@ -460,6 +502,9 @@ lcd_panel_type get_lcd_panel_type(void)
 			case LCD_HW_ID2:
 				hw_lcd_panel = MDDI_RSP61408_BYD_WVGA;
 				break;
+            case LCD_HW_ID3:
+                hw_lcd_panel = MDDI_RSP61408_TRULY_WVGA;
+                break;
 			default : 
 				hw_lcd_panel = MDDI_RSP61408_CHIMEI_WVGA;
 				break;
@@ -472,6 +517,12 @@ lcd_panel_type get_lcd_panel_type(void)
 			case LCD_HW_ID0:
 				hw_lcd_panel = MDDI_HX8357C_CHIMEI_HVGA;
 				break;
+			/*< DTS2012022401352 qitongliang 20120224 begin */
+			case LCD_HW_ID1:
+				hw_lcd_panel = MDDI_HX8357C_TIANMA_IPS_HVGA;
+				break;
+			/* DTS2012022401352 qitongliang 20120224 end >*/
+
 			case LCD_HW_ID2:
 				hw_lcd_panel = MDDI_HX8357C_CHIMEI_IPS_HVGA;
 				break;
@@ -611,8 +662,6 @@ SIDE EFFECTS
 compass_gs_position_type  get_compass_gs_position(void)
 {
 	compass_gs_position_type compass_gs_position=COMPASS_TOP_GS_TOP;
-	/* modify compass and gs position by board id */
-    //move C8820\25D define from TOP to BOTTOM
 	if (machine_is_msm7x27a_surf() 
 	 || machine_is_msm7x27a_ffa() 
 	 || machine_is_msm7x27a_umts() 
@@ -621,12 +670,10 @@ compass_gs_position_type  get_compass_gs_position(void)
 	{
 		compass_gs_position=COMPASS_TOP_GS_TOP;
 	}
-	/*version A and version B has compass, since version C don't have compass*/
 	else if(machine_is_msm7x27a_C8820() && (HW_VER_SUB_VC <= get_hw_sub_board_id()))
 	{
 		compass_gs_position=COMPASS_NONE_GS_BOTTOM;
 	}
-	/* add U8655_EMMC, use the u8655 configuration */
 	else if (machine_is_msm7x27a_U8655() 
 		  || machine_is_msm7x27a_U8655_EMMC()  
 		  || machine_is_msm7x27a_C8655_NAND()  
@@ -849,7 +896,13 @@ char *get_lcd_panel_name(void)
 		case MIPI_HX8357C_CHIMEI_IPS_HVGA:
 			pname = "CHIMEI IPS HX8357C";
 			break;
-			
+		case MDDI_HX8357C_TIANMA_IPS_HVGA:
+			pname = "TIANMA IPS HX8357C";
+			break;
+        case MDDI_RSP61408_TRULY_WVGA:
+            pname = "TRULY RSP61408";
+            break;
+
 		default:
 			pname = "UNKNOWN LCD";
 			break;
@@ -906,7 +959,6 @@ void set_camera_support(bool status)
 
 bool board_support_flash(void)
 {
-	 /*only U8815 has light flash for now*/
 	 if(machine_is_msm7x27a_U8815())
 	 {
 		 return true;
@@ -941,26 +993,29 @@ bool qwerty_is_supported(void)
 	ret=( machine_is_msm7x27a_umts()||machine_is_msm7x27a_cdma() || machine_is_msm7x27a_M660());
 	return ret;
 }
-/* get sensors list by product */
+extern int hasGyro ;
 static int get_sensors_list(void)
 {
 	/*add 7x30's list*/
 	int sensors_list = G_SENSOR + L_SENSOR + P_SENSOR + M_SENSOR;
-    if(machine_is_msm8255_u8860()
+	int hasgyro = 0;
+	hasgyro = hasGyro;
+	if(machine_is_msm8255_u8860()
 	|| machine_is_msm8255_u8860_92()
 	|| machine_is_msm8255_u8860_51()
-    || machine_is_msm8255_u8860_r()
-	|| machine_is_msm8255_u8860lp())
+	|| machine_is_msm8255_u8860_r()
+	|| machine_is_msm8255_u8860lp()
+	||(machine_is_msm8255_c8860() && hasgyro ))
 	{
-	    sensors_list = G_SENSOR + L_SENSOR + P_SENSOR + M_SENSOR + GY_SENSOR;
+		sensors_list = G_SENSOR + L_SENSOR + P_SENSOR + M_SENSOR + GY_SENSOR;
+		printk("####This device has gyro\n");
 	}
 	
 	/*version A and version B has compass, since version C don't have compass*/
-	else if( ( machine_is_msm7x27a_C8820() && (HW_VER_SUB_VC <= get_hw_sub_board_id()) )
-	         ||  machine_is_msm7x27a_U8661()
-	       )
+	else if( (  machine_is_msm7x27a_C8820() && (HW_VER_SUB_VC <= get_hw_sub_board_id()) )
+		||  machine_is_msm7x27a_U8661())
 	{
-	    sensors_list = G_SENSOR + L_SENSOR + P_SENSOR;
+		sensors_list = G_SENSOR + L_SENSOR + P_SENSOR;
 	}
 	else if (machine_is_msm7x27a_U8655()
 	||  machine_is_msm7x27a_U8655_EMMC()
@@ -979,20 +1034,20 @@ static int get_sensors_list(void)
 	||	machine_is_msm8255_u8680()
 	||	machine_is_msm8255_u8730())
 	{
-	    sensors_list = G_SENSOR + L_SENSOR + P_SENSOR + M_SENSOR;
+		sensors_list = G_SENSOR + L_SENSOR + P_SENSOR + M_SENSOR;
+		printk("####This device doesn't own gyro\n");
 	}
 	/* move this else if to above for avoid C8820 without compass can not run in */
 	else if(machine_is_msm7x27a_U8185())
 	{
-	    sensors_list = G_SENSOR;
+		sensors_list = G_SENSOR;
 	}
 	else
 	{
-	    sensors_list = G_SENSOR + L_SENSOR + P_SENSOR + M_SENSOR;
+		sensors_list = G_SENSOR + L_SENSOR + P_SENSOR + M_SENSOR;
 	}
 	return sensors_list;
 }
-
 char *get_sensors_list_name(void)
 {
 	int sensors_list = G_SENSOR + L_SENSOR + P_SENSOR + M_SENSOR;
@@ -1039,7 +1094,6 @@ char *get_sensors_list_name(void)
 	
 }
 
-/*return the string by compass position*/
 char *get_compass_gs_position_name(void)
 {
 	compass_gs_position_type compass_gs_position=COMPASS_TOP_GS_TOP;
@@ -1082,18 +1136,12 @@ char *get_compass_gs_position_name(void)
 	
 }
 
-/*  FUNCTION  get_hw_wifi_device_type
- *  DEPENDENCIES 
- *      get wifi device type.
- *      affect wifi and camer.
- *  RETURN VALUE
- *      wifi device type:WIFI_QUALCOMM or WIFI_BROADCOM
- */
 hw_wifi_device_type get_hw_wifi_device_type(void)
 {
   if (machine_is_msm7x27a_U8185()
 	|| machine_is_msm7x27a_U8661() 
-	|| machine_is_msm7x27a_C8668D())
+	|| machine_is_msm7x27a_C8668D()
+	|| (machine_is_msm7x27a_U8815() && (HW_VER_SUB_VC == get_hw_sub_board_id())))
   {
       return WIFI_QUALCOMM;
   }
@@ -1111,7 +1159,8 @@ hw_wifi_device_type get_hw_wifi_device_type(void)
  */
 hw_wifi_device_model get_hw_wifi_device_model(void)
 {
-  if(machine_is_msm7x27a_U8185()|| machine_is_msm7x27a_U8661()|| machine_is_msm7x27a_C8668D())
+  if(machine_is_msm7x27a_U8185()|| machine_is_msm7x27a_U8661()|| machine_is_msm7x27a_C8668D()
+     || (machine_is_msm7x27a_U8815() && (HW_VER_SUB_VC == get_hw_sub_board_id())))
   {
       return WIFI_QUALCOMM_6005;
   }
@@ -1120,7 +1169,8 @@ hw_wifi_device_model get_hw_wifi_device_model(void)
 		|| machine_is_msm8255_u8860lp()
         || machine_is_msm8255_u8860_r()
 		|| machine_is_msm8255_u8860_92()
-		|| machine_is_msm8255_u8860_51())
+        || machine_is_msm8255_u8860_51()
+        || machine_is_msm8255_u8800_pro())
   {
       return WIFI_BROADCOM_4329;
   }
@@ -1130,14 +1180,6 @@ hw_wifi_device_model get_hw_wifi_device_model(void)
   }
 }
 
-/*  FUNCTION  get_hw_ds_type
- *  DEPENDENCIES 
- *      get single sim card or double sim card,
- *      affect led.
- *  RETURN VALUE
- *      single sim card:sim card type HW_NODS 
- *      double sim card:sim card type HW_DS
- */
 hw_ds_type get_hw_ds_type(void)
 {
     hw_ds_type ret = HW_NONES;
@@ -1155,14 +1197,6 @@ hw_ds_type get_hw_ds_type(void)
     }
   return ret;
 }
-/*  FUNCTION  get_hw_sd_trigger_type
- *  DEPENDENCIES 
- *      get sd interrupt trigger type
- *      affect sd detect.
- *  RETURN VALUE
- *      raise edge trigger : return RAISE_TRIGGER
- *      fall edge trigger : return FALL_TRIGGER
- */
 hw_sd_trigger_type get_hw_sd_trigger_type(void)
 {
   if(machine_is_msm7x27a_U8185())
@@ -1175,13 +1209,6 @@ hw_sd_trigger_type get_hw_sd_trigger_type(void)
   }
 }
 
-/*  FUNCTION  get_hw_sd_trigger_type
- *  DESCRIPTION 
- *      get the bt wakeup gpio type
- *
- *  RETURN VALUE
- *       the gpio number
- */
 hw_bt_wakeup_gpio_type get_hw_bt_wakeup_gpio_type(void)
 {
     hw_bt_wakeup_gpio_type bt_wakeup_gpio_type = HW_BT_WAKEUP_GPIO_IS_NONES;
@@ -1198,14 +1225,7 @@ hw_bt_wakeup_gpio_type get_hw_bt_wakeup_gpio_type(void)
     }
     else if (machine_is_msm7x27a_U8655_EMMC())
     {
-        if ((ver_sub_type > HW_VER_SUB_VB && ver_sub_type < HW_VER_SUB_VE) || ver_sub_type > HW_VER_SUB_VE)
-		{
-            bt_wakeup_gpio_type = HW_BT_WAKEUP_GPIO_IS_27;
-		}
-		else
-		{
-            bt_wakeup_gpio_type = HW_BT_WAKEUP_GPIO_IS_83;
-		}
+        bt_wakeup_gpio_type = HW_BT_WAKEUP_GPIO_IS_83;
     }
     else if (machine_is_msm7x27a_C8655_NAND())
     {
@@ -1253,11 +1273,11 @@ hw_bt_wakeup_gpio_type get_hw_bt_wakeup_gpio_type(void)
     return bt_wakeup_gpio_type;
 }
 
-/* add C8820VC for SINGLE_MIC */
 audio_property_type get_audio_mic_type(void)
 {
   if(machine_is_msm7x27a_U8185()
      || (machine_is_msm7x27a_C8820() && (HW_VER_SUB_VC <= get_hw_sub_board_id()))
+     || (machine_is_msm7x27a_U8815() && (HW_VER_SUB_VC == get_hw_sub_board_id()))
 	 )
   {
       return SINGLE_MIC;
@@ -1268,7 +1288,6 @@ audio_property_type get_audio_mic_type(void)
   }  
 }
 
-/* if you want to enable fir function, please return FIR_ENABLE for adapted project */
 audio_property_type get_audio_fir_enabled(void)
 {
     if (machine_is_msm7x27a_C8820())
@@ -1305,4 +1324,18 @@ hw_camera_type get_hw_camera_mirror_type(void)
       ret = HW_NOT_MIRROR_OR_FLIP;
     }
   return ret;
+}
+char *get_touch_info(void)
+{
+	char *touch_info = NULL;
+
+	touch_info = get_synaptics_touch_info();
+	if (touch_info != NULL)
+		return touch_info;
+
+	touch_info = get_melfas_touch_info();
+	if (touch_info != NULL)
+		return touch_info;
+
+	return NULL;
 }

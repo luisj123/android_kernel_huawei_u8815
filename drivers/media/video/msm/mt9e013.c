@@ -30,7 +30,6 @@
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
 #include <linux/hw_dev_dec.h>
 #endif
-/*Define OTP reading flag*/
 #define FALSE 0
 #define TRUE 1
 static bool OTP_READ = FALSE;
@@ -39,10 +38,6 @@ static bool OTP_READ = FALSE;
 ==============================================================*/
 #define MT9E013_REG_MODEL_ID 0x0000
 #define MT9E013_MODEL_ID 0x4B00
-#define MODULE_LITEON 1
-#define MODULE_SUNNY 2
-static uint16_t mt9e013_model_id = MODULE_LITEON;
-
 #define REG_GROUPED_PARAMETER_HOLD		0x0104
 #define GROUPED_PARAMETER_HOLD_OFF		0x00
 #define GROUPED_PARAMETER_HOLD			0x01
@@ -64,7 +59,6 @@ static uint16_t mt9e013_model_id = MODULE_LITEON;
 #define Q8	0x00000100
 #define Q10	0x00000400
 #define MT9E013_MASTER_CLK_RATE 24000000
-/*tunnig the auto focus params, change the total step, and tune each step that it has*/
 /* AF Total steps parameters */
 static uint16_t mt9e013_linear_total_step = 41;
 static uint16_t mt9e013_step_jump = 4;
@@ -418,11 +412,9 @@ static int32_t mt9e013_move_focus(int direction,
 
 		if (step_direction < 0) {
 			if (num_steps >= mt9e013_damping_threshold) {
-				/* sweeping towards all the way in infinity direction between snaps*/
 				small_step = mt9e013_sw_damping_small_step_snap;
 				sw_damping_time_wait = mt9e013_sw_damping_time_wait_snap;
 			} else if (num_steps <= 4) {
-				/* reverse search during macro mode */
 				small_step = mt9e013_sw_damping_small_step_fine;
 				sw_damping_time_wait = mt9e013_sw_damping_time_wait_fine;
 			} else {
@@ -476,7 +468,6 @@ static int32_t mt9e013_set_default_focus(uint8_t af_step)
 
 	return rc;
 }
-/*tunnig the auto focus params, change the total step, and tune each step that it has*/
 static void mt9e013_init_focus(void)
 {
 	uint8_t i;
@@ -515,15 +506,12 @@ static int32_t mt9e013_test(enum mt9e013_test_mode_t mo)
 	return rc;
 }
 
-/*lijuan add for OTP reading begin*/
-/*read OTP value function*/
 inline int32_t reading(void)
 {
 	int32_t rc = -1;
 	unsigned short i = 0;
 	unsigned short addr = 0x3800;
 	unsigned short value = 0;
-	//read the value and put them in the mt9e013_regs array.
 	for( i=0;i<(mt9e013_regs.reg_otp_size-8);i++)
 	{
 		addr = 0x3800 +2 * i;
@@ -566,13 +554,10 @@ static int32_t Auto_reading(void)
 	return bsuccess;
 }
 
-/*check which type is the right type and read*/
 static int32_t mt9e013_OTP_reading (void)
 {	
 	int32_t rc = -1;
 
-	//get the type that we have the params
-	//Do the OTP reading, From Type 35 to 30. read the data from the right type
 	CDBG("mt9e013_OTP_reading reading start! \n");
 	mt9e013_i2c_write_w_sensor(0x301A, 0x0610);
 	mt9e013_i2c_write_w_sensor(0x3134, 0xCD95);
@@ -637,50 +622,29 @@ otp_probe_check:
 		return rc;
 	}
 
-	//This is for OTP verify. check the 0x3800's first value is 2
-	#if 0
 	if(0x2000!=(mt9e013_regs.reg_otp[0].wdata & 0xF000))
 	{
 		CDBG("The OTP reading failed addr = %0x, data = %0x\n", mt9e013_regs.reg_otp[0].waddr, mt9e013_regs.reg_otp[0].wdata);
 		rc = -1;
 		return rc;
 	}
-	#endif
-	//check the AWB data is OK level
-	/*if(mt9e013_regs.reg_otp[4].wdata< 0x290 ||mt9e013_regs.reg_otp[4].wdata> 0x3D9)
-	{
-		CDBG("The OTP reading failed addr = %0x, data = %0x\n", mt9e013_regs.reg_otp[5].waddr, mt9e013_regs.reg_otp[5].wdata);
-		rc = -1;
-		return rc;
-	}*/
-	//check the 0x38e2 is 0xFFFF
 	if(0!=mt9e013_regs.reg_otp[7].wdata)
 	{
 		CDBG("The OTP reading failed addr = %0x, data = %0x\n", mt9e013_regs.reg_otp[7].waddr, mt9e013_regs.reg_otp[7].wdata);
 		rc = -1;
 		return rc;
 	}
-	//check the 0x38e2 is 0xFFFF
 	if(0xFFFF!=mt9e013_regs.reg_otp[114].wdata)
 	{
 		CDBG("The OTP reading failed addr = %0x, data = %0x\n", mt9e013_regs.reg_otp[114].waddr, mt9e013_regs.reg_otp[114].wdata);
 		rc = -1;
 		return rc;
 	}
-	//check the 0x38e2 is 0xFFFF
-	/*if(0xFFFF!=mt9e013_regs.reg_otp[115].wdata)//120
-	{
-		CDBG("The OTP reading failed addr = %0x, data = %0x\n", mt9e013_regs.reg_otp[115].waddr, mt9e013_regs.reg_otp[115].wdata);
-		rc = -1;
-		return rc;
-	}*/
-	//if OTP is right, we will set the OTP_READ to TRUE
 	OTP_READ = TRUE;
 	CDBG("The OTP reading success\n");
 	return rc;
 }
 
-/*If OTP reading success, we wirte the otp value to the register*/
 static int32_t mt9e013_shading_setting (void)
 {
 	int32_t rc = 0;
@@ -724,31 +688,11 @@ static int mt9e013_read_awb_data(struct sensor_cfg_data *cfg)
 {
 	int32_t rc = 0;
 
-	//Get the AWB cabliate data from OTP, if OTP failed, then return
 	CDBG(" mt9e013_read_awb_data, start \n");
 	if((0==mt9e013_regs.reg_otp[4].wdata)|| (FALSE == OTP_READ))
 	{
 		CDBG("AWB invalid, no need to get\n");
-		return -ENODEV;
-	}	
-
-	cfg->cfg.calib_info.r_over_g = mt9e013_regs.reg_otp[4].wdata;
-	cfg->cfg.calib_info.gr_over_gb = mt9e013_regs.reg_otp[5].wdata;
-	cfg->cfg.calib_info.b_over_g = mt9e013_regs.reg_otp[6].wdata;
-	CDBG(" mt9e013_read_awb_data, end rc = %d \n",rc);
-	return rc;
-}
-
-static int mt9e013_sunny_read_awb_data(struct sensor_cfg_data *cfg)
-{
-	int32_t rc = 0;
-
-	//Get the AWB cabliate data from OTP, if OTP failed, then return
-	CDBG(" mt9e013_read_awb_data, start \n");
-	if((0==mt9e013_regs.reg_otp[4].wdata)|| (FALSE == OTP_READ))
-	{
-		CDBG("AWB invalid, no need to get\n");
-		return -ENODEV;
+		return rc;
 	}	
 
 	cfg->cfg.calib_info.r_over_g = mt9e013_regs.reg_otp[4].wdata;
@@ -758,8 +702,6 @@ static int mt9e013_sunny_read_awb_data(struct sensor_cfg_data *cfg)
 	return rc;
 }
 
-
-/*lijuan add for OTP reading end*/
 
 static int32_t mt9e013_sensor_setting(int update_type, int rt)
 {
@@ -804,7 +746,6 @@ static int32_t mt9e013_sensor_setting(int update_type, int rt)
 		}
 		mt9e013_start_stream();
 		mt9e013_move_focus(MOVE_NEAR, stored_af_step);
-		//mt9e013_start_stream();
 	}
 	return rc;
 }
@@ -1221,20 +1162,10 @@ int mt9e013_sensor_config(void __user *argp)
 			rc = mt9e013_send_wb_info(
 				&(cdata.cfg.wb_info));
 			break;
-		/*lijuan add for AWB OTP*/
 		case CFG_GET_CALIB_DATA:
-			if(MODULE_SUNNY == mt9e013_model_id)
-			{
-				rc = mt9e013_sunny_read_awb_data(&cdata);
-				if (rc < 0)
-					break;
-			}
-			else
-			{
-				rc = mt9e013_read_awb_data(&cdata);
-				if (rc < 0)
-					break;
-			}
+			rc = mt9e013_read_awb_data(&cdata);
+			if (rc < 0)
+				break;
 			if (copy_to_user((void *)argp,&cdata,	sizeof(struct sensor_cfg_data)))
 				rc = -EFAULT;	
 			break;
@@ -1253,7 +1184,6 @@ static int mt9e013_sensor_release(void)
 {
 	int rc = -EBADF;
 	mutex_lock(&mt9e013_mut);
-	/* Push lens to default addr. */
 	mt9e013_set_default_focus(0);
 	msleep(100);
 	mt9e013_power_down();
@@ -1288,30 +1218,9 @@ static int mt9e013_sensor_probe(const struct msm_camera_sensor_info *info,
 	else
 	{
 		CDBG("mt9e013 probe succeed!\n");
-	}
-	mt9e013_OTP_reading();
-	/*we read the register to get model id*/
-	if(mt9e013_i2c_read(0x3806, &mt9e013_model_id,2) <0)
-	{
-		CDBG("write mt9e013_mode_id fail\n");
-		mt9e013_model_id = MODULE_LITEON;
-	}
-	else
-	{
-		CDBG("mt9e013 model is 0x%x: \n", mt9e013_model_id);
-		mt9e013_model_id = (mt9e013_model_id & 0xF000) >> 12;
-	}	
-	/*different sensor name for different model*/
-	if(MODULE_SUNNY == mt9e013_model_id)
-	{
-		/*camera name for project menu to display*/
-		strncpy((char *)info->sensor_name, "23060068FA-MT-S", strlen("23060068FA-MT-S"));
-
-	}
-	else    //if(MODEL_LITEON == mt9e013_model_id)
-	{
 		strncpy((char *)info->sensor_name, "23060068FA-MT-L", strlen("23060068FA-MT-L"));
 	}
+	mt9e013_OTP_reading();
 
 	s->s_init = mt9e013_sensor_open_init;
 	s->s_release = mt9e013_sensor_release;
@@ -1322,7 +1231,6 @@ static int mt9e013_sensor_probe(const struct msm_camera_sensor_info *info,
 	mt9e013_probe_init_done(info);
 
     #ifdef CONFIG_HUAWEI_HW_DEV_DCT
-    /* detect current device successful, set the flag as present */
     set_hw_dev_flag(DEV_I2C_CAMERA_MAIN);
     #endif
     

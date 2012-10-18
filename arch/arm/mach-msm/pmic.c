@@ -133,13 +133,11 @@
 #define GPIO_SET_VOLTAGE_SOURCE_PROC 112
 #define GPIO_SET_OUTPUT_BUFFER_DRIVE_STRENGTH_PROC 113
 
-/*set the 203 for key rpc interface*/
 #ifdef CONFIG_HUAWEI_KERNEL
 #define SET_KEYLED_INTENSITY_PROC 203
 #endif
 #ifdef CONFIG_HUAWEI_KERNEL
 #define PMIC_SET_MPP6_CURRENT_PROC 201
-/*set the no for PTT rpc interface*/
 #ifdef CONFIG_HUAWEI_FEATURE_PTT_KEY_LIGHT
 #define PMIC_SET_MPP4_CURRENT_PROC 202
 #endif
@@ -1050,7 +1048,6 @@ int pmic_set_low_current_led_intensity(pm_low_current_led_type type, int level)
 
 EXPORT_SYMBOL(pmic_set_low_current_led_intensity);
 #endif
-/*use this function to contrl keyled brightness*/
 #ifdef CONFIG_HUAWEI_KERNEL
 int pmic_set_keyled_intensity(enum ledtype type, int level)
 {
@@ -1067,7 +1064,6 @@ int pmic_set_mpp6_led_intensity(int level)
 }
 
 EXPORT_SYMBOL(pmic_set_mpp6_led_intensity);
-/*use this to contrl MPP4*/
 #ifdef CONFIG_HUAWEI_FEATURE_PTT_KEY_LIGHT
 int pmic_set_ptt_current_led_intensity(int level)
 {

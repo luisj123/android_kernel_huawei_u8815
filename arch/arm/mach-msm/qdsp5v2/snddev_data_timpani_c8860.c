@@ -32,7 +32,6 @@
 #include "timpani_profile_7x30_c8860.h"
 #include <mach/qdsp5v2/audio_dev_ctl.h>
 
-/* define the value for BT_SCO */
 #define BT_SCO_PCM_CTL_VAL (PCM_CTL__RPCM_WIDTH__LINEAR_V |\
 		PCM_CTL__TPCM_WIDTH__LINEAR_V)
 #define BT_SCO_DATA_FORMAT_PADDING (DATA_FORMAT_PADDING_INFO__RPCM_FORMAT_V |\
@@ -196,8 +195,6 @@ static struct adie_codec_dev_profile ihs_stereo_speaker_stereo_rx_profile = {
 	.setting_sz = ARRAY_SIZE(ihs_stereo_speaker_stereo_rx_settings),
 };
 
-/* acdb_id from ACDB_ID_HEADSET_STEREO_PLUS_SPKR_STEREO_RX to ACDB_ID_HEADSET_STEREO_PLUS_SPKR_MONO_RX */
-/* set msm_snddev_poweramp_4music_on as pamp_on func */
 static struct snddev_icodec_data snddev_ihs_stereo_speaker_stereo_rx_data = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
 	.name = "headset_stereo_speaker_stereo_rx",
@@ -298,8 +295,6 @@ static struct adie_codec_dev_profile iearpiece_profile = {
 	.setting_sz = ARRAY_SIZE(iearpiece_settings),
 };
 
-/* min rx volume from -9 to -4 */
-/* rx volume from -7dB to 6dB */
 static struct snddev_icodec_data snddev_iearpiece_data = {
 	.capability = (SNDDEV_CAP_RX | SNDDEV_CAP_VOICE),
 	.name = "handset_rx",
@@ -366,7 +361,6 @@ static struct platform_device msm_imic_device = {
 	.dev = { .platform_data = &snddev_imic_data },
 };
 
-/* SPEAKER STEREO RX */
 static struct adie_codec_action_unit ispkr_stereo_48KHz_osr256_actions[] =
 	SPEAKER_PRI_STEREO_48000_OSR_256_C8860;
 

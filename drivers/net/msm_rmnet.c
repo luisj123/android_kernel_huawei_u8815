@@ -85,7 +85,6 @@ static const char *ch_name[RMNET_DEVICE_COUNT] = {
  
   History        :
   1.Date         : 2011/12/16
-    Author       : yuanjintao
     Modification : Created function
 
 *****************************************************************************/

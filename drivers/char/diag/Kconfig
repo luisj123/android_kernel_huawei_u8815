@@ -30,7 +30,9 @@ config DIAG_SDIO_PIPE
 	 SDIO Transport Layer for DIAG Router
 config HUAWEI_FEATURE_PHUDIAG
 	boolean
+#/* <DTS2011073000898 weizhonghui 20110801 begin */
 	default n
+#/* DTS2011073000898 weizhonghui 20110801 end> */
 endmenu
 
 menu "HSIC support for DIAG"

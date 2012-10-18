@@ -2443,7 +2443,6 @@ void mdp_adjust_start_addr(uint8 **src0,
 	}
 }
 
-/* Add qcom patch to resolve tranparent problem ,case number:00807793 */
 void mdp_set_blend_attr(MDPIBUF *iBuf,
 			uint32 *alpha,
 			uint32 *tpVal,

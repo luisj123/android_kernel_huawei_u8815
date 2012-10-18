@@ -2982,10 +2982,6 @@ static int msm_nand_write(struct mtd_info *mtd, loff_t to, size_t len,
 #include <asm/delay.h>
 extern int msm_dmov_exec_cmd_apanic(unsigned id, unsigned int cmdptr);
 
-/* msm_nand_write_oob_apanic is inherit from msm_nand_write_oob. 
- * when in panic the irq is lock, so all wait about irq is will not return,
- * we use the while poll to instead of the waitting operator.
- */
 static int
 msm_nand_write_oob_apanic(struct mtd_info *mtd, loff_t to, struct mtd_oob_ops *ops)
 {
@@ -3959,10 +3955,6 @@ err_dma_map_oobbuf_failed:
     return err;
 }
 
-/* msm_nand_write_apanic is inherit from msm_nand_write. 
- * when in panic the irq is lock, so all wait about irq is will not return,
- * we use the while poll to instead of the waitting operator.
- */
 static int msm_nand_write_apanic(struct mtd_info *mtd, loff_t to, size_t len,
               size_t *retlen, const u_char *buf)
 {
@@ -3975,7 +3967,6 @@ static int msm_nand_write_apanic(struct mtd_info *mtd, loff_t to, size_t len,
     ops.ooblen = 0;
     ops.datbuf = (uint8_t *)buf;
     ops.oobbuf = NULL;
-    /* we use the while poll to instead of the waitting operator */
     if (!dual_nand_ctlr_present)
 		ret =  msm_nand_write_oob_apanic(mtd, to, &ops);
     else
@@ -7850,7 +7841,6 @@ int msm_nand_scan(struct mtd_info *mtd, int maxchips)
 	mtd->read = msm_nand_read;
 	mtd->write = msm_nand_write;
 #ifdef CONFIG_HUAWEI_KERNEL
-	/* add for android panic support*/
 	mtd->panic_write = msm_nand_write_apanic;
 #endif
 	mtd->read_oob  = msm_nand_read_oob;

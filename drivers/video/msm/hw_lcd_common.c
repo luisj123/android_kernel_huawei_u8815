@@ -167,7 +167,8 @@ int process_mddi_table(struct sequence *table, size_t count, lcd_panel_type lcd_
 			case MDDI_HX8357C_CHIMEI_HVGA:
 			case MDDI_HX8357C_TIANMA_HVGA:
 			case MDDI_HX8357C_CHIMEI_IPS_HVGA:
-				
+			case MDDI_HX8357C_TIANMA_IPS_HVGA:
+            case MDDI_RSP61408_TRULY_WVGA:
 				down(&mdp_pipe_ctrl_mutex);
                 clk_on = pmdh_clk_func(2);
                 pmdh_clk_func(1);

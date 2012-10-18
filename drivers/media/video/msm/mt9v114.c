@@ -475,8 +475,7 @@ static struct mt9v114_i2c_reg_conf mt9v114_init_reg_config[] =
     {E_REGISTER_CMD_8BIT,  0xA082,   0x32}, // CAM_LL_CONFIG_DM_EDGE_TH_STOP
     {E_REGISTER_CMD_16BIT, 0xA083, 0x000F}, // CAM_LL_CONFIG_FTB_AVG_YSUM_START
     {E_REGISTER_CMD_16BIT, 0xA085, 0x0000}, // CAM_LL_CONFIG_FTB_AVG_YSUM_STOP
-    
-    {E_REGISTER_CMD_8BIT,  0xA020,   0x3A}, // CAM_AE_CONFIG_BASE_TARGET    0x46 30
+    {E_REGISTER_CMD_8BIT,  0xA020,   0x4B}, // CAM_AE_CONFIG_BASE_TARGET
     
     {E_REGISTER_CMD_16BIT, 0xA027, 0x0050}, // CAM_AE_CONFIG_MIN_VIRT_AGAIN
     {E_REGISTER_CMD_16BIT, 0xA029, 0x00C0}, // CAM_AE_CONFIG_MAX_VIRT_AGAIN
@@ -489,10 +488,10 @@ static struct mt9v114_i2c_reg_conf mt9v114_init_reg_config[] =
     {E_REGISTER_CMD_16BIT, 0xA05B, 0x0005}, // CAM_AWB_CONFIG_START_BRIGHTNESS_BM
     {E_REGISTER_CMD_16BIT, 0xA05D, 0x0023}, // CAM_AWB_CONFIG_STOP_BRIGHTNESS_BM
     {E_REGISTER_CMD_16BIT, 0x9801, 0x000F}, // STAT_CLIP_MAX
-    {E_REGISTER_CMD_8BIT,  0x9C02,   0x01}, // LL_GAMMA_SELECT
+    {E_REGISTER_CMD_8BIT,  0x9C02,   0x02}, // LL_GAMMA_SELECT
     {E_REGISTER_CMD_8BIT,  0x9001,   0x05}, // AE_TRACK_MODE
     {E_REGISTER_CMD_8BIT,  0x9007,   0x05}, // AE_TRACK_TARGET_GATE
-    {E_REGISTER_CMD_8BIT,  0x9003,   0x08}, // AE_TRACK_BLACK_LEVEL_MAX
+    {E_REGISTER_CMD_8BIT,  0x9003,   0x12}, // AE_TRACK_BLACK_LEVEL_MAX
     {E_REGISTER_CMD_8BIT,  0x9004,   0x02}, // AE_TRACK_BLACK_LEVEL_STEP_SIZE
     {E_REGISTER_CMD_8BIT,  0x9005,   0x23}, // AE_TRACK_BLACK_CLIP_PERCENT
     {E_REGISTER_CMD_8BIT,  0x8C03,   0x01}, // FD_STAT_MIN
@@ -1441,7 +1440,8 @@ static int mt9v114_sensor_probe(const struct msm_camera_sensor_info *info,
         i2c_del_driver(&mt9v114_i2c_driver);
         goto probe_done;
     }
-
+    /* camera name for project menu to display */
+    strncpy((char *)info->sensor_name, "23060055FF-MT-S", strlen("23060055FF-MT-S"));
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
     set_hw_dev_flag(DEV_I2C_CAMERA_SLAVE);
 #endif

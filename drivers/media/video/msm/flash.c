@@ -38,7 +38,7 @@ struct i2c_client *sx150x_client;
 #define CAMERA_LED_TORCH_LOW_MA    50
 #define CAMERA_LED_TORCH_MIDDLE_MA 100
 #define CAMERA_LED_TORCH_HIGH_MA   150
-
+#define PM8058_GPIO_PM_TO_SYS(pm_gpio)     (pm_gpio + NR_GPIO_IRQS)*/
 static struct  pm_gpio camera_flash = {
 		.direction      = PM_GPIO_DIR_OUT,
 		.output_buffer  = PM_GPIO_OUT_BUF_CMOS,
@@ -351,13 +351,11 @@ static int msm_camera_flash_pwm(
 	int rc = 0;
 	int PWM_PERIOD = USEC_PER_SEC / pwm->freq;
 
-	/*description:pwm camera flash*/
 	#ifdef CONFIG_HUAWEI_KERNEL
 	static struct pwm_device *flash_pwm = NULL;
 	#else 
 	static struct pwm_device *flash_pwm;
 	#endif
-	/*If it is the first time to enter the function*/
 	if (!flash_pwm) {
 		#ifdef CONFIG_HUAWEI_KERNEL
 		rc = pm8xxx_gpio_config( 205, &camera_flash);
@@ -512,19 +510,16 @@ int32_t msm_camera_flash_set_led_state(
 	}
 
 #ifdef CONFIG_HUAWEI_EVALUATE_POWER_CONSUMPTION 
-    /* start calculate flash consume */
 	switch (led_state) {
 	case MSM_CAMERA_LED_OFF:
         huawei_rpc_current_consuem_notify(EVENT_CAMERA_FLASH_STATE, 0);
 		break;
 
 	case MSM_CAMERA_LED_LOW:
-        /* the consume depend on low_current */
         huawei_rpc_current_consuem_notify(EVENT_CAMERA_FLASH_STATE, fdata->flash_src->_fsrc.pmic_src.low_current);
 		break;
 
 	case MSM_CAMERA_LED_HIGH:
-        /* the consume depend on high_current */
         huawei_rpc_current_consuem_notify(EVENT_CAMERA_FLASH_STATE, fdata->flash_src->_fsrc.pmic_src.high_current);
 		break;
 

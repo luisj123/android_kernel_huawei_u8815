@@ -21,7 +21,6 @@
 #include <linux/slab.h>
 #include <linux/wakelock.h>
 
-/* Optimize the MMI code */
 #include <linux/hardware_self_adapt.h>
 extern bool mmi_keystate[255];
 struct gpio_kp {
@@ -129,7 +128,6 @@ static void report_key(struct gpio_kp *kp, int key_index, int out, int in)
 					out, in, mi->output_gpios[out],
 					mi->input_gpios[in], pressed);
 			input_report_key(kp->input_devs->dev[dev], keycode, pressed);
-           	/* Used to save the key state */
             mmi_keystate[keycode] = (pressed)? MMI_KEY_DOWN :MMI_KEY_UP ;
 		}
 	}

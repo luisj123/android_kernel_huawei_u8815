@@ -18,7 +18,6 @@
 
 static lcd_panel_type lcd_panel_wvga = LCD_NONE;
 
-/*mipi dsi register setting , help qualcomm to set.*/
 static struct mipi_dsi_phy_ctrl dsi_cmd_mode_phy_db = 
 {
     /* DSI Bit Clock at 300 MHz, 2 lane, RGB888 */ 
@@ -40,25 +39,20 @@ static struct mipi_dsi_phy_ctrl dsi_cmd_mode_phy_db =
 static struct dsi_buf rsp61408_tx_buf;
 static struct sequence * rsp61408_lcd_init_table_debug = NULL;
 
-/*LCD init code*/
 static const struct sequence rsp61408_wvga_standby_enter_table[]= 
 {
-	/*close Vsync singal,when lcd sleep in*/
 	{0x00034,MIPI_DCS_COMMAND,0},
 	{0x00000,TYPE_PARAMETER,0},
 	{0x00028,MIPI_DCS_COMMAND,0}, //28h
 	{0x00000,TYPE_PARAMETER,0},
-	/*delay time is not very correctly right*/
 	{0x0010,MIPI_DCS_COMMAND,20},
 	{0x0000,TYPE_PARAMETER,0},
 	{0x00029,MIPI_TYPE_END,150}, // add new command for 
 };
 static const struct sequence rsp61408_wvga_standby_exit_table[]= 
 {
-	/* solve losing control of the backlight */
 	{0x00011,MIPI_DCS_COMMAND,0}, //29h
 	{0x00000,TYPE_PARAMETER,0},
-	/*open Vsync singal,when lcd sleep out*/
 	{0x00035,MIPI_DCS_COMMAND,150},
 	{0x00000,TYPE_PARAMETER,0},
 	{0x00029,MIPI_DCS_COMMAND,0},
@@ -66,7 +60,6 @@ static const struct sequence rsp61408_wvga_standby_exit_table[]=
 	{0x00029,MIPI_TYPE_END,0}, // add new command for 
 };
 
-/*lcd resume function*/
 static int mipi_rsp61408_lcd_on(struct platform_device *pdev)
 {
 	boolean para_debug_flag = FALSE;
@@ -104,7 +97,6 @@ static int mipi_rsp61408_lcd_on(struct platform_device *pdev)
 	return 0;
 }
 
-/*lcd suspend function*/
 static int mipi_rsp61408_lcd_off(struct platform_device *pdev)
 {
 	struct msm_fb_data_type *mfd;
@@ -137,7 +129,6 @@ static struct sequence rsp61408_wvga_write_cabc_brightness_table[]=
     {0x00018,TYPE_PARAMETER,0},
 	{0x00,MIPI_TYPE_END,0},
 };
-/*lcd cabc control function*/
 void rsp61408_set_cabc_backlight(struct msm_fb_data_type *mfd,uint32 bl_level)
 {	
 	rsp61408_wvga_write_cabc_brightness_table[2].reg = bl_level; 
@@ -156,7 +147,6 @@ static struct msm_fb_panel_data rsp61408_panel_data = {
 	.on		= mipi_rsp61408_lcd_on,
 	.off	= mipi_rsp61408_lcd_off,
 	.set_backlight = pwm_set_backlight,
-	/*add cabc control backlight*/
 	.set_cabc_brightness = rsp61408_set_cabc_backlight,
 
 };
@@ -209,7 +199,6 @@ static int __init mipi_cmd_rsp61408_wvga_init(void)
 		pinfo->mipi.stream = 0; /* dma_p */
 		pinfo->mipi.mdp_trigger = DSI_CMD_TRIGGER_SW;
 		pinfo->mipi.dma_trigger = DSI_CMD_TRIGGER_SW;
-		/*set hw te sync*/
 		pinfo->lcd.hw_vsync_mode = TRUE;
 		pinfo->lcd.vsync_enable = TRUE;
 		pinfo->mipi.te_sel = 1; /* TE from vsync gpio */

@@ -29,9 +29,7 @@ atomic_t irq_cnt;
 #define RECORDING_OFF 0
 #define PREVIOUS_FRAME_IS_PREVIEW 0
 #define PREVIOUS_FRAME_IS_RECORDING 1
-/*when init, recording is off*/
 static uint32_t recording_flag = RECORDING_OFF;
-/*when init, previous frame is recording because the start preview frame can not be removed*/
 static uint32_t recording_frame_flag = PREVIOUS_FRAME_IS_RECORDING;
 #endif
 #define CHECKED_COPY_FROM_USER(in) {					\
@@ -1159,7 +1157,6 @@ static void vfe31_start_common(void)
 static int vfe31_start_recording(void)
 {
 	#ifdef CONFIG_HUAWEI_KERNEL
-	/*when start recording, init recording_flag and recording_frame_flag*/
 	recording_flag = RECORDING_ON;
 	recording_frame_flag = PREVIOUS_FRAME_IS_RECORDING;
 	#endif
@@ -1173,7 +1170,6 @@ static int vfe31_start_recording(void)
 static int vfe31_stop_recording(void)
 {
 	#ifdef CONFIG_HUAWEI_KERNEL
-	/*when stop recording, deinit recording_flag and recording_frame_flag*/
 	recording_flag = RECORDING_OFF;
 	recording_frame_flag = PREVIOUS_FRAME_IS_RECORDING;
 	#endif
@@ -3175,7 +3171,6 @@ static void vfe31_process_output_path_irq_2(uint32_t ping_pong)
 		kfree(free_buf);
 		vfe_send_outmsg(MSG_ID_OUTPUT_V, pyaddr, pcbcraddr);
 		#ifdef CONFIG_HUAWEI_KERNEL
-		/*when process, set recording_frame_flag for PREVIOUS_FRAME_IS_RECORDING*/
 		recording_frame_flag = PREVIOUS_FRAME_IS_RECORDING;
 		#endif
 	} else {

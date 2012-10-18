@@ -204,7 +204,6 @@ static int block2mtd_write(struct mtd_info *mtd, loff_t to, size_t len,
 	return err;
 }
 
-/* for support the unification of emmc and nand */ 
 #ifdef CONFIG_HUAWEI_APANIC
 static int block2mtd_isbad(struct mtd_info *mtd, loff_t ofs)
 {
@@ -283,7 +282,6 @@ static struct block2mtd_dev *add_device(char *devname, int erase_size)
 	/* Setup the MTD structure */
 	/* make the name contain the block device in */
 
-	/* for support the unification of emmc and nand */ 
     #ifndef CONFIG_HUAWEI_APANIC
 	name = kasprintf(GFP_KERNEL, "block2mtd: %s", devname);
     #else

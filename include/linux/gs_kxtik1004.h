@@ -1,7 +1,6 @@
 /* include/linux/input/gs_kxtik1004.h*/
 /*
  * Copyright (C) 2012 HUAWEI, Inc.
- * Author: zhangmin/195861 
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and

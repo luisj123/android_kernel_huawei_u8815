@@ -94,13 +94,6 @@
 
 uint32_t rotator_hw_revision; 
  
-/* 
-+ * rotator_hw_revision: 
-+ * 0 == 7x30 
-+ * 1 == 8x60 
-+ * 2 == 8960 
-+ * 
-+ */ 
 
 struct tile_parm {
 	unsigned int width;  /* tile's width */
@@ -507,7 +500,6 @@ static int msm_rotator_ycxcx_h2v2(struct msm_rotator_img_info *info,
 		return -EINVAL;
 
 	/* rotator expects YCbCr for planar input format */
-	/* delete these lines,replace it with below */
 	if ((info->src.format == MDP_Y_CR_CB_H2V2 || 
 	info->src.format == MDP_Y_CR_CB_GH2V2) && 
 	(rotator_hw_revision == ROTATOR_REVISION_V2)) 
@@ -1030,7 +1022,6 @@ static int msm_rotator_do_rotate(unsigned long arg)
 		  MSM_ROTATOR_SRC_IMAGE_SIZE);
 
 #ifdef CONFIG_HUAWEI_KERNEL 
-/*when camera preview is used, "Mirror_Flip" is set, and overlay fixedly is rotated 270 degrees.*/
        if(Mirror_Flip)
        {
        	msm_rotator_dev->img_info[s]->rotations = MDP_ROT_270;
@@ -1386,7 +1377,6 @@ static long msm_rotator_ioctl(struct file *file, unsigned cmd,
 		return msm_rotator_do_rotate(arg);
 	case MSM_ROTATOR_IOCTL_FINISH:
 		return msm_rotator_finish(arg);
-/*add a ioctl macro to get a flag that decide how degrees to rotate*/
 #ifdef CONFIG_HUAWEI_KERNEL
        case MSM_ROTATOR_IOCTL_MIRROR_FLIP:
 	   	if (copy_from_user(&info, (void __user *)arg, sizeof(int)))

@@ -41,7 +41,6 @@
 #define MIN_FREQUENCY_UP_THRESHOLD		(11)
 #define MAX_FREQUENCY_UP_THRESHOLD		(100)
 #define MIN_FREQUENCY_DOWN_DIFFERENTIAL		(1)
-/* define the sample rate to 30ms for non-idle state */
 #ifdef CONFIG_HUAWEI_KERNEL
 #define MICRO_FREQUENCY_PREFERED_SAMPLE_RATE (30000)
 #endif
@@ -511,10 +510,6 @@ static struct attribute_group dbs_attr_group = {
 };
 
 #ifdef CONFIG_HUAWEI_KERNEL
-/* set sample rate according to the input parameter screen_on:
-   1: set sample rate to non-idle state value, namely 30ms
-   0: set sample rate to idle state value, namely 50ms
-*/
 void set_sampling_rate(int screen_on)
 {
     char *buff_on = "30000";
@@ -531,10 +526,6 @@ void set_sampling_rate(int screen_on)
 }
 EXPORT_SYMBOL(set_sampling_rate);
 
-/* set threshold according to the input parameter screen_on:
-   1: set up_threshold to non-idle state value, namely 80%
-   0: set up_threshold to idle state value, namely 95%
-*/
 void set_up_threshold(int screen_on)
 {
     char *buff_on = "80";
@@ -826,7 +817,6 @@ static void dbs_input_event(struct input_handle *handle, unsigned int type,
 }
 
 #ifdef CONFIG_HUAWEI_KERNEL
-/* Filter some input devices which we don't care */
 static int input_dev_filter(const char* input_dev_name)
 {
     int ret = false;
@@ -848,7 +838,6 @@ static int dbs_input_connect(struct input_handler *handler,
 	struct input_handle *handle;
 	int error;
 #ifdef CONFIG_HUAWEI_KERNEL
-    /* Filter out those input_dev that we don't care */
     if (input_dev_filter(dev->name))
         return 0;
 #endif
@@ -1021,7 +1010,6 @@ static int __init cpufreq_gov_dbs_init(void)
 	put_cpu();
 	if (idle_time != -1ULL) {
 		/* Idle micro accounting is supported. Use finer thresholds */
-		/* use the initialized value */
 #ifndef CONFIG_HUAWEI_KERNEL
 		dbs_tuners_ins.up_threshold = MICRO_FREQUENCY_UP_THRESHOLD;
 #endif

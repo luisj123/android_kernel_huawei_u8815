@@ -399,7 +399,6 @@ struct mt9e013_i2c_reg_conf shading_settings[] =
 {0x37C4, 0xDB8A},
 {0x37C6, 0x822B}
 };
-//lijuan add for OTP reading
 
 struct mt9e013_reg mt9e013_regs = {
 	.reg_mipi = &mipi_settings[0],

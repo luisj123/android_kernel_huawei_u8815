@@ -214,30 +214,33 @@ static int adxl34x_i2c_read_block(struct i2c_client *client,
 /**************************************************************************************/
 static inline int reg_read(struct gs_data *gs , int reg)
 {
-	int val;
+    int val;
 
-	mutex_lock(&gs->mlock);
+    mutex_lock(&gs->mlock);
 
-	val = i2c_smbus_read_byte_data(gs->client, reg);
-	if (val < 0)
-		printk(KERN_ERR "ADI346 chip i2c %s failed\n", __FUNCTION__);
+    val = i2c_smbus_read_byte_data(gs->client, reg);
+    if (val < 0)
+    {
+        printk(KERN_ERR "ADI346 chip i2c %s failed! reg=0x%x, value=0x%x\n", __FUNCTION__, reg, val);
+    }
+    
+    mutex_unlock(&gs->mlock);
 
-	mutex_unlock(&gs->mlock);
-
-	return val;
+    return val;
 }
 static inline int reg_write(struct gs_data *gs, int reg, uint8_t val)
 {
-	int ret;
+    int ret;
 
-	mutex_lock(&gs->mlock);
-	ret = i2c_smbus_write_byte_data(gs->client, reg, val);
-	if(ret < 0) {
-		printk(KERN_ERR "ADI346 chip i2c %s failed\n", __FUNCTION__);
-	}
-	mutex_unlock(&gs->mlock);
+    mutex_lock(&gs->mlock);
+    ret = i2c_smbus_write_byte_data(gs->client, reg, val);
+    if(ret < 0)
+    {
+        printk(KERN_ERR "ADI346 chip i2c %s failed! reg=0x%x, value=0x%x, ret=%d\n", __FUNCTION__, reg, val, ret);
+    }
+    mutex_unlock(&gs->mlock);
 
-	return ret;
+    return ret;
 }
 
 /**************************************************************************************/
@@ -382,79 +385,92 @@ static struct miscdevice gsensor_device = {
 
 static void gs_work_func(struct work_struct *work)
 {
-	/*modify the data processing*/
-	short buf[3];
-	int x = 0, y = 0, z = 0;
-	short x16 = 0, y16 = 0, z16 = 0;
+    /*modify the data processing*/
+    int ret = 0;
+    short buf[3];
+    int x = 0, y = 0, z = 0;
+    short x16 = 0, y16 = 0, z16 = 0;
 
-	int sesc = accel_delay/1000;
-	int nsesc = (accel_delay%1000)*1000000;	
-	struct gs_data *gs = container_of(work, struct gs_data, work);
-       
-	adxl34x_i2c_read_block(gs->client, GS_ADI_REG_DATAX0, GS_ADI_REG_DATAZ1 - GS_ADI_REG_DATAX0 + 1, buf);
+    int sesc = accel_delay/1000;
+    int nsesc = (accel_delay%1000)*1000000; 
+    struct gs_data *gs = container_of(work, struct gs_data, work);
 
-	x16 = buf[0];
-	y16 = buf[1];
-	z16 = buf[2];
+    ret = adxl34x_i2c_read_block(gs->client, GS_ADI_REG_DATAX0, GS_ADI_REG_DATAZ1 - GS_ADI_REG_DATAX0 + 1, buf);
+    if (ret < 0)
+    {
+        printk(KERN_ERR "%s line %d: adxl34x_i2c_read_block error(ret=%d)!\n", __func__, __LINE__, ret);
+    }
 
-	ADI346_DBG("Gs_adi346:A  x : %d y : %d z : %d \n", x16,y16,z16);
-	x = x16*MG_PER_SAMPLE/FILTER_SAMPLE_NUMBER;
-	y = y16*MG_PER_SAMPLE/FILTER_SAMPLE_NUMBER;
-	z = z16*MG_PER_SAMPLE/FILTER_SAMPLE_NUMBER;
+    x16 = buf[0];
+    y16 = buf[1];
+    z16 = buf[2];
 
-	/*report different values by machines*/
-	if((compass_gs_position==COMPASS_TOP_GS_BOTTOM)||(compass_gs_position==COMPASS_BOTTOM_GS_BOTTOM)||(compass_gs_position==COMPASS_NONE_GS_BOTTOM))
-	{
-		//inverse
-		y*=(-1);
-	}
-	else
-	{
-		/*
-		if((compass_gs_position==0)||(compass_gs_position==2))
-		*/
-		//obverse
-		z*=(-1);
-	}
+    ADI346_DBG("%s, line %d: gs_adi346, origin data: x:%d y:%d z:%d sec:%d nsec:%d\n", __func__, __LINE__, x16, y16, z16, sesc, nsesc);
+    x = x16*MG_PER_SAMPLE/FILTER_SAMPLE_NUMBER;
+    y = y16*MG_PER_SAMPLE/FILTER_SAMPLE_NUMBER;
+    z = z16*MG_PER_SAMPLE/FILTER_SAMPLE_NUMBER;
 
-	input_report_abs(gs->input_dev, ABS_X, y);
-	input_report_abs(gs->input_dev, ABS_Y, x);			
-	input_report_abs(gs->input_dev, ABS_Z, z);
-	GS_DEBUG("Gs_adi346:A  x :0x%x y :0x%x z :0x%x \n", x,y,z);
-	input_sync(gs->input_dev);
+    /*report different values by machines*/
+    if((compass_gs_position==COMPASS_TOP_GS_BOTTOM)||(compass_gs_position==COMPASS_BOTTOM_GS_BOTTOM)||(compass_gs_position==COMPASS_NONE_GS_BOTTOM))
+    {
+        //inverse
+        y*=(-1);
+    }
+    else
+    {
+        /*
+        if((compass_gs_position==0)||(compass_gs_position==2))
+        */
+        //obverse
+        z*=(-1);
+    }
 
-	/*
-	* There is a transform formula between ABS_X, ABS_Y, ABS_Z
-	* and Android_X, Android_Y, Android_Z.
-	*                      -          -
-	*                      			|  0 -1  0 |
-	* [ABS_X ABS_Y ABS_Z]*   |  1  0  0 | = [Android_X, Android_Y, Android_Z]
-	*                      			|  0  0 -1 |
-	*                      -          -
-	* compass uses Android_X, Andorid_Y, Android_Z
-	*/
-	memset((void*)st_sensor_data, 0, sizeof(st_sensor_data));
-	st_sensor_data[0]= -y;
-	st_sensor_data[1]= x;
-	st_sensor_data[2]= -z;
-		
+    input_report_abs(gs->input_dev, ABS_X, y);
+    input_report_abs(gs->input_dev, ABS_Y, x);
+    input_report_abs(gs->input_dev, ABS_Z, z);
+    GS_DEBUG("Gs_adi346:A  x :0x%x y :0x%x z :0x%x \n", x,y,z);
+    input_sync(gs->input_dev);
 
-	ADI346_DBG("Gs_adi346:A  x : %d y : %d z : %d \n", x,y,z);
-	if(adi346_debug_mask)
-	{
-		/* print reg info in such times */
-		if(!(++adi346_times%adi346_PRINT_PER_TIMES))
-		{
-			/* count return to 0 */
-			adi346_times = 0;
-			adi346_print_debug(GS_ADI_REG_THRESH_TAP,GS_ADI_REG_ORIENT);
-		}
-	}
-	if (gs->use_irq)
-		enable_irq(gs->client->irq);
-	else
-		hrtimer_start(&gs->timer, ktime_set(sesc, nsesc), HRTIMER_MODE_REL);
-	
+    /*
+    * There is a transform formula between ABS_X, ABS_Y, ABS_Z
+    * and Android_X, Android_Y, Android_Z.
+    *                      -          -
+    *                      |  0 -1  0 |
+    * [ABS_X ABS_Y ABS_Z]* |  1  0  0 | = [Android_X, Android_Y, Android_Z]
+    *                      |  0  0 -1 |
+    *                      -          -
+    * compass uses Android_X, Andorid_Y, Android_Z
+    */
+    memset((void*)st_sensor_data, 0, sizeof(st_sensor_data));
+    st_sensor_data[0]= -y;
+    st_sensor_data[1]= x;
+    st_sensor_data[2]= -z;
+        
+
+    ADI346_DBG("%s, line %d: gs_adi346, report data: x:%d y:%d z:%d\n", __func__, __LINE__, x, y, z);
+    if(adi346_debug_mask)
+    {
+        /* print reg info in such times */
+        if(!(++adi346_times%adi346_PRINT_PER_TIMES))
+        {
+            /* count return to 0 */
+            adi346_times = 0;
+            adi346_print_debug(GS_ADI_REG_THRESH_TAP,GS_ADI_REG_ORIENT);
+        }
+    }
+    
+    if (gs->use_irq)
+    {
+        enable_irq(gs->client->irq);
+    }
+    else
+    {
+        /* hrtimer_start fail */
+        if (0 != hrtimer_start(&gs->timer, ktime_set(sesc, nsesc), HRTIMER_MODE_REL) )
+        {
+            printk(KERN_ERR "%s, line %d: hrtimer_start fail! sec=%d, nsec=%d\n", __func__, __LINE__, sesc, nsesc);
+        }
+    }
 }
 
 
@@ -643,12 +659,10 @@ static int gs_probe(
 	gs->input_dev->id.vendor = GS_ADI346;
 	
 	set_bit(EV_ABS,gs->input_dev->evbit);
-	/* < DTS20111208XXXXX  liujinggang 20111208 begin */
 	/* modify for ES-version*/
 	input_set_abs_params(gs->input_dev, ABS_X, -11520, 11520, 0, 0);
 	input_set_abs_params(gs->input_dev, ABS_Y, -11520, 11520, 0, 0);
 	input_set_abs_params(gs->input_dev, ABS_Z, -11520, 11520, 0, 0);
-	/* DTS20111208XXXXX  liujinggang 20111208 end > */
 	set_bit(EV_SYN,gs->input_dev->evbit);
 
 
@@ -693,19 +707,36 @@ static int gs_probe(
 	register_early_suspend(&gs->early_suspend);
 #endif
 
-	gs_wq = create_singlethread_workqueue("gs_wq");
-	if (!gs_wq)
-		return -ENOMEM;
-	
-	this_gs_data =gs;
+    gs_wq = create_singlethread_workqueue("gs_wq");
+    if (!gs_wq)
+    {
+        ret = -ENOMEM;
+        printk(KERN_ERR "%s, line %d: create_singlethread_workqueue fail!\n", __func__, __LINE__);
+        goto err_create_workqueue_failed;
+    }
+    
+    this_gs_data = gs;
 
-	if(pdata && pdata->init_flag)
-		*(pdata->init_flag) = 1;
+    if(pdata && pdata->init_flag)
+        *(pdata->init_flag) = 1;
 
-	printk(KERN_INFO "gs_probe: Start adi346  in %s mode\n", gs->use_irq ? "interrupt" : "polling");
+    printk(KERN_INFO "gs_probe: Start adi346  in %s mode\n", gs->use_irq ? "interrupt" : "polling");
 
-	return 0;
-	
+    return 0;
+
+err_create_workqueue_failed:
+#ifdef CONFIG_HAS_EARLYSUSPEND
+    unregister_early_suspend(&gs->early_suspend);
+#endif
+
+    if (gs->use_irq)
+    {
+        free_irq(client->irq, gs);
+    }
+    else
+    {
+        hrtimer_cancel(&gs->timer);
+    }
 err_misc_device_register_failed:
 	misc_deregister(&gsensor_device);
 
@@ -736,7 +767,9 @@ err_check_functionality_failed:
 static int gs_remove(struct i2c_client *client)
 {
 	struct gs_data *gs = i2c_get_clientdata(client);
-	unregister_early_suspend(&gs->early_suspend);
+#ifdef CONFIG_HAS_EARLYSUSPEND
+    unregister_early_suspend(&gs->early_suspend);
+#endif
 	if (gs->use_irq)
 		free_irq(client->irq, gs);
 	else

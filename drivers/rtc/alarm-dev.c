@@ -163,7 +163,6 @@ from_old_alarm_set:
 			goto err1;
 		break;
 #ifdef CONFIG_HUAWEI_FEATURE_POWEROFF_ALARM
-    /*set rtc alarm time ioctl case*/
 	case ANDROID_ALARM_SET_POWERUP_RTC:
 		if (copy_from_user(&new_alarm_time, (void __user *)arg,
 		    sizeof(new_alarm_time))) {

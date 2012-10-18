@@ -26,7 +26,8 @@
 #define LCD_Y_WVGA     800
 /*Replaced by LCD_ALL_WVGA_4INCHTP*/
 /* Change name */
-#define LCD_ALL_WVGA_4INCHTP1     855
+/* Calibrate the coordinate values */
+#define LCD_ALL_WVGA_4INCHTP1     859
 #define LCD_X_FWVGA 480
 #define LCD_Y_FWVGA 854
 /*Replaced by LCD_ALL_FWVGA*/
@@ -51,6 +52,7 @@ struct touch_hw_platform_data {
 	int (*get_touch_reset_pin)(void);
     int (*get_phone_version)(struct tp_resolution_conversion *tp_resolution_type);/*add this function for judge the tp type*/
 };
+/* move this to hardware_self_adapt.h */
 /* named Rule
  * 2202 3200 : syanptics-IC-Module.ver
  * for example: syanptics-3200-tpk.2
@@ -63,6 +65,6 @@ struct touch_hw_platform_data {
  *
  * return touch info
  */
-char * get_touch_info(void);
+/* char * get_touch_info(void); */
 
 #endif /*_TOUCH_PLATFORM_CONFIG_H */

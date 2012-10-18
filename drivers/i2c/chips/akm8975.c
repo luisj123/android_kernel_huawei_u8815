@@ -960,12 +960,7 @@ int akm8975_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	input_set_abs_params(akm->input_dev, ABS_RY, -11520, 11520, 0, 0);
 	/* roll (-90, 90) */
 	input_set_abs_params(akm->input_dev, ABS_RZ, -5760, 5760, 0, 0);
-	/* x-axis acceleration (720 x 8G) */
-	input_set_abs_params(akm->input_dev, ABS_X, -5760, 5760, 0, 0);
-	/* y-axis acceleration (720 x 8G) */
-	input_set_abs_params(akm->input_dev, ABS_Y, -5760, 5760, 0, 0);
-	/* z-axis acceleration (720 x 8G) */
-	input_set_abs_params(akm->input_dev, ABS_Z, -5760, 5760, 0, 0);
+	/* delete some lines, no need to set g-sensor parameters here */
 	/* temparature */
 	/*
 	input_set_abs_params(akm->input_dev, ABS_THROTTLE, -30, 85, 0, 0);

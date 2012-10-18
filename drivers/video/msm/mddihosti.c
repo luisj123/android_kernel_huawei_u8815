@@ -77,7 +77,6 @@ boolean mddi_debug_clear_rev_data = TRUE;
 uint32 *mddi_reg_read_value_ptr;
 
 mddi_client_capability_type mddi_client_capability_pkt;
-/*close Mddi Reverse link for reslove blankscreen*/
 #ifndef FEATURE_MDDI_DISABLE_REVERSE
 static boolean mddi_client_capability_request = FALSE;
 #endif
@@ -1561,9 +1560,17 @@ static void mddi_host_initialize_registers(mddi_host_type host_idx)
 		/* Recommendation from PAD hw team */
 		mddi_host_reg_out(PAD_CTL, 0x402a850f);
 	#endif
-
-		pad_reg_val = 0x10220020;
-
+		/*< DTS2011102804140 qitongliang 20111111 begin */
+	    /* resolve the buddy Lcd displaying unnormally*/
+		if (machine_is_msm8255_u8730())
+		{
+			pad_reg_val = 0x12238020;
+		}
+		else
+		{
+			pad_reg_val = 0x10220020;
+		}
+		/* DTS2011102804140 qitongliang 20111111 end >*/
 	#if defined(CONFIG_FB_MSM_MDP31) || defined(CONFIG_FB_MSM_MDP40)
 		mddi_host_reg_out(PAD_IO_CTL, 0x00320000);
 		mddi_host_reg_out(PAD_CAL, pad_reg_val);

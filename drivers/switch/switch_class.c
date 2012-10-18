@@ -98,7 +98,6 @@ void switch_set_state(struct switch_dev *sdev, int state)
 }
 EXPORT_SYMBOL_GPL(switch_set_state);
 
-/* support switch udisk interface from pc */
 #ifdef CONFIG_USB_AUTO_INSTALL
 void switch_set_udisk_state(struct switch_dev *sdev, const char* cmd)
 {
@@ -119,7 +118,6 @@ void switch_set_udisk_state(struct switch_dev *sdev, const char* cmd)
                      "SWITCH_NAME=%s", prop_buf);
             envp[env_offset++] = name_buf;
             
-            /* only send uevent in mass_storage */
             if (strcmp(prop_buf, "usb_mass_storage")) {
                 pr_err("switch_set_udisk_state: the name(%s) isn't support\n", prop_buf);
                 free_page((unsigned long)prop_buf);

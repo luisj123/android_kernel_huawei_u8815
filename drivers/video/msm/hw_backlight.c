@@ -4,7 +4,6 @@
  * Copyright (C) 2010 HUAWEI Technology Co., ltd.
  * 
  * Date: 2010/12/07
- * By lijianzhao
  * 
  */
 
@@ -36,7 +35,7 @@
 #define PM8058_GPIO_PM_TO_SYS(pm_gpio)     (pm_gpio + NR_GPIO_IRQS)
 
 /*LPG CTL MACRO  range 0 to 100*/
-#define PWM_LEVEL_ADJUST_LPG	90
+#define PWM_LEVEL_ADJUST_LPG	100
 #define BL_MIN_LEVEL_LPG 	    10
 static struct pwm_device *bl_pwm;
 /* move semaphore to msm_fb.c */
@@ -96,7 +95,7 @@ void msm_backlight_set(int level)
 {
     static uint8 last_level = 0;
 	static boolean first_set_bl = TRUE;
-	/* keep duty 10% < level < 90% */
+	/* keep duty 10% < level < 100% */
 #ifdef CONFIG_ARCH_MSM7X27A
 	if(level)
 	{
@@ -176,10 +175,10 @@ void cabc_backlight_set(struct msm_fb_data_type * mfd)
 {	     
 	struct msm_fb_panel_data *pdata = NULL;   
 	uint32 bl_level = mfd->bl_level;
-	/* keep duty 10% < level < 90% */
+		/* keep duty 10% < level < 100% */
 	if (bl_level)    
    	{   
-		bl_level = ((bl_level * PWM_LEVEL_ADJUST) / PWM_LEVEL + ADD_VALUE); 
+	/****delete one line codes for backlight*****/
 		if (bl_level < BL_MIN_LEVEL)        
 		{    
 			bl_level = BL_MIN_LEVEL;      

@@ -24,7 +24,6 @@
 
 #define KGSL_NAME "kgsl"
 
-/* Timestamp window used to detect rollovers */
 #define KGSL_TIMESTAMP_WINDOW 0x80000000
 
 /*cache coherency ops */

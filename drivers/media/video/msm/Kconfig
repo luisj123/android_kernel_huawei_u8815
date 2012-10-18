@@ -111,6 +111,15 @@ config HUAWEI_SENSOR_MT9P017
 	  Sunny 5M Bayer Sensor with AutoFocus
 	  	  
 	  
+#/* < DTS2012041003147 liuxin 20120223 begin */
+config HUAWEI_SENSOR_S5K4E1GX_P
+	bool "Sensor s5k4e1gx (BAYER 5M)"
+	depends on HUAWEI_CAMERA
+	default n
+	---help---
+	  MICRON 5M Bayer Sensor with AutoFocus
+	  
+#/* DTS2012041003147 liuxin 20120223 end > */ 
 config HUAWEI_SENSOR_OV5647_SUNNY
 	bool "Sensor ov5647_sunny (BAYER 5M)"
 	depends on HUAWEI_CAMERA

@@ -928,13 +928,19 @@ static void msm_batt_update_psy_status(void)
 	msm_batt_info.charger_type 	= charger_type;
 	msm_batt_info.battery_status 	= battery_status;
 	msm_batt_info.battery_level 	= battery_level;
-	msm_batt_info.battery_temp 	= battery_temp;
+    /*delete one line*/
 
     /* update capacity */
-    msm_batt_info.batt_capacity = battery_capacity;
+    /*delete one line*/
     
-	if (msm_batt_info.battery_voltage != battery_voltage) {
-		msm_batt_info.battery_voltage  	= battery_voltage;
+    /*when temperature or capacity changed,update battery status */
+    if ((msm_batt_info.battery_voltage != battery_voltage)
+        ||(msm_batt_info.battery_temp != battery_temp)
+        ||(msm_batt_info.batt_capacity != battery_capacity))
+    {
+            msm_batt_info.battery_voltage  	= battery_voltage;
+            msm_batt_info.battery_temp = battery_temp;
+            msm_batt_info.batt_capacity = battery_capacity;
 		if (!supp)
 			supp = msm_batt_info.current_ps;
 	}

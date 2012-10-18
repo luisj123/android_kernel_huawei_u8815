@@ -56,7 +56,6 @@ struct dpm_drv_wd_data {
 	struct task_struct *tsk;
 };
 
-/*add qcom debug code*/
 #ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 void print_dpm_list(void)
 {
@@ -328,7 +327,6 @@ static int pm_noirq_op(struct device *dev,
 #ifdef CONFIG_SUSPEND
 	case PM_EVENT_SUSPEND:
 		if (ops->suspend_noirq) {
-			/* merge qcom DEBUG_CODE for RPC crashes */
             #ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 			printk("HUAWEI RPC DEBUG: action: suspend_noirq dev name=%s, func=0x%x\n", dev_name(dev), (unsigned int)ops->suspend_noirq);
 			
@@ -343,7 +341,6 @@ static int pm_noirq_op(struct device *dev,
 		break;
 	case PM_EVENT_RESUME:
 		if (ops->resume_noirq) {
-			/* merge qcom DEBUG_CODE for RPC crashes */
             #ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 			printk("HUAWEI RPC DEBUG: action: resume_noirq dev name=%s, func=0x%x\n", dev_name(dev), (unsigned int)ops->resume_noirq);
 			if(dev &&(dev->driver)&& (dev->driver->pm)&&(dev->driver->pm->resume_noirq))
@@ -360,7 +357,6 @@ static int pm_noirq_op(struct device *dev,
 	case PM_EVENT_FREEZE:
 	case PM_EVENT_QUIESCE:
 		if (ops->freeze_noirq) {
-			/*merge qcom debug code*/
             #ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 			printk("HUAWEI RPC DEBUG: action: freeze_noirqdev dev name=%s, func=0x%x\n", dev_name(dev), (unsigned int)ops->freeze_noirq);
             #endif
@@ -370,7 +366,6 @@ static int pm_noirq_op(struct device *dev,
 		break;
 	case PM_EVENT_HIBERNATE:
 		if (ops->poweroff_noirq) {
-			/*merge qcom debug code*/
             #ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 			printk("HUAWEI RPC DEBUG: action: poweroff_noirq dev name=%s, func=0x%x\n", dev_name(dev), (unsigned int)ops->poweroff_noirq);
             #endif
@@ -381,7 +376,6 @@ static int pm_noirq_op(struct device *dev,
 	case PM_EVENT_THAW:
 	case PM_EVENT_RECOVER:
 		if (ops->thaw_noirq) {
-			/*merge qcom debug code*/
             #ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 			printk("HUAWEI RPC DEBUG: action: thaw_noirq dev name=%s, func=0x%x\n", dev_name(dev), (unsigned int)ops->thaw_noirq);
             #endif
@@ -391,7 +385,6 @@ static int pm_noirq_op(struct device *dev,
 		break;
 	case PM_EVENT_RESTORE:
 		if (ops->restore_noirq) {
-			/*merge qcom debug code*/
             #ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 			printk("HUAWEI RPC DEBUG: action: restore_noirq dev name=%s, func=0x%x\n", dev_name(dev), (unsigned int)ops->restore_noirq);
             #endif
@@ -525,7 +518,6 @@ void dpm_resume_noirq(pm_message_t state)
 		list_move_tail(&dev->power.entry, &dpm_suspended_list);
 		mutex_unlock(&dpm_list_mtx);
 
-		/*merge qcom debug code*/
         #ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 		printk(KERN_ERR "HUAWEI RPC DEBUG: resuming_noirq %s\n", dev_name(dev));
         #endif
@@ -710,7 +702,6 @@ void dpm_resume(pm_message_t state)
 
 			mutex_unlock(&dpm_list_mtx);
 
-			/*merge qcom SBA*/
             #ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 			printk(KERN_ERR "HUAWEI RPC DEBUG: resuming %s\n", dev_name(dev));
             #endif

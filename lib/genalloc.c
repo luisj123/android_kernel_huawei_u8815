@@ -143,7 +143,6 @@ void gen_pool_destroy(struct gen_pool *pool)
 	struct gen_pool_chunk *chunk;
 	int bit;
 
-    /** jiazhifeng kgsl SR Created By: Xiaofeng Ling (9/26/2010 8:02 AM) **/
 #ifdef CONFIG_HUAWEI_KERNEL
     write_lock(&pool->lock);
 #endif

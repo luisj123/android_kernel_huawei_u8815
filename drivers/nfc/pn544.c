@@ -24,7 +24,6 @@
  * 
  * when       who      what, where, why
  * -------------------------------------------------------------------------------
- * 20110106  genghua  create  SUPPORT PN544 NFC on Sonic
  */
 
 /*
@@ -138,37 +137,10 @@ static struct i2c_device_id pn544_id_table[] =
 MODULE_DEVICE_TABLE(i2c, pn544_id_table);
 
 
-
-/* this function used for the CRC check when we receive data from i2c */
-static int check_crc(u8 *buf, int buflen) 
-{ 
-	u8 len; 
-	u16 crc; 
-
-	len = buf[0] + 1; 
-	if (len < 4 || len != buflen || len > PN544_MSG_MAX_SIZE) 
-	{ 
-		printk(PN544_DRIVER_NAME 
-			": CRC; corrupt packet len %u (%d)\n", len, buflen); 
-		print_hex_dump(KERN_DEBUG, "crc: ", DUMP_PREFIX_NONE, 
-			16, 2, buf, buflen, false); 
-		return -EPERM; 
-	} 
-	crc = crc_ccitt(0xffff, buf, len - 2); 
-	crc = ~crc; 
-
-	if (buf[len-2] != (crc & 0xff) || buf[len-1] != (crc >> 8)) 
-	{ 
-		printk(PN544_DRIVER_NAME ": CRC error 0x%x != 0x%x 0x%x\n", 
-			crc, buf[len-1], buf[len-2]); 
-
-		print_hex_dump(KERN_DEBUG, "crc: ", DUMP_PREFIX_NONE, 
-			16, 2, buf, buflen, false); 
-		return -EPERM; 
-	} 
-	return 0; 
-} 
-
+/*it is used in pn544_i2c_write, and this func is only used by us,
+*so the illegal verify is not necessarily
+*/ 
+/*del 29 lines*/
 
 enum pn544_irq pn544_irq_state(struct pn544_info *info) 
 { 
@@ -320,18 +292,17 @@ int pn544_i2c_read(struct i2c_client *client, u8 *buf, int buflen)
 int pn544_i2c_write(struct i2c_client *client, u8 *buf, int len) 
 { 
 	int ret=0; 
+	int i = 0;
 
-	PN544_DEBUG("%s:entered\n",__func__);
-
-	if (len < 4 || len != (buf[0] + 1)) 
+    PN544_DEBUG("%s:entered, len=%d, buf0+1 = %d\n",__func__, len, buf[0] + 1);
+	
+	//this func is only used by us, so the illegal verify is not necessarily
+	if (len < 3) 
 	{ 
 		printk("%s: [ERROR]Illegal message length: %d\n", 
 			__func__, len); 
 		return -EINVAL; 
 	} 
-
-	if (check_crc(buf, len)) 
-		return -EINVAL; 
 
 	usleep_range(3000, 6000); 
 
@@ -352,6 +323,12 @@ int pn544_i2c_write(struct i2c_client *client, u8 *buf, int len)
 	if (ret != len) 
 		return -EREMOTEIO; 
 
+    PN544_DEBUG("IFD->PC: ");
+	for(i = 0; i < len; i++)
+	{
+		PN544_DEBUG("%02X", buf[i]);
+	}
+	PN544_DEBUG("\n");
 	return ret; 
 } 
 
@@ -373,7 +350,7 @@ static ssize_t pn544_read(struct file *file, char __user *buf,
 
 	PN544_DEBUG("%s : reading %zu bytes.\n", __func__, count);
 
-	mutex_lock(&info->mutex); 
+	//mutex_lock(&info->mutex);
 	/*if gpio value is high we should enable irq*/
 	PN544_DEBUG("%s:GPIO_NFC_INT value %d\n", __func__, gpio_get_value(GPIO_NFC_INT)); 
 	
@@ -399,7 +376,7 @@ static ssize_t pn544_read(struct file *file, char __user *buf,
 	/* Read data */
 	ret = i2c_master_recv(info->i2c_dev, tmp, count);
 	PN544_DEBUG("%s:read datasize: ret=%d count=%d\n", __func__, ret, count);
-	mutex_unlock(&info->mutex); 
+	//mutex_unlock(&info->mutex);
 	
 	if (ret < 0) {
 		printk("%s: receive error! i2c_master_recv returned %d\n", __func__, ret);
@@ -424,7 +401,7 @@ static ssize_t pn544_read(struct file *file, char __user *buf,
 	return ret;
 
 out: 
-	mutex_unlock(&info->mutex); 
+	//mutex_unlock(&info->mutex);
 	return ret;
 } 
 
@@ -458,16 +435,24 @@ static ssize_t pn544_write(struct file *file, const char __user *buf,
 		PN544_DEBUG("%02X", tmp[i]);
 	}
 	PN544_DEBUG("\n");
-	ret = i2c_master_send(info->i2c_dev, tmp, count);
+	//if send failed, we will retry it 3 times
+    for(i = 0; i < 3; i++)
+    {
+        ret = i2c_master_send(info->i2c_dev, tmp, count);
 	
-	if(ret == -EIO)
-	{
-		usleep_range(6000,10000); 
+        if(ret < 0)
+        {
+            usleep_range(6000,10000); 
 		
-		ret = i2c_master_send(info->i2c_dev, tmp, count); 
-		PN544_DEBUG("%s:chip was in standby, retry sending,ret=%d\n",
-			__func__,ret); 
-	}
+            //ret = i2c_master_send(info->i2c_dev, tmp, count); 
+            PN544_DEBUG("%s:chip was in standby, retry sending,ret=%d\n",
+                __func__,ret); 
+        }
+        else
+        {
+		    break;
+        }
+    }
 	
 	if (ret != count) {
 		printk("%s :send error! i2c_master_send returned %d\n", __func__, ret);
@@ -588,14 +573,170 @@ static int init_fw_download(void)
 	ret = gpio_direction_output(GPIO_NFC_LOAD,0);
 	return 0;
 }
+
+//to check if the i2c device is ok
+static int pn544_i2c_device_probe(struct i2c_client *client)
+{
+    int ret = 0;
+    int i = 0;
+    int cmd_send_result = 0;
+    u8 *cmd_reset = NULL;
+    u8 *cmd_fwdld_first = NULL;
+    u8 *cmd_receive = NULL;
+
+    /* the following code is used for the pn544 reset cmd test
+     * according to the pn544 SPEC 
+     */
+    cmd_reset = kzalloc(sizeof(u8) * PN544_RESET_SEND_SIZE, GFP_KERNEL);
+    if(NULL == cmd_reset)
+    {
+        PN544_DEBUG("%s:cmd_reset alloc failed.\n", __func__);
+        ret = -ENOMEM;
+        goto err_cmd_reset_alloc; 
+    }
+
+    cmd_receive = kzalloc(sizeof(u8) * PN544_RESET_RECEIVE_SIZE, GFP_KERNEL);
+    if(NULL == cmd_receive)
+    {
+        PN544_DEBUG("%s:cmd_receive alloc failed.\n", __func__);
+        ret = -ENOMEM;
+        goto err_cmd_receive_alloc; 
+    }
+
+    for (i = 0; i < PN544_RESET_SEND_TIMES; i++)
+    {
+        cmd_reset[0] = 0x05;
+        cmd_reset[1] = 0xf9;
+        cmd_reset[2] = 0x04;
+        cmd_reset[3] = 0x00;
+        cmd_reset[4] = 0xc3;
+        cmd_reset[5] = 0xe5;
+		 
+        /* here we send a HCI based reset command to pn544 to reset it */	
+        mdelay(100);	
+
+        ret = pn544_i2c_write(client, cmd_reset, PN544_RESET_SEND_SIZE);
+        if (ret < 0)
+        {
+            PN544_DEBUG("%s:write i2c failed, continue.\n", __func__);
+            continue;
+        }
+        mdelay(5);
+
+        PN544_DEBUG("%s:send cmd_reset to pn544\n", __func__);
+
+        cmd_receive[0] = 0x00;
+        cmd_receive[1] = 0x00;
+        cmd_receive[2] = 0x00;
+        cmd_receive[3] = 0x00;
+		
+	
+        PN544_DEBUG("%s:ready to receive data\n", __func__);
+        ret = pn544_i2c_read(client, cmd_receive, PN544_RESET_RECEIVE_SIZE);
+        if(ret < 0)
+        {
+            PN544_DEBUG("%s:read i2c failed, continue.\n", __func__);
+            continue;         
+        }
+              
+        PN544_DEBUG("pn544 cmd_receive[0]=0x%x\n", cmd_receive[0]);
+        PN544_DEBUG("pn544 cmd_receive[1]=0x%x\n", cmd_receive[1]);
+        PN544_DEBUG("pn544 cmd_receive[2]=0x%x\n", cmd_receive[2]);
+        PN544_DEBUG("pn544 cmd_receive[3]=0x%x\n", cmd_receive[3]);
+	 
+
+        /* the following check is according to pn544 SPEC */
+        if ((cmd_receive[0]!= 0x03)
+			|| (cmd_receive[1]!= 0xE6) 
+			|| (cmd_receive[2]!= 0x17) 
+			|| (cmd_receive[3]!= 0xA7))
+        {
+            PN544_DEBUG("%s:The reset cmd is not exec successful\n", __func__);
+            ret = -ENODEV; 
+            continue;
+        }
+
+        cmd_send_result = 1; 
+        ret = 0;
+        break;
+    }
+
+    if (1 == cmd_send_result)
+    {
+        PN544_DEBUG("%s, pn544 reset cmd response successfully.\n", __func__);
+        ret = 0;
+        goto err_cmd_reset;
+    }
+
+    //no response with reset cmd, we go to dlowad mode to test the i2c 
+    if (!pdata->pn544_ven_reset || !pdata->pn544_fw_download_pull_high)
+    {
+        PN544_DEBUG("%s:func pull_high and ven_reset missing\n", __func__);
+
+        ret = -ENODEV;
+        goto err_cmd_reset;     
+    } 
+
+    pdata->pn544_fw_download_pull_high();
+    pdata->pn544_ven_reset();
+
+    cmd_fwdld_first = kzalloc(sizeof(u8) * PN544_FWDLD_FIRST_SEND_SIZE, GFP_KERNEL);
+    if(NULL == cmd_fwdld_first)
+    {
+        PN544_DEBUG("%s:cmd_fwdld_first alloc failed.\n", __func__);
+
+        ret = -ENOMEM; 
+        goto err_cmd_fwdld_first_alloc; 
+    }
+
+    //the test cmd 0x010000
+    cmd_fwdld_first[0] = 0x01;
+    cmd_fwdld_first[1] = 0x00;
+    cmd_fwdld_first[2] = 0x00;
+
+    mdelay(100);
+	
+    ret = pn544_i2c_write(client, cmd_fwdld_first, PN544_FWDLD_FIRST_SEND_SIZE);
+    if (ret < 0)
+    {
+        PN544_DEBUG("%s:pn544_i2c_write download cmd failed.\n", __func__);
+
+        goto err_cmd_fwdld_first_send;
+    }
+    mdelay(5);
+
+    if (!pdata->pn544_fw_download_pull_down)
+    {
+	 PN544_DEBUG("%s:func pull_down missing.\n", __func__);
+        goto err_cmd_fwdld_first_send;
+    }
+
+    //here we should exit the download mode
+    pdata->pn544_fw_download_pull_down();
+    pdata->pn544_ven_reset();
+
+
+err_cmd_fwdld_first_send:
+	kfree(cmd_fwdld_first);
+	
+err_cmd_fwdld_first_alloc:	
+
+err_cmd_reset:
+	kfree(cmd_receive);
+	
+err_cmd_receive_alloc:
+	kfree(cmd_reset);
+	
+err_cmd_reset_alloc:	
+
+    return ret;			
+}
 	
 static int __devinit pn544_probe(struct i2c_client *client,
 								 const struct i2c_device_id *id)
 {
-	int ret=0; 
-    /*del 2 lines*/
-	/* struct pn544_nfc_platform_data *pdata; */
-	char pn544_set_stanby_return[50];
+	int ret=0;
+    /*del 10 lines*/
 	
 	PN544_DEBUG("%s:entered\n",__func__);
 
@@ -626,7 +767,6 @@ static int __devinit pn544_probe(struct i2c_client *client,
 	init_waitqueue_head(&pn544_info->read_wait); 
 	spin_lock_init(&pn544_info->irq_enabled_lock);
 	i2c_set_clientdata(client, pn544_info); 
-//On platform 7X30 we should identify whether GPIO04 is used
 #ifdef CONFIG_ARCH_MSM7X30
     if (machine_is_msm8255_u8860_r())
 	{
@@ -722,8 +862,13 @@ static int __devinit pn544_probe(struct i2c_client *client,
      *read function anyway , so we delete "if" here
      */
 
-
-    /* del 84 lines for the process of sending reset cmd */
+    //we use a func to deal the device probe
+    if (pn544_i2c_device_probe(client) < 0)
+    {
+        printk("%s:unable to probe device.\n", __func__); 
+		ret = -ENODEV; 
+        goto err_cmd_resp;
+    }
 	/*kfree delete*/
 	memcpy(&pn544_client,client,sizeof(struct i2c_client));
 
@@ -787,7 +932,6 @@ static int __devinit pn544_probe(struct i2c_client *client,
 		goto err_clock_mode_ctrl_err; 
 	}
 
-	//It is another clock out put mode, we can see the difference with pn544_clock_output_ctrl() in board-msm7x27a.c
 	if (!pdata->pn544_clock_output_mode_ctrl) 
 	{ 
 		printk("%s:pn544_clock_output_mode_ctrl  missing\n",__func__); 
@@ -796,7 +940,7 @@ static int __devinit pn544_probe(struct i2c_client *client,
 	} 
 	else
 	{
-		ret = pdata->pn544_clock_output_mode_ctrl();
+		ret = pdata->pn544_clock_output_mode_ctrl(1);
 		printk("pn544_clock_output_mode_ctrl:%d \n",ret);
 		if(ret)
 		{		       
@@ -804,11 +948,9 @@ static int __devinit pn544_probe(struct i2c_client *client,
 		}
 	}
 #endif
-    /*del 4 lines*/
-			
+    
 	return 0; 		
 #ifdef CONFIG_ARCH_MSM7X30
-	/* nothing todo */
 #else
 err_clock_mode_ctrl_err:	
 #endif
@@ -817,13 +959,11 @@ err_mmi_error:
 err_misc_dev:
 	free_irq(client->irq, pn544_info);
 err_irq_req:
-/*del 8 lines*/
-/*free client irq */
+err_cmd_resp:
 err_gpio_config:
 
 err_no_ven_reset:
 #ifdef CONFIG_ARCH_MSM7X30
-	/* nothing todo */
 #else
 err_no_fw_download:
 	pdata->pn544_clock_output_ctrl(0);
@@ -844,6 +984,64 @@ err_info_alloc:
 	return ret;
 }
 
+static int pn544_suspend(struct i2c_client *client, pm_message_t mesg)
+{
+#ifdef CONFIG_ARCH_MSM7X30
+#else  // 7x27a branch
+	int ret = 0;
+	
+	PN544_DEBUG("%s:entered\n",__func__);
+	
+	pdata = client->dev.platform_data; 
+	
+	if (!pdata->pn544_clock_output_mode_ctrl) 
+	{ 
+		printk(" <NFC> %s:pn544_clock_output_mode_ctrl  missing\n",__func__); 
+		return -EINVAL; 
+	} 
+	else
+	{
+		// 0 - close for clock pmu request mode, 1 - set for clock pmu request mode
+		ret = pdata->pn544_clock_output_mode_ctrl(0);
+		printk(" <NFC> pn544_clock_output_mode_ctrl: ret = %d  \n",ret );
+		if(ret)
+		{		       
+			return -EINVAL; 
+		}
+	}
+#endif
+
+	return 0;
+}
+
+static int pn544_resume(struct i2c_client *client)
+{
+#ifdef CONFIG_ARCH_MSM7X30
+#else   // 7x27a branch
+	int ret = 0;
+
+	PN544_DEBUG("%s:entered\n",__func__);
+
+	pdata = client->dev.platform_data; 
+
+	if (!pdata->pn544_clock_output_mode_ctrl) 
+	{ 
+		printk(" <NFC> %s:pn544_clock_output_mode_ctrl  missing\n",__func__); 
+		return -EINVAL; 
+	} 
+	else
+	{
+		ret = pdata->pn544_clock_output_mode_ctrl(1);
+		printk(" <NFC> pn544_clock_output_mode_ctrl: ret = %d  \n",ret );
+		if(ret)
+		{		       
+			return -EINVAL; 
+		}
+	}
+#endif
+	
+	return 0;
+}
 static __devexit int pn544_remove(struct i2c_client *client)
 {
 	misc_deregister(&pn544_info->miscdev);
@@ -864,6 +1062,8 @@ static struct i2c_driver pn544_driver =
 	},
 	.probe = pn544_probe,
 	.id_table = pn544_id_table,
+	.suspend = pn544_suspend,
+	.resume = pn544_resume,
 	.remove = __devexit_p(pn544_remove),
 };
 

@@ -830,7 +830,6 @@ struct input_keymap_entry {
 #define MSC_MAX			0x07
 #define MSC_CNT			(MSC_MAX+1)
 
-/* modify for ES-version*/
 #define ABS_LIGHT            0x2e
 
 #define BTN_TOUCH2         0x102

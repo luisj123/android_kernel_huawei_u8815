@@ -17,8 +17,6 @@
 
 #include "internals.h"
 
-/* move from linux/irq.h */
-/* merge qcom DEBUG_CODE for RPC crashes */
 #ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 #include <linux/kernel.h>  
 #include <mach/msm_iomap.h>  
@@ -334,14 +332,12 @@ int generic_handle_irq(unsigned int irq)
 {
 	struct irq_desc *desc = irq_to_desc(irq);
 
-	/* merge qcom DEBUG_CODE for RPC crashes */
 #ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 	uint32_t  timetick=0; 
 	timetick = read_timestamp();  
 	irq_ts[irq_idx].irq=irq;
 	irq_ts[irq_idx].ts=timetick; 
 	irq_ts[irq_idx].state=1; 
-	/*end of HUAWEI*/
 #endif
 
     if (!desc)
@@ -349,7 +345,6 @@ int generic_handle_irq(unsigned int irq)
     generic_handle_irq_desc(irq, desc);
 
 #ifdef CONFIG_HUAWEI_RPC_CRASH_DEBUG
-    /*HUAWEI debug */
     irq_ts[irq_idx].state=3;
     irq_idx = (irq_idx + 1)%128; 
 #endif

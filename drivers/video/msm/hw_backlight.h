@@ -4,7 +4,6 @@
  * Copyright (C) 2010 HUAWEI Technology Co., ltd.
  * 
  * Date: 2010/12/07
- * By lijianzhao
  * 
  */
 #ifndef HW_BACKLIGHT_H

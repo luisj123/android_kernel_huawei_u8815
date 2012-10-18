@@ -27,10 +27,8 @@
 #define fb_width(fb)	((fb)->var.xres)
 #define fb_height(fb)	((fb)->var.yres)
 #ifndef CONFIG_HUAWEI_KERNEL
-/* for 565BMP format, 2 bytes per pixel */
 #define fb_size(fb)	((fb)->var.xres * (fb)->var.yres * 2)
 #else
-/* for 888BMP format, 3 bytes per pixel */
 #define fb_size(fb)	((fb)->var.xres * (fb)->var.yres * 3)
 #endif
 

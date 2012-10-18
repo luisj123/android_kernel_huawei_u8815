@@ -4,7 +4,6 @@
  * Copyright (C) 2010 HUAWEI Technology Co., ltd.
  * 
  * Date: 2011/03/08
- * By jiaoshuangwei
  * 
  */
 
@@ -122,7 +121,8 @@ static const struct sequence nt35560_fwvga_standby_enter_table[]=
 static const struct sequence nt35560_fwvga_dynamic_gamma22_table[] = 
 {          
     {0XC980,0X01,0},
-    {0x5500,0x00,0},
+    /* No need to config cabc mode in dynamic gamma settings */
+    /*{0x5500,0x00,0},*/
     {0X0180,0X14,0},
     {0X0280,0X00,0},
     {0X0380,0X33,0},
@@ -287,7 +287,8 @@ static const struct sequence nt35560_fwvga_dynamic_gamma25_table[] =
 {
 /*there is 2.5 GAMA initialization sequence */
 	{0XC980,0X01,0},
-	{0x5500,0x00,0},
+    /* No need to config cabc mode in dynamic gamma settings */
+    /*{0x5500,0x00,0},*/
 	{0X0180,0X14,0},
 	{0X0280,0X00,0},
 	{0X0380,0X33,0},

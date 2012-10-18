@@ -1,7 +1,6 @@
 /* drivers/input/accelerometer/gs_kxtik1004.c*/
 /*
  * Copyright (C) 2012 HUAWEI, Inc.
- * Author: zhangmin/195861 
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -94,26 +93,29 @@ static void gs_late_resume(struct early_suspend *h);
 
 static inline int reg_read(struct gs_data *gs , int reg)
 {
-	int val;
-	mutex_lock(&gs->mlock);
-	val = i2c_smbus_read_byte_data(gs->client, reg);
-	if (val < 0)
-		printk(KERN_ERR "kxtik chip i2c %s failed\n", __FUNCTION__);
-	mutex_unlock(&gs->mlock);
-	return val;
+    int val;
+    mutex_lock(&gs->mlock);
+    val = i2c_smbus_read_byte_data(gs->client, reg);
+    if (val < 0)
+    {
+        printk(KERN_ERR "kxtik chip i2c %s failed! reg=0x%x, value=0x%x\n", __FUNCTION__, reg, val);
+    }
+    mutex_unlock(&gs->mlock);
+    return val;
 }
 
 static inline int reg_write(struct gs_data *gs, int reg, uint8_t val)
 {
-	int ret;
-	mutex_lock(&gs->mlock);
-	ret = i2c_smbus_write_byte_data(gs->client, reg, val);
-	if(ret < 0) {
-		printk(KERN_ERR "kxtik chip i2c %s failed\n", __FUNCTION__);
-	}
-	mutex_unlock(&gs->mlock);
+    int ret;
+    mutex_lock(&gs->mlock);
+    ret = i2c_smbus_write_byte_data(gs->client, reg, val);
+    if(ret < 0)
+    {
+        printk(KERN_ERR "kxtik chip i2c %s failed! reg=0x%x, value=0x%x, ret=%d\n", __FUNCTION__, reg, val, ret);
+    }
+    mutex_unlock(&gs->mlock);
 
-	return ret;
+    return ret;
 }
 
 static signed short gs_sensor_data[3];
@@ -278,61 +280,69 @@ static struct miscdevice gsensor_device = {
 
 static void gs_work_func(struct work_struct *work)
 {
-	int x, y, z;
-	s16 s14x, s14y, s14z;
-	u8 u8xl, u8xh, u8yl, u8yh, u8zl, u8zh;
-	int sesc = accel_delay / 1000;
-	int nsesc = (accel_delay % 1000) * 1000000;
-	struct gs_data *gs = container_of(work, struct gs_data, work);
-	u8xl = reg_read(gs, XOUT_L_REG);
-	u8xh = reg_read(gs, XOUT_H_REG);
-	s14x = (s16)((u8xh << 8) | u8xl) >> 2;
-	u8yl = reg_read(gs, YOUT_L_REG);
-	u8yh = reg_read(gs, YOUT_H_REG);
-	s14y = (s16)((u8yh << 8) | u8yl )>> 2;
-	u8zl = reg_read(gs, ZOUT_L_REG);
-	u8zh = reg_read(gs, ZOUT_H_REG);
-	s14z = (s16)((u8zh << 8) | u8zl )>> 2;
-	x = ((int)s14x * 720 )/ 1024;
-	y = ((int)s14y * 720 )/ 1024;
-	z = ((int)s14z * 720 )/ 1024;
-	kxtik_DBG("A  x :%+5d y :%+5d z :%+5d \n",s14x,s14y,s14z);
-	if((compass_gs_position==COMPASS_TOP_GS_BOTTOM)||(compass_gs_position==COMPASS_BOTTOM_GS_BOTTOM)||(compass_gs_position==COMPASS_NONE_GS_BOTTOM))
-	{
-		//inverse
-		x *=(-1);
-		y *=(-1);
-	}
-	else
-	{
-		//obverse
-		y *=(-1);
-		z *=(-1);
-	}
-	input_report_abs(gs->input_dev, ABS_X,  x);
-	input_report_abs(gs->input_dev, ABS_Y,  y);
-	input_report_abs(gs->input_dev, ABS_Z,  z);
-	input_sync(gs->input_dev);
-	/*
-	 * There is a transform formula between ABS_X, ABS_Y, ABS_Z
-	 * and Android_X, Android_Y, Android_Z.
-	 *                      -          -
-	 *                        |  0 -1  0 |
-	 * [ABS_X ABS_Y ABS_Z]*   |  1  0  0 | = [Android_X, Android_Y, Android_Z]
-	 *                        |  0  0 -1 |
-	 *                      -          -
-	 * compass uses Android_X, Andorid_Y, Android_Z
-	 */
-	memset(gs_sensor_data, 0, sizeof(gs_sensor_data));
+    int x, y, z;
+    s16 s14x, s14y, s14z;
+    u8 u8xl, u8xh, u8yl, u8yh, u8zl, u8zh;
+    int sesc = accel_delay / 1000;
+    int nsesc = (accel_delay % 1000) * 1000000;
+    struct gs_data *gs = container_of(work, struct gs_data, work);
+    u8xl = reg_read(gs, XOUT_L_REG);
+    u8xh = reg_read(gs, XOUT_H_REG);
+    s14x = (s16)((u8xh << 8) | u8xl) >> 2;
+    u8yl = reg_read(gs, YOUT_L_REG);
+    u8yh = reg_read(gs, YOUT_H_REG);
+    s14y = (s16)((u8yh << 8) | u8yl )>> 2;
+    u8zl = reg_read(gs, ZOUT_L_REG);
+    u8zh = reg_read(gs, ZOUT_H_REG);
+    s14z = (s16)((u8zh << 8) | u8zl )>> 2;
+    x = ((int)s14x * 720 )/ 1024;
+    y = ((int)s14y * 720 )/ 1024;
+    z = ((int)s14z * 720 )/ 1024;
+    kxtik_DBG("A  x:%+5d y:%+5d z:%+5d sec:%d nsec:%d\n", s14x, s14y, s14z, sesc, nsesc);
+    if((compass_gs_position==COMPASS_TOP_GS_BOTTOM)||(compass_gs_position==COMPASS_BOTTOM_GS_BOTTOM)||(compass_gs_position==COMPASS_NONE_GS_BOTTOM))
+    {
+        //inverse
+        x *=(-1);
+        y *=(-1);
+    }
+    else
+    {
+        //obverse
+        y *=(-1);
+        z *=(-1);
+    }
+    input_report_abs(gs->input_dev, ABS_X,  x);
+    input_report_abs(gs->input_dev, ABS_Y,  y);
+    input_report_abs(gs->input_dev, ABS_Z,  z);
+    input_sync(gs->input_dev);
+    /*
+     * There is a transform formula between ABS_X, ABS_Y, ABS_Z
+     * and Android_X, Android_Y, Android_Z.
+     *                        -          -
+     *                        |  0 -1  0 |
+     * [ABS_X ABS_Y ABS_Z] *  |  1  0  0 | = [Android_X, Android_Y, Android_Z]
+     *                        |  0  0 -1 |
+     *                        -          -
+     * compass uses Android_X, Andorid_Y, Android_Z
+     */
+    memset(gs_sensor_data, 0, sizeof(gs_sensor_data));
 
-	gs_sensor_data[0]= -x;
-	gs_sensor_data[1]= y;
-	gs_sensor_data[2]= -z;
+    gs_sensor_data[0]= -x;
+    gs_sensor_data[1]= y;
+    gs_sensor_data[2]= -z;
 
-	if (gs->use_irq)
-		enable_irq(gs->client->irq);
-	else
-		hrtimer_start(&gs->timer, ktime_set(sesc, nsesc), HRTIMER_MODE_REL);
+    if (gs->use_irq)
+    {
+        enable_irq(gs->client->irq);
+    }
+    else
+    {
+        /* hrtimer_start fail */
+        if (0 != hrtimer_start(&gs->timer, ktime_set(sesc, nsesc), HRTIMER_MODE_REL) )
+        {
+            printk(KERN_ERR "%s, line %d: hrtimer_start fail! sec=%d, nsec=%d\n", __func__, __LINE__, sesc, nsesc);
+        }
+    }
 }
 
 
@@ -518,15 +528,32 @@ static int gs_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	register_early_suspend(&gs->early_suspend);
 #endif
 
-	gs_wq = create_singlethread_workqueue("gs_wq");
-	if (!gs_wq)
-		return -ENOMEM;
-	this_gs_data =gs;
-	if(pdata && pdata->init_flag)
-		*(pdata->init_flag) = 1;
-	printk(KERN_INFO "gs_probe: Start KXTIK  in %s mode\n", gs->use_irq ? "interrupt" : "polling");
-	return 0;
-	
+    gs_wq = create_singlethread_workqueue("gs_wq");
+    if (!gs_wq)
+    {
+        ret = -ENOMEM;
+        printk(KERN_ERR "%s, line %d: create_singlethread_workqueue fail!\n", __func__, __LINE__);
+        goto err_create_workqueue_failed;
+    }
+    this_gs_data =gs;
+    if(pdata && pdata->init_flag)
+        *(pdata->init_flag) = 1;
+    printk(KERN_INFO "gs_probe: Start KXTIK  in %s mode\n", gs->use_irq ? "interrupt" : "polling");
+    return 0;
+
+err_create_workqueue_failed:
+#ifdef CONFIG_HAS_EARLYSUSPEND
+    unregister_early_suspend(&gs->early_suspend);
+#endif
+
+    if (gs->use_irq)
+    {
+        free_irq(client->irq, gs);
+    }
+    else
+    {
+        hrtimer_cancel(&gs->timer);
+    }
 err_misc_device_register_failed:
 		misc_deregister(&gsensor_device);
 err_input_register_device_failed:
@@ -552,7 +579,9 @@ err_check_functionality_failed:
 static int gs_remove(struct i2c_client *client)
 {
 	struct gs_data *gs = i2c_get_clientdata(client);
-	unregister_early_suspend(&gs->early_suspend);
+#ifdef CONFIG_HAS_EARLYSUSPEND
+    unregister_early_suspend(&gs->early_suspend);
+#endif
 	if (gs->use_irq)
 		free_irq(client->irq, gs);
 	else

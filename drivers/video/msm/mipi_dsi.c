@@ -117,7 +117,6 @@ static int mipi_dsi_off(struct platform_device *pdev)
 #ifdef CONFIG_HUAWEI_KERNEL
 	
 	mipi  = &mfd->panel_info.mipi;
-	/* request data line to enter ulps mode */
 	if (mipi->data_lane3)
 		datamask |= 1<<3;
 	if (mipi->data_lane2)
@@ -129,7 +128,6 @@ static int mipi_dsi_off(struct platform_device *pdev)
 		
 	MIPI_OUTP(MIPI_DSI_BASE + 0xA8, datamask );
 	mdelay(1);
-	/* request clock line to enter ulps mode */
 	MIPI_OUTP(MIPI_DSI_BASE + 0xA8, datamask|(1<<4));
 	mdelay(1);
 #endif

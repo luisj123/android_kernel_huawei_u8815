@@ -10,7 +10,6 @@
  * 
  * when       who      what, where, why
  * -------------------------------------------------------------------------------
- * 20120211  sunkai  create  SUPPORT MIMI key test ON C8828
  */
 /* Copyright (c) 2009, Code Aurora Forum. All rights reserved.
  *

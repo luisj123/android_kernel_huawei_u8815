@@ -12,7 +12,6 @@
 
 #define EVDEV_MINOR_BASE	64
 #define EVDEV_MINORS		32
-/* modify the buffer size from 128 to 64 */
 #define EVDEV_MIN_BUFFER_SIZE	64U
 #define EVDEV_BUF_PACKETS	8
 

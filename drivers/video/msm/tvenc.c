@@ -208,11 +208,8 @@ static int tvenc_off(struct platform_device *pdev)
 		__func__, ret);
 	mdp4_extn_disp = 0;
 #ifdef CONFIG_HUAWEI_KERNEL
-    /* U8800-51 has no TV-OUT so remove it, GPIO33 of U8800-51 is used for HAC(Hearing Aid) */
-	/* U8800 and U8800-51 have tv_out function only */
 	if(machine_is_msm7x30_u8800() || machine_is_msm8255_u8800_pro()) 
 	{
-		/* if tvout cable plug in, don't change the switch */
 		if (!tv_cable_connected)
 		{
 			gpio_tlmm_config(GPIO_CFG(33, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA),GPIO_CFG_ENABLE);
@@ -256,9 +253,7 @@ static int tvenc_on(struct platform_device *pdev)
 		tvenc_pdata->pm_vid_en(0);
 		goto error;
 	}
-/* Enable TV_OUT ctl */
 #ifdef CONFIG_HUAWEI_KERNEL
-/* U8800 have tv_out function,only */
 	if(machine_is_msm7x30_u8800() || machine_is_msm7x30_u8800_51() || machine_is_msm8255_u8800_pro()) 
 	{
 		gpio_tlmm_config(GPIO_CFG(33, 0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA),GPIO_CFG_ENABLE);

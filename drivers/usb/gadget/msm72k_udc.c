@@ -49,7 +49,7 @@
 #ifdef CONFIG_HUAWEI_KERNEL
 #include <mach/oem_rapi_client.h>
 #include <asm-arm/huawei/usb_switch_huawei.h>
-#endif  /* CONFIG_HUAWEI_KERNEL */
+#endif  
 
 static const char driver_name[] = "msm72k_udc";
 
@@ -2601,7 +2601,7 @@ static ssize_t msm_hsusb_show_fixusb(struct device *dev,
 }
 
 static DEVICE_ATTR(fixusb, 0664, msm_hsusb_show_fixusb, msm_hsusb_store_fixusb);
-#endif  /* CONFIG_HUAWEI_KERNEL */
+#endif  
 static DEVICE_ATTR(wakeup, S_IWUSR, 0, usb_remote_wakeup);
 static DEVICE_ATTR(usb_state, S_IRUSR, show_usb_state, 0);
 static DEVICE_ATTR(usb_speed, S_IRUSR, show_usb_speed, 0);
@@ -2837,7 +2837,7 @@ int usb_gadget_probe_driver(struct usb_gadget_driver *driver,
 		dev_err(&ui->pdev->dev,
 			"failed to create sysfs entry(fixusb):"
 			"err:(%d)\n", retval);
-#endif  /* CONFIG_HUAWEI_KERNEL */
+#endif  
 
 	dev_dbg(&ui->pdev->dev, "registered gadget driver '%s'\n",
 			driver->driver.name);
@@ -2880,7 +2880,7 @@ int usb_gadget_unregister_driver(struct usb_gadget_driver *driver)
 	device_remove_file(&dev->gadget.dev, &dev_attr_chg_current);
 #ifdef CONFIG_HUAWEI_KERNEL
 	device_remove_file(&dev->gadget.dev, &dev_attr_fixusb);
-#endif  /* CONFIG_HUAWEI_KERNEL */
+#endif  
 	driver->disconnect(&dev->gadget);
 	driver->unbind(&dev->gadget);
 	dev->gadget.dev.driver = NULL;

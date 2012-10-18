@@ -3,7 +3,6 @@
  *
  *
  * Changes:
- * mazhenhua      :  for read appboot version and flash id.
  */
 
 #include <linux/types.h>
@@ -184,6 +183,16 @@ static void set_s_board_hw_version_special(char *hw_version_id,char *hw_version_
         s_board_id[BOARD_ID_LEN-1] = '\0';
     }
 
+    if((MACH_TYPE_MSM8255_C8860 == machine_arch_type)
+       &&(socinfo_get_msm_cpu() == MSM_CPU_8X55)
+       &&(HW_VER_SUB_VB <= get_hw_sub_board_id()))
+    {
+        memcpy(hw_version_id,"HC1C886M ", BOARD_ID_LEN-1);
+        sprintf(hw_version_sub_ver, "VER.%c", 'B');
+        strcat(hw_version_id, hw_version_sub_ver);
+        hw_version_id[HW_VERSION-1] = '\0';
+    }
+
 	if((MACH_TYPE_MSM7X30_U8800_51 == machine_arch_type)
        &&(HW_VER_SUB_VD == get_hw_sub_board_id()))
     {
@@ -305,11 +314,8 @@ static int app_version_read_proc(char *page, char **start, off_t off,
 	char *lcd_name = NULL;
 	char * touch_info = NULL;
 	char *wifi_device_name = NULL;
+    char *bt_device_name = NULL;
 	char audio_property[AUDIO_PROPERTY_LEN] = {0};
-	/*print sensor info into app_info*/
-	/* Array **_**_id must be large enough to hold both id and sub id */
-	/* 'cause the following code would call strcat function to connect */
-	/* sub id to array **_**_id[] */
 	char s_board_id[BOARD_ID_LEN + BOARD_ID_SUB_VER_LEN] = {0};
     char sub_ver[BOARD_ID_SUB_VER_LEN] = {0};
 	char hw_version_id[HW_VERSION + HW_VERSION_SUB_VER] = {0};
@@ -326,6 +332,7 @@ static int app_version_read_proc(char *page, char **start, off_t off,
 	sensors_list_name = get_sensors_list_name();
 	lcd_name = get_lcd_panel_name();
 	wifi_device_name = get_wifi_device_name();
+	bt_device_name = get_bt_device_name();
 	get_audio_property(audio_property);
 	touch_info = get_touch_info();
 	if (touch_info == NULL)
@@ -350,9 +357,10 @@ static int app_version_read_proc(char *page, char **start, off_t off,
 	"sensors_list:\n%s\n"
 	"hw_version:\n%s\n"
     "wifi_chip:\n%s\n"
+    "bt_chip:\n%s\n"
 	"audio_property:\n%s\n"
 	"touch_info:\n%s\n",
-	appsboot_version, ker_ver, str_flash_nand_id, s_board_id, lcd_name, camera_id, ts_id,charge_flag, compass_gs_name,sensors_list_name, hw_version_id,wifi_device_name,audio_property, touch_info);
+	appsboot_version, ker_ver, str_flash_nand_id, s_board_id, lcd_name, camera_id, ts_id,charge_flag, compass_gs_name,sensors_list_name, hw_version_id,wifi_device_name,bt_device_name,audio_property, touch_info);
 #else
 	len = snprintf(page, PAGE_SIZE, "APPSBOOT:\n"
 	"%s\n"

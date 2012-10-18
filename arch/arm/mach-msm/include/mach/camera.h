@@ -324,6 +324,7 @@ struct msm_sensor_ctrl {
 	int (*s_init)(const struct msm_camera_sensor_info *);
 	int (*s_release)(void);
 	int (*s_config)(void __user *);
+	int (*s_reset_regs)(void);
 	enum msm_camera_type s_camera_type;
 	uint32_t s_mount_angle;
 	enum msm_st_frame_packing s_video_packing;
@@ -522,7 +523,6 @@ static inline int msm_flash_ctrl(
 }
 #endif
 
-/*Add function for new flash tps61310*/
 #ifdef CONFIG_HUAWEI_FEATURE_TPS61310
 int tps61310_set_flash(unsigned led_state);
 #else

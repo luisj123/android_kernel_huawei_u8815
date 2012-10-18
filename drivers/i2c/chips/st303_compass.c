@@ -561,7 +561,6 @@ static void gs_work_func(struct work_struct *work)
 	int	sesc = accel_delay/1000;
 	int nsesc = (accel_delay%1000)*1000000;
 	
-//liujinggang add 20100410
 
 {
 		udata[0]= 0;

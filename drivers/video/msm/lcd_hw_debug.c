@@ -6,7 +6,6 @@
  * Copyright (C) 2010 HUAWEI Technology Co., ltd.
  * 
  * Date: 2010/12/10
- * By genghua
  * 
  */
 

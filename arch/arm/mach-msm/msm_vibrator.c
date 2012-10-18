@@ -103,7 +103,6 @@ static void set_pmic_vibrator(int on)
 	msm_rpc_call(vib_endpoint, HTC_PROCEDURE_SET_VIB_ON_OFF, &req,
 		sizeof(req), 5 * HZ);
 #else
-	/* Add return value to determine */
 	ret=msm_rpc_call(vib_endpoint, HW_PROCEDURE_SET_VIB_ON_OFF, &req,
 		sizeof(req), 5 * HZ);
 	if(ret)
@@ -155,20 +154,15 @@ static void vibrator_enable(struct timed_output_dev *dev, int value)
 static void vibrator_enable(struct timed_output_dev *dev, int value)
 {
 	time_value = value;//save this value as vibratting time
-    /* detele */
 	if (value == 0)
 	{
-		mdelay(VIBRATOR_DELAY);
-		//timed_vibrator_off(dev);
 		pmic_vibrator_off(NULL);
 	}
 	else {
 		value = (value > 15000 ? 15000 : value);
 		value = (value < VIBRATOR_MIN ? VIBRATOR_MIN : value);
 
-		//timed_vibrator_on(dev);
 		pmic_vibrator_on(NULL);//use this function instead of timed_vibrator_on.
-    /* detele */
 	}
 }
 #endif

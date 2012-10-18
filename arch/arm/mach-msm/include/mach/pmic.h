@@ -685,7 +685,6 @@ int pmic_mic_is_en(uint *enabled);
 int pmic_mic_set_volt(enum mic_volt vol);
 int pmic_mic_get_volt(enum mic_volt *voltage);
 int pmic_set_led_intensity(enum ledtype type, int level);
-/*add rpc interface for key light*/
 #ifdef CONFIG_HUAWEI_KERNEL
 int pmic_set_keyled_intensity(enum ledtype type, int level);
 #endif
@@ -694,7 +693,6 @@ int pmic_set_low_current_led_intensity(pm_low_current_led_type type, int level);
 #endif
 #ifdef CONFIG_HUAWEI_KERNEL
 int pmic_set_mpp6_led_intensity(int level);
-/*add rpc interface for PTT light*/
 #ifdef CONFIG_HUAWEI_FEATURE_PTT_KEY_LIGHT
 int pmic_set_ptt_current_led_intensity(int level);
 #endif

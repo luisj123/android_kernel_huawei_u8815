@@ -54,7 +54,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
-/*creat by lijuan 00152865 2010/03/30*/
 #ifndef MDDI_MDDI_NT35582_H
 #define MDDI_MDDI_NT35582_H
 

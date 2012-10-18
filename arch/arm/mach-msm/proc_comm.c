@@ -62,7 +62,6 @@ static int msm_proc_comm_disable;
  */
 static int proc_comm_wait_for(unsigned addr, unsigned value)
 {
-	/* merge qcom DEBUG_CODE for RPC crashes */
 #ifndef CONFIG_HUAWEI_RPC_CRASH_DEBUG
 	while (1) {
 		/* Barrier here prevents excessive spinning */
@@ -80,7 +79,6 @@ static int proc_comm_wait_for(unsigned addr, unsigned value)
    int long_wait = 0;
 
 	while (1) {
-		/* Barrier here prevents excessive spinning */
 		mb();
 		if (readl_relaxed(addr) == value) {
 			if (long_wait)

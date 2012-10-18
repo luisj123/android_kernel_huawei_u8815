@@ -37,7 +37,6 @@ MODULE_LICENSE("GPL");
 static LIST_HEAD(input_dev_list);
 static LIST_HEAD(input_handler_list);
 
-/* add a flag to skip the function release all pressed keys */
 #ifdef CONFIG_HUAWEI_KERNEL
 bool    g_bypass_release_key = false ;
 #endif
@@ -1576,13 +1575,8 @@ void input_reset_device(struct input_dev *dev)
 		input_dev_toggle(dev, true);
 		
 #ifdef CONFIG_HUAWEI_KERNEL
-        /* if input_dev_resume call this function skip the process */
         if( !g_bypass_release_key )
         {
-           /*
-		    * Keys that have been pressed at suspend time are unlikely
-		    * to be still pressed when we resume.
-		    */
 		    spin_lock_irq(&dev->event_lock);
 		    input_dev_release_keys(dev);
 		    spin_unlock_irq(&dev->event_lock);
@@ -1621,14 +1615,12 @@ static int input_dev_resume(struct device *dev)
 {
 	struct input_dev *input_dev = to_input_dev(dev);
 #ifdef CONFIG_HUAWEI_KERNEL
-    /* before call input_reset_device set the flag to true */
     g_bypass_release_key = true ;
 #endif
 
 	input_reset_device(input_dev);
 
 #ifdef CONFIG_HUAWEI_KERNEL
-    /* clear the  flag of skipping release key */
     g_bypass_release_key = false ;
 #endif
 	return 0;

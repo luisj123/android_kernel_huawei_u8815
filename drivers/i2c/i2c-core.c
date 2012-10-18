@@ -1320,11 +1320,9 @@ int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
 	 *    (discarding status on the first one).
 	 */
 	 
-	/* i2c bus is in debug mode , only debug address can use i2c bus */
 #ifdef CONFIG_HUAWEI_I2C_DEBUG_TOOL
     if((adap->bus_debug_flag == 1) && (adap->debug_addr != msgs[0].addr))
     {
-        /* printk("i2c bus in debug mode, addr=0x%x has been rejected\n", msgs[0].addr); */
         return -EAGAIN;
     }
 #endif

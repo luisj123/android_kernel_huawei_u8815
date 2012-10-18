@@ -25,7 +25,6 @@
 #include <linux/time.h>
 #endif
 
-/* modify for 4125 baseline */
 #include <linux/slab.h>
 #ifdef __KERNEL__
 #include <linux/ion.h>
@@ -190,7 +189,8 @@
 
 #define MSM_CAM_IOCTL_MCTL_DIVERT_DONE \
 	_IOR(MSM_CAM_IOCTL_MAGIC, 52, struct msm_cam_evt_divert_frame *)
-
+#define MSM_CAM_IOCTL_RESETCAMERA_FOR_ESD \
+	_IOR(MSM_CAM_IOCTL_MAGIC, 88, int *)
 struct msm_mctl_pp_cmd {
 	int32_t  id;
 	uint16_t length;
@@ -764,7 +764,6 @@ struct msm_snapshot_pp_status {
 #define CFG_GET_EEPROM_DATA		33
 #define CFG_SET_ACTUATOR_INFO		34
 #define CFG_GET_ACTUATOR_INFO		35
-/*lijuan add for AWB OTP*/
 
 #define CFG_SET_NR          37
 #define CFG_RESET           36

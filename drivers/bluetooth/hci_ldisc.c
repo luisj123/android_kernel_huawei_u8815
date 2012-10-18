@@ -572,7 +572,6 @@ static int __init hci_uart_init(void)
 	ll_init();
 #endif
 
-/*default without Huawei modification*/
 #if defined(CONFIG_BT_HCIUART_LL) && (!defined(CONFIG_HUAWEI_KERNEL))
     ll_init();
 #endif
@@ -583,7 +582,6 @@ static int __init hci_uart_init(void)
 	ibs_init();
 #endif
 
-/*default without Huawei modification*/
 #if defined(CONFIG_BT_HCIUART_IBS) && (!defined(CONFIG_HUAWEI_KERNEL))
     ibs_init();
 #endif
@@ -605,7 +603,6 @@ static void __exit hci_uart_exit(void)
 	ll_deinit();
 #endif
 
-/*default without Huawei modification*/
 #if defined(CONFIG_BT_HCIUART_LL) && (!defined(CONFIG_HUAWEI_KERNEL))
 	ll_deinit();
 #endif
@@ -616,7 +613,6 @@ static void __exit hci_uart_exit(void)
 	ibs_deinit();
 #endif
 
-/*default without Huawei modification*/
 #if defined(CONFIG_BT_HCIUART_IBS) && (!defined(CONFIG_HUAWEI_KERNEL))
 	ibs_deinit();
 #endif

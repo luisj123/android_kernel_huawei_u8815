@@ -16,7 +16,6 @@
 
 #define RBUFF_SIZE		4	/* Rx buffer size */
 
-/* huawei liujinggang 20101201 begin */
 /* AK8973 register address */
 #define AKECS_REG_ST			0xC0      /*Status Register*/
 #define AKECS_REG_TMPS			0xC1      /*Temperature sensor data register*/
@@ -34,12 +33,14 @@
 #define AKECS_REG_EHXGA			0x66   /*Magnetic sensor X-axis DAC E2PROME gain register*/
 #define AKECS_REG_EHYGA			0x67   /*Magnetic sensor Y-axis DAC E2PROME gain register*/
 #define AKECS_REG_EHZGA			0x68   /*Magnetic sensor Z-axis DACE2PROME  gain register*/
+/*BK4D03309, update firmware for compass, dingxifeng dKF14049,2009-7-30 start*/ 
 
 #define  AKECS_REG_ETS				0x62	/* Offset adjustment for temperature sensor*/
 #define  AKECS_REG_EVIR				0x63	/* VREF &IREF adjustment value*/
 #define  AKECS_REG_EIHE				0x64	/*HE drive power supply correction value*/
 #define  AKECS_REG_ETST				0x65	/*for testing the value is 0xC7*/
 
+/*BK4D03309, update firmware for compass, dingxifeng dKF14049,2009-7-30 end*/ 
 #define AKMIO				0xA1
 
 /* IOCTLs for AKM library */
@@ -70,7 +71,6 @@
 #define ECS_IOCTL_APP_GET_DELAY		ECS_IOCTL_GET_DELAY
 #define ECS_IOCTL_APP_SET_MVFLAG	_IOW(AKMIO, 0x19, short)	/* Set raw magnetic vector flag */
 #define ECS_IOCTL_APP_GET_MVFLAG	_IOR(AKMIO, 0x1A, short)	/* Get raw magnetic vector flag */
-/* huawei liujinggang 20101201 end */
 
 #define ECS_IOCTL_APP_GET_LFLAG		_IOR(AKMIO, 0x1B, short)
 #define ECS_IOCTL_APP_SET_LFLAG		_IOW(AKMIO, 0x1C, short)

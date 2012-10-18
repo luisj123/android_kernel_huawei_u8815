@@ -38,7 +38,6 @@
 #include <linux/workqueue.h>
 #include <linux/preempt.h>
 
-/* Add meminfo head files */
 #ifdef CONFIG_HUAWEI_APANIC_EXTEND
 #include <linux/hugetlb.h>
 #include <linux/mm.h>
@@ -53,7 +52,6 @@
 #include <asm/pgtable.h>
 #include "../../fs/proc/internal.h"
 
-/* Add /proc/stat info head files,xiemingliang,2011.05.30 */
 #include <linux/cpumask.h>
 #include <linux/gfp.h>
 #include <linux/kernel_stat.h>
@@ -66,28 +64,10 @@
 #include <linux/err.h>
 #include <linux/cpu.h>
 
-/*vmalloc info head files,xiemingliang,2011.05.30*/
 #include <linux/vmalloc.h>
 #include <linux/kallsyms.h>
 #endif
 
-        /** 增加apanic功能，保存死机log - 马振华 **/
-/**
-MMC APANIC
-2M = MTD SIZE
-mtd->erase_size = 512
-mtd->erasesize_shift = 9 : every erase block  = 512 Byte
-mtd->write_size = 512 : this is a flash param ,  flash support size of every writing
-ctx->bounce : temp buffer, and must larger than mtd->write_size
-*/
-/* 2 macros are here to define a block number region
- * that can be marked as bad block, to make sure that 
- * the data in the block region can be protected from 
- * touching by the apanic mechanism.
- * But if you have a seperate partition to store the apanic
- * info, thse macros and the added functions below are
- * useless and should be deleted.
- */
 #ifdef CONFIG_HUAWEI_APANIC
 #define HUAWEI_PROTECT_BLOCK_NUMBER_BEGIN 0
 #define HUAWEI_PROTECT_BLOCK_NUMBER_END 15
@@ -370,7 +350,6 @@ static void mtd_panic_erase(void)
 		remove_wait_queue(&wait_q, &wait);
 	}
 
-    /* write the erased mtd virtual flash to the mmc panic partition */
 #ifdef CONFIG_HUAWEI_KERNEL
     if (ctx->mtd->sync)
     {
@@ -907,9 +886,6 @@ static int apanic_meminfo_proc_get(void)
 #define arch_idle_time(cpu) 0
 #endif
 
-/*
- * Modified by xiemingliang,20110810
- */
 static int apanic_stat_proc_get(void)
 {
 	int i, j;
@@ -1102,10 +1078,6 @@ static int apanic_vmalloc_proc_get(void)
 }
 
 
-/* 
- * Get /proc/zoneinfo xiemingliang,2011.05.31
- * Modified by xiemingliang,20110804
- */
 static int apanic_zoneinfo_proc_get(void)
 {
     struct   file   *file   =   NULL; 
@@ -1163,10 +1135,6 @@ static int apanic_zoneinfo_proc_get(void)
     return 0;
 }
 
-/* 
- * Get /proc/vmstat xiemingliang,2011.05.31
- * Modified by xiemingliang,20110804
- */
 static int apanic_vmstat_proc_get(void)
 {
     struct   file   *file   =   NULL; 
@@ -1226,10 +1194,6 @@ static int apanic_vmstat_proc_get(void)
 }
 
 
-/* 
- * Get /proc/slabinfo
- * Write by xiemingliang,20110804
- */
 static int apanic_slabinfo_proc_get(void)
 {
     struct   file   *file   =   NULL; 

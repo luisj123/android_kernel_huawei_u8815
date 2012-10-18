@@ -1096,7 +1096,6 @@ out:
 }
 
 /* Enable the transmitter Interrupt */
-/* add calling callback for bluesleep here */
 #if (defined(HUAWEI_BT_BTLA_VER30) && defined(CONFIG_HUAWEI_KERNEL))
 extern void bluesleep_outgoing_data(void);
 #endif
@@ -1106,7 +1105,6 @@ static void msm_hs_start_tx_locked(struct uart_port *uport )
 
 	clk_enable(msm_uport->clk);
 
-	/* add for lpm here */
 	#if (defined(HUAWEI_BT_BTLA_VER30) && defined(CONFIG_HUAWEI_KERNEL))
 	bluesleep_outgoing_data();
 	#endif
@@ -1609,7 +1607,6 @@ static const char *msm_hs_type(struct uart_port *port)
 
 /* Called when port is opened */
 #if (defined(HUAWEI_BT_BTLA_VER30) && defined(CONFIG_HUAWEI_KERNEL))
-/* added for bluesleep */
 extern void bluesleep_uart_open(struct uart_port *uport);
 #endif
 
@@ -1623,7 +1620,6 @@ static int msm_hs_startup(struct uart_port *uport)
 	struct circ_buf *tx_buf = &uport->state->xmit;
 	struct msm_hs_tx *tx = &msm_uport->tx;
 
-/* added we should re-consider that whether here would bt called*/
 #if (defined(HUAWEI_BT_BTLA_VER30) && defined(CONFIG_HUAWEI_KERNEL))
 	bluesleep_uart_open(uport);
 #endif
@@ -1711,7 +1707,6 @@ static int msm_hs_startup(struct uart_port *uport)
 	if (unlikely(ret))
 		return ret;
 	if (use_low_power_wakeup(msm_uport)) {
-/* Disable QC In-Band sleep mode if BCM4330 is used. */
 #if (defined(HUAWEI_BT_BLUEZ_VER30) || (!defined(CONFIG_HUAWEI_KERNEL)))
 		ret = request_irq(msm_uport->wakeup.irq, msm_hs_wakeup_isr,
 				  IRQF_TRIGGER_FALLING,
@@ -2012,7 +2007,6 @@ static int __init msm_serial_hs_init(void)
  *     - Unhook the ISR
  */
 #if (defined(HUAWEI_BT_BTLA_VER30) && defined(CONFIG_HUAWEI_KERNEL))
-/*  add for bluesleep */
 extern void bluesleep_uart_close(struct uart_port *uport);
 #endif
 
@@ -2023,7 +2017,6 @@ static void msm_hs_shutdown(struct uart_port *uport)
 
 	
 #if (defined(HUAWEI_BT_BTLA_VER30) && defined(CONFIG_HUAWEI_KERNEL))
-	/* added for bluesleep */
 	bluesleep_uart_close(uport);
 #endif
 	

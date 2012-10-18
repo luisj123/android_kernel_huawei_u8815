@@ -22,7 +22,6 @@
 #define TVOUT_NTSC 0
 #define TVOUT_PAL 1
 #endif
-//#define TVOUT_DEBUG
 #ifdef  TVOUT_DEBUG
 #define TV_OUT_DEBUG(fmt, args...) printk(KERN_ERR fmt, ##args)
 #else
