@@ -2586,7 +2586,7 @@ static struct attribute_group synaptics_properties_attr_group = {
 static void __init virtualkeys_init(void)
 {
     struct kobject *properties_kobj;
-    int ret;
+    int ret = 1;
     /* <DTS2011102601993 niguodong 20111025 begin */
 	/* < DTS2011121402399 yangyang 20111214 begin */
     /*< DTS2012021601331 duanfei 20120216 begin */

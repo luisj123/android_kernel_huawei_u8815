@@ -319,20 +319,6 @@ show_one(powersave_bias, powersave_bias);
 show_one(two_phase_freq, two_phase_freq);
 #endif
 
-static ssize_t store_boosttime(struct kobject *kobj, struct attribute *attr,
-				const char *buf, size_t count)
-{
-	unsigned int input;
-	int ret;
-
-	ret = sscanf(buf, "%u", &input);
-	if (ret != 1)
-		return -EINVAL;
-
-	dbs_tuners_ins.freq_boost_time = input;
-	return count;
-}
-
 static ssize_t store_boostpulse(struct kobject *kobj, struct attribute *attr,
 				const char *buf, size_t count)
 {

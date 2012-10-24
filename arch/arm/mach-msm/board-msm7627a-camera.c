@@ -730,8 +730,9 @@ static struct platform_device msm_camera_sensor_imx072 = {
 };
 #endif
 
-static struct msm_camera_sensor_info msm_camera_sensor_ov9726_data;
 #ifdef CONFIG_WEBCAM_OV9726
+static struct msm_camera_sensor_info msm_camera_sensor_ov9726_data;
+
 static struct msm_camera_sensor_platform_info ov9726_sensor_7627a_info = {
 	.mount_angle = 90
 };
