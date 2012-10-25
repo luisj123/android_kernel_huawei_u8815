@@ -2541,7 +2541,7 @@ CONFIG_MACH_NO_WESTBRIDGE=y
 # Qualcomm MSM specific device drivers
 #
 # CONFIG_MSM_SSBI is not set
-# CONFIG_HUAWEI_HW_DEV_DCT is not set
+CONFIG_HUAWEI_HW_DEV_DCT=y
 CONFIG_CLKDEV_LOOKUP=y
 
 #
