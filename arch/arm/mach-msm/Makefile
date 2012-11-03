@@ -1,3 +1,5 @@
+CFLAGS_scm.o :=$(call as-instr,.arch_extension sec,-DREQUIRES_SEC=1)
+
 obj-y += io.o dma.o memory.o hardware_self_adapt.o
 ifndef CONFIG_ARM_ARCH_TIMER
 obj-y += timer.o
@@ -70,6 +72,7 @@ obj-$(CONFIG_MSM_PIL_QDSP6V3) += pil-q6v3.o
 obj-$(CONFIG_MSM_PIL_QDSP6V4) += pil-q6v4.o
 obj-$(CONFIG_MSM_PIL_RIVA) += pil-riva.o
 obj-$(CONFIG_MSM_PIL_TZAPPS) += pil-tzapps.o
+obj-$(CONFIG_MSM_PIL_VIDC) += pil-vidc.o
 obj-$(CONFIG_MSM_PIL_MODEM) += pil-modem.o
 obj-$(CONFIG_ARCH_QSD8X50) += sirc.o
 obj-$(CONFIG_ARCH_FSM9XXX) += sirc-fsm9xxx.o
@@ -190,6 +193,9 @@ ifdef CONFIG_CPU_IDLE
 	obj-$(CONFIG_ARCH_MSM9615) += cpuidle.o
 endif
 
+ifdef CONFIG_MSM_CAMERA_V4L2
+	obj-$(CONFIG_ARCH_MSM8X60) += board-msm8x60-camera.o
+endif
 obj-$(CONFIG_ARCH_FSM9XXX) += devices-fsm9xxx.o
 obj-$(CONFIG_ARCH_FSM9XXX) += clock-fsm9xxx.o clock-local.o acpuclock-fsm9xxx.o
 obj-$(CONFIG_ARCH_FSM9XXX) += dfe-fsm9xxx.o rfic-fsm9xxx.o
@@ -301,6 +307,7 @@ endif
 
 obj-$(CONFIG_MSM_SLEEP_STATS) += msm_rq_stats.o idle_stats.o
 obj-$(CONFIG_MSM_SLEEP_STATS_DEVICE) += idle_stats_device.o
+obj-$(CONFIG_MSM_DCVS) += msm_dcvs_scm.o msm_dcvs.o msm_dcvs_idle.o
 obj-$(CONFIG_MSM_SHOW_RESUME_IRQ) += msm_show_resume_irq.o
 obj-$(CONFIG_BT_MSM_PINTEST)  += btpintest.o
 obj-$(CONFIG_MSM_FAKE_BATTERY) += fish_battery.o
@@ -317,3 +324,5 @@ endif
 
 obj-$(CONFIG_ARCH_MSM8960) += mdm2.o mdm_common.o
 obj-$(CONFIG_MSM_RTB) += msm_rtb.o
+obj-$(CONFIG_MSM_CACHE_ERP) += cache_erp.o
+obj-$(CONFIG_MSM_CACHE_DUMP) += msm_cache_dump.o

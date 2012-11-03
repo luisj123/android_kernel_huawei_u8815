@@ -98,6 +98,7 @@ extern struct platform_device msm_bt_power_device;
 
 void __init msm7627a_bt_power_init(void);
 #endif
+
 #if (defined(HUAWEI_BT_BTLA_VER30) && defined(CONFIG_HUAWEI_KERNEL))
 
 struct bt_vreg_info {
@@ -117,6 +118,7 @@ extern struct platform_device msm_bt_power_device;
 extern struct platform_device msm_bluesleep_device;
 
 #endif
+
 void __init msm7627a_camera_init(void);
 u32 msm7627a_power_collapse_latency(enum msm_pm_sleep_mode);
 #endif

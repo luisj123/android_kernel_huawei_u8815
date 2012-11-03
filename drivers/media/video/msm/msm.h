@@ -238,6 +238,7 @@ struct msm_cam_media_controller {
 	struct pm_qos_request_list pm_qos_req_list;
 	struct msm_mctl_pp_info pp_info;
 	struct ion_client *client;
+	struct kref refcount;
 	/* VFE output mode.
 	* Used to interpret the Primary/Secondary messages
 	* to preview/video/main/thumbnail image types*/
@@ -297,6 +298,7 @@ struct msm_cam_v4l2_dev_inst {
 	int is_mem_map_inst;
 	struct img_plane_info plane_info;
 	int vbqueue_initialized;
+	struct mutex inst_lock;
 };
 
 struct msm_cam_mctl_node {
@@ -408,6 +410,8 @@ struct msm_cam_server_dev {
 	struct msm_isp_ops *isp_subdev[MSM_MAX_CAMERA_CONFIGS];
 	/* info of MCTL nodes successfully probed*/
 	struct msm_mctl_node_info mctl_node_info;
+	struct mutex server_lock;
+	uint32_t server_evt_id;
 };
 
 /* camera server related functions */
@@ -524,6 +528,7 @@ int msm_mctl_buf_return_buf(struct msm_cam_media_controller *pmctl,
 			int image_mode, struct msm_frame_buffer *buf);
 int msm_mctl_pp_mctl_divert_done(struct msm_cam_media_controller *p_mctl,
 					void __user *arg);
+void msm_release_ion_client(struct kref *ref);
 #endif /* __KERNEL__ */
 
 #endif /* _MSM_H */

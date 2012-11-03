@@ -490,6 +490,7 @@ struct l2cap_pinfo {
 	__u8		fixed_channel;
 	__u8		num_conf_req;
 	__u8		num_conf_rsp;
+	__u8		incoming;
 
 	__u8		fcs;
 	__u8		sec_level;
@@ -683,6 +684,7 @@ int l2cap_strm_tx(struct sock *sk, struct sk_buff_head *skbs);
 int l2cap_ertm_tx(struct sock *sk, struct bt_l2cap_control *control,
 			struct sk_buff_head *skbs, u8 event);
 
+int l2cap_sock_le_params_valid(struct bt_le_params *le_params);
 void l2cap_sock_set_timer(struct sock *sk, long timeout);
 void l2cap_sock_clear_timer(struct sock *sk);
 void __l2cap_sock_close(struct sock *sk, int reason);
@@ -690,6 +692,8 @@ void l2cap_sock_kill(struct sock *sk);
 void l2cap_sock_init(struct sock *sk, struct sock *parent);
 struct sock *l2cap_sock_alloc(struct net *net, struct socket *sock,
 							int proto, gfp_t prio);
+struct sock *l2cap_find_sock_by_fixed_cid_and_dir(__le16 cid, bdaddr_t *src,
+						bdaddr_t *dst, int server);
 void l2cap_send_disconn_req(struct l2cap_conn *conn, struct sock *sk, int err);
 void l2cap_chan_del(struct sock *sk, int err);
 int l2cap_do_connect(struct sock *sk);

@@ -19,7 +19,7 @@ obj-$(CONFIG_PHANTOM)		+= phantom.o
 obj-$(CONFIG_SENSORS_BH1780)	+= bh1780gli.o
 obj-$(CONFIG_SENSORS_BH1770)	+= bh1770glc.o
 obj-$(CONFIG_SENSORS_APDS990X)	+= apds990x.o
-obj-$(CONFIG_ANDROID_PMEM)	+= pmem.o
+obj-$(CONFIG_ANDROID_PMEM)      += pmem.o
 obj-$(CONFIG_SGI_IOC4)		+= ioc4.o
 obj-$(CONFIG_ENCLOSURE_SERVICES) += enclosure.o
 obj-$(CONFIG_KGDB_TESTS)	+= kgdbts.o
@@ -65,4 +65,5 @@ obj-$(CONFIG_MSM_MEMORY_LOW_POWER_MODE_SUSPEND_DEEP_POWER_DOWN) \
 	+= msm_migrate_pages.o
 obj-$(CONFIG_PMIC8058_XOADC) += pmic8058-xoadc.o
 obj-$(CONFIG_TZCOM) += tzcom.o
+obj-$(CONFIG_QSEECOM) += qseecom.o
 obj-$(CONFIG_QFP_FUSE) += qfp_fuse.o

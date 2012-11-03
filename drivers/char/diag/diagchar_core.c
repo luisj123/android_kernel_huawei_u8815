@@ -51,7 +51,7 @@ struct diagchar_priv {
 };
 /* The following variables can be specified by module options */
  /* for copy buffer */
-static unsigned int itemsize = 2048; /*Size of item in the mempool */
+static unsigned int itemsize = 4096; /*Size of item in the mempool */
 static unsigned int poolsize = 10; /*Number of items in the mempool */
 /* for hdlc buffer */
 static unsigned int itemsize_hdlc = 8192; /*Size of item in the mempool */
@@ -63,8 +63,8 @@ static unsigned int poolsize_write_struct = 8; /* Num of items in the mempool */
 static unsigned int max_clients = 15;
 static unsigned int threshold_client_limit = 30;
 /* This is the maximum number of pkt registrations supported at initialization*/
-unsigned int diag_max_registration = 500;
-unsigned int diag_threshold_registration = 650;
+unsigned int diag_max_reg = 600;
+unsigned int diag_threshold_reg = 750;
 
 /* Timer variables */
 static struct timer_list drain_timer;
@@ -196,6 +196,7 @@ static int diagchar_open(struct inode *inode, struct file *file)
 				return -ENOMEM;
 			}
 		}
+		driver->data_ready[i] = 0x0;
 		driver->data_ready[i] |= MSG_MASKS_TYPE;
 		driver->data_ready[i] |= EVENT_MASKS_TYPE;
 		driver->data_ready[i] |= LOG_MASKS_TYPE;
@@ -233,7 +234,7 @@ static int diagchar_close(struct inode *inode, struct file *file)
 	}
 #endif /* DIAG over USB */
 	/* Delete the pkt response table entry for the exiting process */
-	for (i = 0; i < diag_max_registration; i++)
+	for (i = 0; i < diag_max_reg; i++)
 			if (driver->table[i].process_id == current->tgid)
 					driver->table[i].process_id = 0;
 
@@ -263,7 +264,7 @@ void diag_clear_reg(int proc_num)
 {
 	int i;
 
-	for (i = 0; i < diag_max_registration; i++) {
+	for (i = 0; i < diag_max_reg; i++) {
 		if (driver->table[i].client_id == proc_num) {
 			driver->table[i].process_id = 0;
 		}
@@ -299,7 +300,7 @@ long diagchar_ioctl(struct file *filp,
 		struct bindpkt_params_per_process *pkt_params =
 			 (struct bindpkt_params_per_process *) ioarg;
 		mutex_lock(&driver->diagchar_mutex);
-		for (i = 0; i < diag_max_registration; i++) {
+		for (i = 0; i < diag_max_reg; i++) {
 			if (driver->table[i].process_id == 0) {
 				diag_add_reg(i, pkt_params->params,
 						&success, &count_entries);
@@ -311,19 +312,20 @@ long diagchar_ioctl(struct file *filp,
 				}
 			}
 		}
-		if (i < diag_threshold_registration) {
+		if (i < diag_threshold_reg) {
 			/* Increase table size by amount required */
-			diag_max_registration += pkt_params->count -
+			diag_max_reg += pkt_params->count -
 							 count_entries;
 			/* Make sure size doesnt go beyond threshold */
-			if (diag_max_registration > diag_threshold_registration)
-				diag_max_registration =
-						 diag_threshold_registration;
+			if (diag_max_reg > diag_threshold_reg) {
+				diag_max_reg = diag_threshold_reg;
+				pr_info("diag: best case memory allocation\n");
+			}
 			temp_buf = krealloc(driver->table,
-					 diag_max_registration*sizeof(struct
+					 diag_max_reg*sizeof(struct
 					 diag_master_table), GFP_KERNEL);
 			if (!temp_buf) {
-				diag_max_registration -= pkt_params->count -
+				diag_max_reg -= pkt_params->count -
 							 count_entries;
 				pr_alert("diag: Insufficient memory for reg.");
 				mutex_unlock(&driver->diagchar_mutex);
@@ -331,7 +333,7 @@ long diagchar_ioctl(struct file *filp,
 			} else {
 				driver->table = temp_buf;
 			}
-			for (j = i; j < diag_max_registration; j++) {
+			for (j = i; j < diag_max_reg; j++) {
 				diag_add_reg(j, pkt_params->params,
 						&success, &count_entries);
 				if (pkt_params->count > count_entries) {
@@ -341,6 +343,7 @@ long diagchar_ioctl(struct file *filp,
 					return success;
 				}
 			}
+			mutex_unlock(&driver->diagchar_mutex);
 		} else {
 			mutex_unlock(&driver->diagchar_mutex);
 			pr_err("Max size reached, Pkt Registration failed for"
@@ -728,6 +731,14 @@ static int diagchar_write(struct file *file, const char __user *buf,
 		diag_process_hdlc((void *)(driver->user_space_data),
 							 payload_size);
 		return 0;
+	}
+
+	if (payload_size > itemsize) {
+		pr_err("diag: Dropping packet, packet payload size crosses"
+				"4KB limit. Current payload size %d\n",
+				payload_size);
+		driver->dropped_count++;
+		return -EBADMSG;
 	}
 
 	buf_copy = diagmem_alloc(driver, payload_size, POOL_TYPE_COPY);

@@ -78,6 +78,37 @@ void l2cap_sock_clear_timer(struct sock *sk)
 	sk_stop_timer(sk, &sk->sk_timer);
 }
 
+int l2cap_sock_le_params_valid(struct bt_le_params *le_params)
+{
+	if (!le_params || le_params->latency > BT_LE_LATENCY_MAX ||
+			le_params->scan_window > BT_LE_SCAN_WINDOW_MAX ||
+			le_params->scan_interval < BT_LE_SCAN_INTERVAL_MIN ||
+			le_params->scan_window > le_params->scan_interval ||
+			le_params->interval_min < BT_LE_CONN_INTERVAL_MIN ||
+			le_params->interval_max > BT_LE_CONN_INTERVAL_MAX ||
+			le_params->interval_min > le_params->interval_max ||
+			le_params->supervision_timeout < BT_LE_SUP_TO_MIN ||
+			le_params->supervision_timeout > BT_LE_SUP_TO_MAX) {
+		return 0;
+	}
+
+	return 1;
+}
+
+int l2cap_sock_le_conn_update_params_valid(struct bt_le_params *le_params)
+{
+	if (!le_params || le_params->latency > BT_LE_LATENCY_MAX ||
+			le_params->interval_min < BT_LE_CONN_INTERVAL_MIN ||
+			le_params->interval_max > BT_LE_CONN_INTERVAL_MAX ||
+			le_params->interval_min > le_params->interval_max ||
+			le_params->supervision_timeout < BT_LE_SUP_TO_MIN ||
+			le_params->supervision_timeout > BT_LE_SUP_TO_MAX) {
+		return 0;
+	}
+
+	return 1;
+}
+
 static struct sock *__l2cap_get_sock_by_addr(__le16 psm, bdaddr_t *src)
 {
 	struct sock *sk;
@@ -545,6 +576,17 @@ static int l2cap_sock_getsockopt(struct socket *sock, int level, int optname, ch
 			err = -EFAULT;
 		break;
 
+	case BT_LE_PARAMS:
+		if (l2cap_pi(sk)->scid != L2CAP_CID_LE_DATA) {
+			err = -EINVAL;
+			break;
+		}
+
+		if (copy_to_user(optval, (char *) &bt_sk(sk)->le_params,
+						sizeof(bt_sk(sk)->le_params)))
+			err = -EFAULT;
+		break;
+
 	default:
 		err = -ENOPROTOOPT;
 		break;
@@ -660,6 +702,7 @@ static int l2cap_sock_setsockopt(struct socket *sock, int level, int optname, ch
 	struct sock *sk = sock->sk;
 	struct bt_security sec;
 	struct bt_power pwr;
+	struct bt_le_params le_params;
 	struct l2cap_conn *conn;
 	int len, err = 0;
 	u32 opt;
@@ -764,6 +807,51 @@ static int l2cap_sock_setsockopt(struct socket *sock, int level, int optname, ch
 			(l2cap_pi(sk)->amp_move_role == L2CAP_AMP_MOVE_NONE))
 			l2cap_amp_move_init(sk);
 
+		break;
+
+	case BT_FLUSHABLE:
+		if (get_user(opt, (u32 __user *) optval)) {
+			err = -EFAULT;
+			break;
+		}
+		l2cap_pi(sk)->flushable = opt;
+
+		break;
+
+	case BT_LE_PARAMS:
+		if (l2cap_pi(sk)->scid != L2CAP_CID_LE_DATA) {
+			err = -EINVAL;
+			break;
+		}
+
+		if (copy_from_user((char *) &le_params, optval,
+					sizeof(struct bt_le_params))) {
+			err = -EFAULT;
+			break;
+		}
+
+		conn = l2cap_pi(sk)->conn;
+		if (!conn || !conn->hcon ||
+				l2cap_pi(sk)->scid != L2CAP_CID_LE_DATA) {
+			memcpy(&bt_sk(sk)->le_params, &le_params,
+							sizeof(le_params));
+			break;
+		}
+
+		if (!conn->hcon->out ||
+				!l2cap_sock_le_conn_update_params_valid(
+					&le_params)) {
+			err = -EINVAL;
+			break;
+		}
+
+		memcpy(&bt_sk(sk)->le_params, &le_params, sizeof(le_params));
+
+		hci_le_conn_update(conn->hcon,
+				le_params.interval_min,
+				le_params.interval_max,
+				le_params.latency,
+				le_params.supervision_timeout);
 		break;
 
 	default:
@@ -947,7 +1035,8 @@ static int l2cap_sock_recvmsg(struct kiocb *iocb, struct socket *sock, struct ms
 	else
 		err = bt_sock_recvmsg(iocb, sock, msg, len, flags);
 
-	l2cap_ertm_recv_done(sk);
+	if (err >= 0)
+		l2cap_ertm_recv_done(sk);
 
 	return err;
 }
@@ -1086,12 +1175,23 @@ static int l2cap_sock_shutdown(struct socket *sock, int how)
 static int l2cap_sock_release(struct socket *sock)
 {
 	struct sock *sk = sock->sk;
+	struct sock *srv_sk = NULL;
 	int err;
 
 	BT_DBG("sock %p, sk %p", sock, sk);
 
 	if (!sk)
 		return 0;
+
+	/* If this is an ATT Client socket, find the matching Server */
+	if (l2cap_pi(sk)->scid == L2CAP_CID_LE_DATA && !l2cap_pi(sk)->incoming)
+		srv_sk = l2cap_find_sock_by_fixed_cid_and_dir(L2CAP_CID_LE_DATA,
+					&bt_sk(sk)->src, &bt_sk(sk)->dst, 1);
+
+	/* If server socket found, request tear down */
+	BT_DBG("client:%p server:%p", sk, srv_sk);
+	if (srv_sk)
+		l2cap_sock_set_timer(srv_sk, 1);
 
 	err = l2cap_sock_shutdown(sock, 2);
 

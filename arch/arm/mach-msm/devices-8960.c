@@ -33,6 +33,7 @@
 #include <mach/msm_xo.h>
 #include <sound/msm-dai-q6.h>
 #include <sound/apr_audio.h>
+#include <mach/msm_tsif.h>
 #include "clock.h"
 #include "devices.h"
 #include "devices-msm8x60.h"
@@ -41,6 +42,7 @@
 #include "rpm_stats.h"
 #include "pil-q6v4.h"
 #include "scm-pas.h"
+#include <mach/msm_dcvs.h>
 
 #ifdef CONFIG_MSM_MPM
 #include "mpm.h"
@@ -487,6 +489,58 @@ static struct msm_bus_vectors vidc_vdec_1080p_vectors[] = {
 		.ib  = 10000000,
 	},
 };
+static struct msm_bus_vectors vidc_venc_1080p_turbo_vectors[] = {
+	{
+		.src = MSM_BUS_MASTER_HD_CODEC_PORT0,
+		.dst = MSM_BUS_SLAVE_EBI_CH0,
+		.ab  = 222298112,
+		.ib  = 3522000000U,
+	},
+	{
+		.src = MSM_BUS_MASTER_HD_CODEC_PORT1,
+		.dst = MSM_BUS_SLAVE_EBI_CH0,
+		.ab  = 330301440,
+		.ib  = 3522000000U,
+	},
+	{
+		.src = MSM_BUS_MASTER_AMPSS_M0,
+		.dst = MSM_BUS_SLAVE_EBI_CH0,
+		.ab  = 2500000,
+		.ib  = 700000000,
+	},
+	{
+		.src = MSM_BUS_MASTER_AMPSS_M0,
+		.dst = MSM_BUS_SLAVE_EBI_CH0,
+		.ab  = 2500000,
+		.ib  = 10000000,
+	},
+};
+static struct msm_bus_vectors vidc_vdec_1080p_turbo_vectors[] = {
+	{
+		.src = MSM_BUS_MASTER_HD_CODEC_PORT0,
+		.dst = MSM_BUS_SLAVE_EBI_CH0,
+		.ab  = 222298112,
+		.ib  = 3522000000U,
+	},
+	{
+		.src = MSM_BUS_MASTER_HD_CODEC_PORT1,
+		.dst = MSM_BUS_SLAVE_EBI_CH0,
+		.ab  = 330301440,
+		.ib  = 3522000000U,
+	},
+	{
+		.src = MSM_BUS_MASTER_AMPSS_M0,
+		.dst = MSM_BUS_SLAVE_EBI_CH0,
+		.ab  = 2500000,
+		.ib  = 700000000,
+	},
+	{
+		.src = MSM_BUS_MASTER_AMPSS_M0,
+		.dst = MSM_BUS_SLAVE_EBI_CH0,
+		.ab  = 2500000,
+		.ib  = 10000000,
+	},
+};
 
 static struct msm_bus_paths vidc_bus_client_config[] = {
 	{
@@ -516,6 +570,14 @@ static struct msm_bus_paths vidc_bus_client_config[] = {
 	{
 		ARRAY_SIZE(vidc_vdec_1080p_vectors),
 		vidc_vdec_1080p_vectors,
+	},
+	{
+		ARRAY_SIZE(vidc_venc_1080p_turbo_vectors),
+		vidc_vdec_1080p_turbo_vectors,
+	},
+	{
+		ARRAY_SIZE(vidc_vdec_1080p_turbo_vectors),
+		vidc_vdec_1080p_turbo_vectors,
 	},
 };
 
@@ -566,6 +628,7 @@ struct msm_vidc_platform_data vidc_platform_data = {
 #ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
 	.memtype = ION_CP_MM_HEAP_ID,
 	.enable_ion = 1,
+	.cp_enabled = 1,
 #else
 	.memtype = MEMTYPE_EBI1,
 	.enable_ion = 0,
@@ -953,6 +1016,11 @@ struct platform_device msm_pil_tzapps = {
 	.id = -1,
 };
 
+struct platform_device msm_pil_vidc = {
+	.name = "pil_vidc",
+	.id = -1,
+};
+
 struct platform_device msm_device_smd = {
 	.name		= "msm_smd",
 	.id		= -1,
@@ -1314,6 +1382,111 @@ struct platform_device msm8960_device_vpe = {
 };
 #endif
 
+#define MSM_TSIF0_PHYS       (0x18200000)
+#define MSM_TSIF1_PHYS       (0x18201000)
+#define MSM_TSIF_SIZE        (0x200)
+
+#define TSIF_0_CLK       GPIO_CFG(75, 1, GPIO_CFG_INPUT, \
+	GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA)
+#define TSIF_0_EN        GPIO_CFG(76, 1, GPIO_CFG_INPUT, \
+	GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA)
+#define TSIF_0_DATA      GPIO_CFG(77, 1, GPIO_CFG_INPUT, \
+	GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA)
+#define TSIF_0_SYNC      GPIO_CFG(82, 1, GPIO_CFG_INPUT, \
+	GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA)
+#define TSIF_1_CLK       GPIO_CFG(79, 1, GPIO_CFG_INPUT, \
+	GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA)
+#define TSIF_1_EN        GPIO_CFG(80, 1, GPIO_CFG_INPUT, \
+	GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA)
+#define TSIF_1_DATA      GPIO_CFG(81, 1, GPIO_CFG_INPUT, \
+	GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA)
+#define TSIF_1_SYNC      GPIO_CFG(78, 1, GPIO_CFG_INPUT, \
+	GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA)
+
+static const struct msm_gpio tsif0_gpios[] = {
+	{ .gpio_cfg = TSIF_0_CLK,  .label =  "tsif_clk", },
+	{ .gpio_cfg = TSIF_0_EN,   .label =  "tsif_en", },
+	{ .gpio_cfg = TSIF_0_DATA, .label =  "tsif_data", },
+	{ .gpio_cfg = TSIF_0_SYNC, .label =  "tsif_sync", },
+};
+
+static const struct msm_gpio tsif1_gpios[] = {
+	{ .gpio_cfg = TSIF_1_CLK,  .label =  "tsif_clk", },
+	{ .gpio_cfg = TSIF_1_EN,   .label =  "tsif_en", },
+	{ .gpio_cfg = TSIF_1_DATA, .label =  "tsif_data", },
+	{ .gpio_cfg = TSIF_1_SYNC, .label =  "tsif_sync", },
+};
+
+struct msm_tsif_platform_data tsif1_platform_data = {
+	.num_gpios = ARRAY_SIZE(tsif1_gpios),
+	.gpios = tsif1_gpios,
+	.tsif_pclk = "tsif_pclk",
+	.tsif_ref_clk = "tsif_ref_clk",
+};
+
+struct resource tsif1_resources[] = {
+	[0] = {
+		.flags = IORESOURCE_IRQ,
+		.start = TSIF2_IRQ,
+		.end   = TSIF2_IRQ,
+	},
+	[1] = {
+		.flags = IORESOURCE_MEM,
+		.start = MSM_TSIF1_PHYS,
+		.end   = MSM_TSIF1_PHYS + MSM_TSIF_SIZE - 1,
+	},
+	[2] = {
+		.flags = IORESOURCE_DMA,
+		.start = DMOV_TSIF_CHAN,
+		.end   = DMOV_TSIF_CRCI,
+	},
+};
+
+struct msm_tsif_platform_data tsif0_platform_data = {
+	.num_gpios = ARRAY_SIZE(tsif0_gpios),
+	.gpios = tsif0_gpios,
+	.tsif_pclk = "tsif_pclk",
+	.tsif_ref_clk = "tsif_ref_clk",
+};
+struct resource tsif0_resources[] = {
+	[0] = {
+		.flags = IORESOURCE_IRQ,
+		.start = TSIF1_IRQ,
+		.end   = TSIF1_IRQ,
+	},
+	[1] = {
+		.flags = IORESOURCE_MEM,
+		.start = MSM_TSIF0_PHYS,
+		.end   = MSM_TSIF0_PHYS + MSM_TSIF_SIZE - 1,
+	},
+	[2] = {
+		.flags = IORESOURCE_DMA,
+		.start = DMOV_TSIF_CHAN,
+		.end   = DMOV_TSIF_CRCI,
+	},
+};
+
+struct platform_device msm_device_tsif[2] = {
+	{
+		.name          = "msm_tsif",
+		.id            = 0,
+		.num_resources = ARRAY_SIZE(tsif0_resources),
+		.resource      = tsif0_resources,
+		.dev = {
+			.platform_data = &tsif0_platform_data
+		},
+	},
+	{
+		.name          = "msm_tsif",
+		.id            = 1,
+		.num_resources = ARRAY_SIZE(tsif1_resources),
+		.resource      = tsif1_resources,
+		.dev = {
+			.platform_data = &tsif1_platform_data
+		},
+	}
+};
+
 static struct resource resources_ssbi_pmic[] = {
 	{
 		.start  = MSM_PMIC1_SSBI_CMD_PHYS,
@@ -1456,7 +1629,7 @@ struct platform_device msm_cpudai_incall_record_tx = {
  * Machine specific data for AUX PCM Interface
  * which the driver will  be unware of.
  */
-struct msm_dai_auxpcm_pdata auxpcm_rx_pdata = {
+struct msm_dai_auxpcm_pdata auxpcm_pdata = {
 	.clk = "pcm_clk",
 	.mode = AFE_PCM_CFG_MODE_PCM,
 	.sync = AFE_PCM_CFG_SYNC_INT,
@@ -1471,13 +1644,16 @@ struct platform_device msm_cpudai_auxpcm_rx = {
 	.name = "msm-dai-q6",
 	.id = 2,
 	.dev = {
-		.platform_data = &auxpcm_rx_pdata,
+		.platform_data = &auxpcm_pdata,
 	},
 };
 
 struct platform_device msm_cpudai_auxpcm_tx = {
 	.name = "msm-dai-q6",
 	.id = 3,
+	.dev = {
+		.platform_data = &auxpcm_pdata,
+	},
 };
 
 struct platform_device msm_cpu_fe = {
@@ -1552,7 +1728,88 @@ struct platform_device *msm_footswitch_devices[] = {
 };
 unsigned msm_num_footswitch_devices = ARRAY_SIZE(msm_footswitch_devices);
 
+
 #ifdef CONFIG_MSM_ROTATOR
+static struct msm_bus_vectors rotator_init_vectors[] = {
+	{
+		.src = MSM_BUS_MASTER_ROTATOR,
+		.dst = MSM_BUS_SLAVE_EBI_CH0,
+		.ab = 0,
+		.ib = 0,
+	},
+};
+
+static struct msm_bus_vectors rotator_ui_vectors[] = {
+	{
+		.src = MSM_BUS_MASTER_ROTATOR,
+		.dst = MSM_BUS_SLAVE_EBI_CH0,
+		.ab  = (1024 * 600 * 4 * 2 * 60),
+		.ib  = (1024 * 600 * 4 * 2 * 60 * 1.5),
+	},
+};
+
+static struct msm_bus_vectors rotator_vga_vectors[] = {
+	{
+		.src = MSM_BUS_MASTER_ROTATOR,
+		.dst = MSM_BUS_SLAVE_EBI_CH0,
+		.ab  = (640 * 480 * 2 * 2 * 30),
+		.ib  = (640 * 480 * 2 * 2 * 30 * 1.5),
+	},
+};
+static struct msm_bus_vectors rotator_720p_vectors[] = {
+	{
+		.src = MSM_BUS_MASTER_ROTATOR,
+		.dst = MSM_BUS_SLAVE_EBI_CH0,
+		.ab  = (1280 * 736 * 2 * 2 * 30),
+		.ib  = (1280 * 736 * 2 * 2 * 30 * 1.5),
+	},
+};
+
+static struct msm_bus_vectors rotator_1080p_vectors[] = {
+	{
+		.src = MSM_BUS_MASTER_ROTATOR,
+		.dst = MSM_BUS_SLAVE_EBI_CH0,
+		.ab  = (1920 * 1088 * 2 * 2 * 30),
+		.ib  = (1920 * 1088 * 2 * 2 * 30 * 1.5),
+	},
+};
+
+static struct msm_bus_paths rotator_bus_scale_usecases[] = {
+	{
+		ARRAY_SIZE(rotator_init_vectors),
+		rotator_init_vectors,
+	},
+	{
+		ARRAY_SIZE(rotator_ui_vectors),
+		rotator_ui_vectors,
+	},
+	{
+		ARRAY_SIZE(rotator_vga_vectors),
+		rotator_vga_vectors,
+	},
+	{
+		ARRAY_SIZE(rotator_720p_vectors),
+		rotator_720p_vectors,
+	},
+	{
+		ARRAY_SIZE(rotator_1080p_vectors),
+		rotator_1080p_vectors,
+	},
+};
+
+struct msm_bus_scale_pdata rotator_bus_scale_pdata = {
+	rotator_bus_scale_usecases,
+	ARRAY_SIZE(rotator_bus_scale_usecases),
+	.name = "rotator",
+};
+
+void __init msm_rotator_update_bus_vectors(unsigned int xres,
+	unsigned int yres)
+{
+	rotator_ui_vectors[0].ab = xres * yres * 4 * 2 * 60;
+	rotator_ui_vectors[0].ib = xres * yres * 4 * 2 * 60 * 3 / 2;
+}
+
 #define ROTATOR_HW_BASE         0x04E00000
 static struct resource resources_msm_rotator[] = {
 	{
@@ -2665,3 +2922,70 @@ struct platform_device msm_etm_device = {
 };
 
 #endif
+
+static struct resource msm_cache_erp_resources[] = {
+	{
+		.name = "l1_irq",
+		.start = SC_SICCPUXEXTFAULTIRPTREQ,
+		.flags = IORESOURCE_IRQ,
+	},
+	{
+		.name = "l2_irq",
+		.start = APCC_QGICL2IRPTREQ,
+		.flags = IORESOURCE_IRQ,
+	}
+};
+
+struct platform_device msm8960_device_cache_erp = {
+	.name		= "msm_cache_erp",
+	.id		= -1,
+	.num_resources	= ARRAY_SIZE(msm_cache_erp_resources),
+	.resource	= msm_cache_erp_resources,
+};
+
+static int msm8960_LPM_latency = 1000; /* >100 usec for WFI */
+
+struct platform_device msm8960_cpu_idle_device = {
+	.name   = "msm_cpu_idle",
+	.id     = -1,
+	.dev = {
+		.platform_data = &msm8960_LPM_latency,
+	},
+};
+
+static struct msm_dcvs_freq_entry msm8960_freq[] = {
+	{ 384000, 166981,  345600},
+	{ 702000, 213049,  632502},
+	{1026000, 285712,  925613},
+	{1242000, 383945, 1176550},
+	{1458000, 419729, 1465478},
+	{1512000, 434116, 1546674},
+
+};
+
+static struct msm_dcvs_core_info msm8960_core_info = {
+	.freq_tbl = &msm8960_freq[0],
+	.core_param = {
+		.max_time_us = 100000,
+		.num_freq = ARRAY_SIZE(msm8960_freq),
+	},
+	.algo_param = {
+		.slack_time_us = 58000,
+		.scale_slack_time = 0,
+		.scale_slack_time_pct = 0,
+		.disable_pc_threshold = 1458000,
+		.em_window_size = 100000,
+		.em_max_util_pct = 97,
+		.ss_window_size = 1000000,
+		.ss_util_pct = 95,
+		.ss_iobusy_conv = 100,
+	},
+};
+
+struct platform_device msm8960_msm_gov_device = {
+	.name = "msm_dcvs_gov",
+	.id = -1,
+	.dev = {
+		.platform_data = &msm8960_core_info,
+	},
+};

@@ -91,6 +91,7 @@
 #include <linux/bma150.h>
 
 #include "board-msm7x30-regulator.h"
+#include "pm.h"
 
 #define MSM_PMEM_SF_SIZE	0x1700000
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
@@ -98,10 +99,22 @@
 #else
 #define MSM_FB_SIZE            0x500000
 #endif
-#define MSM_PMEM_ADSP_SIZE      0x1E00000
+/*
+ * Reserve space for double buffered full screen
+ * res V4L2 video overlay - i.e. 1280x720x1.5x2
+ */
+#define MSM_V4L2_VIDEO_OVERLAY_BUF_SIZE 2764800
+#define MSM_PMEM_ADSP_SIZE		0x2184000
 #define MSM_FLUID_PMEM_ADSP_SIZE	0x2800000
 #define PMEM_KERNEL_EBI0_SIZE   0x600000
 #define MSM_PMEM_AUDIO_SIZE     0x200000
+
+#ifdef CONFIG_ION_MSM
+static struct platform_device ion_dev;
+#define MSM_ION_AUDIO_SIZE	(MSM_PMEM_AUDIO_SIZE + PMEM_KERNEL_EBI0_SIZE)
+#define MSM_ION_SF_SIZE		MSM_PMEM_SF_SIZE
+#define MSM_ION_HEAP_NUM	4
+#endif
 
 #define PMIC_GPIO_INT		27
 #define PMIC_VREG_WLAN_LEVEL	2900
@@ -118,6 +131,7 @@
 #define OPTNAV_I2C_SLAVE_ADDR	(0xB0 >> 1)
 #define OPTNAV_IRQ		20
 #define OPTNAV_CHIP_SELECT	19
+#define PMIC_GPIO_SDC4_PWR_EN_N 24  /* PMIC GPIO Number 25 */
 
 /* Macros assume PMIC GPIOs start at 0 */
 #define PM8058_GPIO_PM_TO_SYS(pm_gpio)     (pm_gpio + NR_GPIO_IRQS)
@@ -138,6 +152,13 @@
 
 #define	PM_FLIP_MPP 5 /* PMIC MPP 06 */
 
+#define DDR1_BANK_BASE 0X20000000
+#define DDR2_BANK_BASE 0X40000000
+
+static unsigned int phys_add = DDR2_BANK_BASE;
+unsigned long ebi1_phys_offset = DDR2_BANK_BASE;
+EXPORT_SYMBOL(ebi1_phys_offset);
+
 struct pm8xxx_gpio_init_info {
 	unsigned			gpio;
 	struct pm_gpio			config;
@@ -149,6 +170,19 @@ static int pm8058_gpios_init(void)
 
 	struct pm8xxx_gpio_init_info sdc4_en = {
 		PM8058_GPIO_PM_TO_SYS(PMIC_GPIO_SDC4_EN_N),
+		{
+			.direction      = PM_GPIO_DIR_OUT,
+			.pull           = PM_GPIO_PULL_NO,
+			.vin_sel        = PM8058_GPIO_VIN_L5,
+			.function       = PM_GPIO_FUNC_NORMAL,
+			.inv_int_pol    = 0,
+			.out_strength   = PM_GPIO_STRENGTH_LOW,
+			.output_value   = 0,
+		},
+	};
+
+	struct pm8xxx_gpio_init_info sdc4_pwr_en = {
+		PM8058_GPIO_PM_TO_SYS(PMIC_GPIO_SDC4_PWR_EN_N),
 		{
 			.direction      = PM_GPIO_DIR_OUT,
 			.pull           = PM_GPIO_PULL_NO,
@@ -286,6 +320,23 @@ static int pm8058_gpios_init(void)
 			return rc;
 		}
 		gpio_set_value_cansleep(sdc4_en.gpio, 0);
+	}
+	/* FFA -> gpio_25 controls vdd of sdcc4 */
+	else {
+		/* SCD4 gpio_25 */
+		rc = pm8xxx_gpio_config(sdc4_pwr_en.gpio, &sdc4_pwr_en.config);
+		if (rc) {
+			pr_err("%s PMIC_GPIO_SDC4_PWR_EN_N config failed: %d\n",
+			       __func__, rc);
+			return rc;
+		}
+
+		rc = gpio_request(sdc4_pwr_en.gpio, "sdc4_pwr_en");
+		if (rc) {
+			pr_err("PMIC_GPIO_SDC4_PWR_EN_N gpio_req failed: %d\n",
+			       rc);
+			return rc;
+		}
 	}
 
 	return 0;
@@ -1160,7 +1211,7 @@ static struct platform_device msm_camera_sensor_mt9e013 = {
 
 #ifdef CONFIG_VX6953
 static struct msm_camera_sensor_platform_info vx6953_sensor_7630_info = {
-	.mount_angle = 0
+	.mount_angle = 180
 };
 
 static struct msm_camera_sensor_flash_data flash_vx6953 = {
@@ -2949,6 +3000,26 @@ static struct msm_pm_platform_data msm_pm_data[MSM_PM_SLEEP_MODE_NR] = {
 	},
 };
 
+u32 msm7x30_power_collapse_latency(enum msm_pm_sleep_mode mode)
+{
+	switch (mode) {
+	case MSM_PM_SLEEP_MODE_POWER_COLLAPSE:
+		return msm_pm_data
+		[MSM_PM_SLEEP_MODE_POWER_COLLAPSE].latency;
+	case MSM_PM_SLEEP_MODE_POWER_COLLAPSE_NO_XO_SHUTDOWN:
+		return msm_pm_data
+		[MSM_PM_SLEEP_MODE_POWER_COLLAPSE_NO_XO_SHUTDOWN].latency;
+	case MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT:
+		return msm_pm_data
+		[MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT].latency;
+	case MSM_PM_SLEEP_MODE_WAIT_FOR_INTERRUPT:
+		return msm_pm_data
+		[MSM_PM_SLEEP_MODE_WAIT_FOR_INTERRUPT].latency;
+	default:
+	return 0;
+	}
+}
+
 static struct msm_pm_boot_platform_data msm_pm_boot_pdata __initdata = {
 	.mode = MSM_PM_BOOT_CONFIG_RESET_VECTOR_VIRT,
 	.v_addr = (uint32_t *)PAGE_OFFSET,
@@ -3711,6 +3782,14 @@ static struct resource msm_fb_resources[] = {
 	}
 };
 
+#ifdef CONFIG_MSM_V4L2_VIDEO_OVERLAY_DEVICE
+static struct resource msm_v4l2_video_overlay_resources[] = {
+	{
+	   .flags = IORESOURCE_DMA,
+	}
+};
+#endif
+
 static int msm_fb_detect_panel(const char *name)
 {
 	if (machine_is_msm7x30_fluid()) {
@@ -3743,6 +3822,16 @@ static struct platform_device msm_fb_device = {
 		.platform_data = &msm_fb_pdata,
 	}
 };
+
+#ifdef CONFIG_MSM_V4L2_VIDEO_OVERLAY_DEVICE
+
+static struct platform_device msm_v4l2_video_overlay_device = {
+	.name   = "msm_v4l2_overlay_pd",
+	.id     = 0,
+	.num_resources  = ARRAY_SIZE(msm_v4l2_video_overlay_resources),
+	.resource       = msm_v4l2_video_overlay_resources,
+};
+#endif
 
 static struct platform_device msm_migrate_pages_device = {
 	.name   = "msm_migrate_pages",
@@ -4236,11 +4325,24 @@ static int msm_fb_mddi_sel_clk(u32 *clk_rate)
 
 static int msm_fb_mddi_client_power(u32 client_id)
 {
+	int rc;
 	printk(KERN_NOTICE "\n client_id = 0x%x", client_id);
 	/* Check if it is Quicklogic client */
 	if (client_id == 0xc5835800) {
 		printk(KERN_NOTICE "\n Quicklogic MDDI client");
 		other_mddi_client = 0;
+		if (IS_ERR(mddi_ldo16)) {
+			rc = PTR_ERR(mddi_ldo16);
+			pr_err("%s: gp10 vreg get failed (%d)\n", __func__, rc);
+			return rc;
+		}
+		rc = regulator_disable(mddi_ldo16);
+		if (rc) {
+			pr_err("%s: LDO16 vreg enable failed (%d)\n",
+							__func__, rc);
+			return rc;
+		}
+
 	} else {
 		printk(KERN_NOTICE "\n Non-Quicklogic MDDI client");
 		quickvx_mddi_client = 0;
@@ -4258,19 +4360,10 @@ static struct mddi_platform_data mddi_pdata = {
 	.mddi_client_power = msm_fb_mddi_client_power,
 };
 
-int mdp_core_clk_rate_table[] = {
-	122880000,
-	122880000,
-	192000000,
-	192000000,
-};
-
 static struct msm_panel_common_pdata mdp_pdata = {
 	.hw_revision_addr = 0xac001270,
 	.gpio = 30,
-	.mdp_core_clk_rate = 122880000,
-	.mdp_core_clk_table = mdp_core_clk_rate_table,
-	.num_mdp_clk = ARRAY_SIZE(mdp_core_clk_rate_table),
+	.mdp_max_clk = 192000000,
 	.mdp_rev = MDP_REV_40,
 };
 
@@ -4422,6 +4515,7 @@ static int lcdc_panel_power(int on)
 
 	if (unlikely(!lcdc_power_initialized)) {
 		quickvx_mddi_client = 0;
+		regulator_put(mddi_ldo20);
 		display_common_init();
 		lcdc_power_initialized = 1;
 	}
@@ -4914,7 +5008,7 @@ static int bluetooth_power(int on)
 
 	int bahama_not_marimba = bahama_present();
 
-	if (bahama_not_marimba == -1) {
+	if (bahama_not_marimba < 0) {
 		printk(KERN_WARNING "%s: bahama_present: %d\n",
 				__func__, bahama_not_marimba);
 		return -ENODEV;
@@ -5120,6 +5214,9 @@ static struct platform_device *devices[] __initdata = {
 #endif
 	&android_pmem_device,
 	&msm_fb_device,
+#ifdef CONFIG_MSM_V4L2_VIDEO_OVERLAY_DEVICE
+	&msm_v4l2_video_overlay_device,
+#endif
 	&msm_migrate_pages_device,
 	&mddi_toshiba_device,
 	&lcdc_toshiba_panel_device,
@@ -5198,7 +5295,10 @@ static struct platform_device *devices[] __initdata = {
 	&msm_batt_device,
 	&msm_adc_device,
 	&msm_ebi0_thermal,
-	&msm_ebi1_thermal
+	&msm_ebi1_thermal,
+#ifdef CONFIG_ION_MSM
+	&ion_dev,
+#endif
 };
 
 static struct msm_gpio msm_i2c_gpios_hw[] = {
@@ -5471,9 +5571,24 @@ static uint32_t msm_sdcc_setup_vreg(int dev_id, unsigned int enable)
 	if (test_bit(dev_id, &vreg_sts) == enable)
 		return rc;
 
-	if (!enable || enabled_once[dev_id - 1])
-		return 0;
+	if (dev_id == 4) {
+		if (enable) {
+			pr_debug("Enable Vdd dev_%d\n", dev_id);
+			gpio_set_value_cansleep(
+				PM8058_GPIO_PM_TO_SYS(PMIC_GPIO_SDC4_PWR_EN_N),
+						0);
+			set_bit(dev_id, &vreg_sts);
+		} else {
+			pr_debug("Disable Vdd dev_%d\n", dev_id);
+			gpio_set_value_cansleep(
+				PM8058_GPIO_PM_TO_SYS(PMIC_GPIO_SDC4_PWR_EN_N),
+				1);
+			clear_bit(dev_id, &vreg_sts);
+		}
+	}
 
+	if (!enable || enabled_once[dev_id - 1])
+			return 0;
 	if (!curr)
 		return -ENODEV;
 
@@ -6105,6 +6220,7 @@ static void __init msm7x30_init_mmc(void)
 #ifdef CONFIG_MMC_MSM_SDC1_SUPPORT
 	if (mmc_regulator_init(1, "s3", 1800000))
 		goto out1;
+
 	if ( machine_is_msm7x30_fluid() 
 	|| (machine_is_msm7x30_u8800()) 
 	|| (machine_is_msm7x30_u8820()) 
@@ -6119,6 +6235,8 @@ static void __init msm7x30_init_mmc(void)
 	|| (machine_is_msm8255_u8860_51())
 	|| (machine_is_msm8255_u8730()))
     {
+		msm7x30_sdc1_data.swfi_latency = msm7x30_power_collapse_latency(
+			MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT);
 
 		msm7x30_sdc1_data.ocr_mask =  MMC_VDD_27_28 | MMC_VDD_28_29;
 		if (msm_sdc1_lvlshft_enable()) {
@@ -6133,6 +6251,8 @@ out1:
 #ifdef CONFIG_MMC_MSM_SDC2_SUPPORT
 	if (mmc_regulator_init(2, "s3", 1800000))
 		goto out2;
+	msm7x30_sdc2_data.swfi_latency = msm7x30_power_collapse_latency(
+		MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT);
 
 	if (machine_is_msm8x55_svlte_surf())
 		msm7x30_sdc2_data.msmsdcc_fmax =  24576000;
@@ -6148,6 +6268,8 @@ out2:
 #ifdef CONFIG_MMC_MSM_SDC3_SUPPORT
 	if (mmc_regulator_init(3, "s3", 1800000))
 		goto out3;
+	msm7x30_sdc3_data.swfi_latency = msm7x30_power_collapse_latency(
+		MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT);
 
 	msm_sdcc_setup_gpio(3, 1);
 	msm_add_sdcc(3, &msm7x30_sdc3_data);
@@ -6156,6 +6278,8 @@ out3:
 #ifdef CONFIG_MMC_MSM_SDC4_SUPPORT
 	if (mmc_regulator_init(4, "mmc", 2850000))
 		return;
+	msm7x30_sdc4_data.swfi_latency = msm7x30_power_collapse_latency(
+		MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT);
 
 	msm_add_sdcc(4, &msm7x30_sdc4_data);
 #endif
@@ -6862,6 +6986,65 @@ static int __init pmem_kernel_ebi0_size_setup(char *p)
 }
 early_param("pmem_kernel_ebi0_size", pmem_kernel_ebi0_size_setup);
 
+#ifdef CONFIG_ION_MSM
+#ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
+static struct ion_co_heap_pdata co_ion_pdata = {
+	.adjacent_mem_id = INVALID_HEAP_ID,
+	.align = PAGE_SIZE,
+};
+#endif
+
+/**
+ * These heaps are listed in the order they will be allocated.
+ * Don't swap the order unless you know what you are doing!
+ */
+static struct ion_platform_data ion_pdata = {
+	.nr = MSM_ION_HEAP_NUM,
+	.heaps = {
+		{
+			.id	= ION_SYSTEM_HEAP_ID,
+			.type	= ION_HEAP_TYPE_SYSTEM,
+			.name	= ION_VMALLOC_HEAP_NAME,
+		},
+#ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
+		/* PMEM_ADSP = CAMERA */
+		{
+			.id	= ION_CAMERA_HEAP_ID,
+			.type	= ION_HEAP_TYPE_CARVEOUT,
+			.name	= ION_CAMERA_HEAP_NAME,
+			.memory_type = ION_EBI_TYPE,
+			.has_outer_cache = 1,
+			.extra_data = (void *)&co_ion_pdata,
+		},
+		/* PMEM_AUDIO */
+		{
+			.id	= ION_AUDIO_HEAP_ID,
+			.type	= ION_HEAP_TYPE_CARVEOUT,
+			.name	= ION_AUDIO_HEAP_NAME,
+			.memory_type = ION_EBI_TYPE,
+			.has_outer_cache = 1,
+			.extra_data = (void *)&co_ion_pdata,
+		},
+		/* PMEM_MDP = SF */
+		{
+			.id	= ION_SF_HEAP_ID,
+			.type	= ION_HEAP_TYPE_CARVEOUT,
+			.name	= ION_SF_HEAP_NAME,
+			.memory_type = ION_EBI_TYPE,
+			.has_outer_cache = 1,
+			.extra_data = (void *)&co_ion_pdata,
+		},
+#endif
+	}
+};
+
+static struct platform_device ion_dev = {
+	.name = "ion-msm",
+	.id = 1,
+	.dev = { .platform_data = &ion_pdata },
+};
+#endif
+
 static struct memtype_reserve msm7x30_reserve_table[] __initdata = {
 	[MEMTYPE_SMI] = {
 	},
@@ -6873,47 +7056,86 @@ static struct memtype_reserve msm7x30_reserve_table[] __initdata = {
 	},
 };
 
-static void __init size_pmem_devices(void)
-{
-#ifdef CONFIG_ANDROID_PMEM
-	unsigned long size;
+unsigned long size;
+unsigned long msm_ion_camera_size;
 
+static void fix_sizes(void)
+{
 	if machine_is_msm7x30_fluid()
 		size = fluid_pmem_adsp_size;
 	else
 		size = pmem_adsp_size;
+
+#ifdef CONFIG_ION_MSM
+	msm_ion_camera_size = size;
+#endif
+}
+
+static void __init size_pmem_devices(void)
+{
+#ifdef CONFIG_ANDROID_PMEM
+#ifndef CONFIG_MSM_MULTIMEDIA_USE_ION
+
 	android_pmem_adsp_pdata.size = size;
 	android_pmem_audio_pdata.size = pmem_audio_size;
 	android_pmem_pdata.size = pmem_sf_size;
 #endif
+#endif
 }
 
+#ifdef CONFIG_ANDROID_PMEM
+#ifndef CONFIG_MSM_MULTIMEDIA_USE_ION
 static void __init reserve_memory_for(struct android_pmem_platform_data *p)
 {
 	msm7x30_reserve_table[p->memory_type].size += p->size;
 }
+#endif
+#endif
 
 static void __init reserve_pmem_memory(void)
 {
 #ifdef CONFIG_ANDROID_PMEM
+#ifndef CONFIG_MSM_MULTIMEDIA_USE_ION
 	reserve_memory_for(&android_pmem_adsp_pdata);
 	reserve_memory_for(&android_pmem_audio_pdata);
 	reserve_memory_for(&android_pmem_pdata);
 	msm7x30_reserve_table[MEMTYPE_EBI0].size += pmem_kernel_ebi0_size;
 #endif
+#endif
+}
+
+static void __init size_ion_devices(void)
+{
+#ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
+	ion_pdata.heaps[1].size = msm_ion_camera_size;
+	ion_pdata.heaps[2].size = MSM_ION_AUDIO_SIZE;
+	ion_pdata.heaps[3].size = MSM_ION_SF_SIZE;
+#endif
+}
+
+static void __init reserve_ion_memory(void)
+{
+#if defined(CONFIG_ION_MSM) && defined(CONFIG_MSM_MULTIMEDIA_USE_ION)
+	msm7x30_reserve_table[MEMTYPE_EBI0].size += msm_ion_camera_size;
+	msm7x30_reserve_table[MEMTYPE_EBI0].size += MSM_ION_AUDIO_SIZE;
+	msm7x30_reserve_table[MEMTYPE_EBI0].size += MSM_ION_SF_SIZE;
+#endif
 }
 
 static void __init msm7x30_calculate_reserve_sizes(void)
 {
+	fix_sizes();
 	size_pmem_devices();
 	reserve_pmem_memory();
+	size_ion_devices();
+	reserve_ion_memory();
 }
 
 static int msm7x30_paddr_to_memtype(unsigned int paddr)
 {
-	if (paddr < 0x40000000)
+	if (paddr < phys_add)
 		return MEMTYPE_EBI0;
-	if (paddr >= 0x40000000 && paddr < 0x80000000)
+	if (paddr >= phys_add && paddr < 0x80000000)
 		return MEMTYPE_EBI1;
 	return MEMTYPE_NONE;
 }
@@ -6941,6 +7163,16 @@ static void __init msm7x30_allocate_memory_regions(void)
 	msm_fb_resources[0].end = msm_fb_resources[0].start + size - 1;
 	pr_info("allocating %lu bytes at %p (%lx physical) for fb\n",
 		size, addr, __pa(addr));
+
+#ifdef CONFIG_MSM_V4L2_VIDEO_OVERLAY_DEVICE
+	size = MSM_V4L2_VIDEO_OVERLAY_BUF_SIZE;
+	addr = alloc_bootmem_align(size, 0x1000);
+	msm_v4l2_video_overlay_resources[0].start = __pa(addr);
+	msm_v4l2_video_overlay_resources[0].end =
+		msm_v4l2_video_overlay_resources[0].start + size - 1;
+	pr_debug("allocating %lu bytes at %p (%lx physical) for v4l2\n",
+		size, addr, __pa(addr));
+#endif
 }
 
 static void __init msm7x30_map_io(void)
@@ -6957,6 +7189,19 @@ static void __init msm7x30_init_early(void)
 	msm7x30_allocate_memory_regions();
 }
 
+static void __init msm7x30_fixup(struct machine_desc *desc, struct tag *tags,
+				 char **cmdline, struct meminfo *mi)
+{
+	for (; tags->hdr.size; tags = tag_next(tags)) {
+		if (tags->hdr.tag == ATAG_MEM && tags->u.mem.start ==
+							DDR1_BANK_BASE) {
+				ebi1_phys_offset = DDR1_BANK_BASE;
+				phys_add = DDR1_BANK_BASE;
+				break;
+		}
+	}
+}
+
 MACHINE_START(MSM7X30_SURF, "QCT MSM7X30 SURF")
 	.boot_params = PLAT_PHYS_OFFSET + 0x100,
 	.map_io = msm7x30_map_io,
@@ -6966,6 +7211,7 @@ MACHINE_START(MSM7X30_SURF, "QCT MSM7X30 SURF")
 	.timer = &msm_timer,
 	.init_early = msm7x30_init_early,
 	.handle_irq = vic_handle_irq,
+	.fixup = msm7x30_fixup,
 MACHINE_END
 
 MACHINE_START(MSM7X30_FFA, "QCT MSM7X30 FFA")
@@ -6977,6 +7223,7 @@ MACHINE_START(MSM7X30_FFA, "QCT MSM7X30 FFA")
 	.timer = &msm_timer,
 	.init_early = msm7x30_init_early,
 	.handle_irq = vic_handle_irq,
+	.fixup = msm7x30_fixup,
 MACHINE_END
 
 MACHINE_START(MSM7X30_FLUID, "QCT MSM7X30 FLUID")
@@ -6988,6 +7235,7 @@ MACHINE_START(MSM7X30_FLUID, "QCT MSM7X30 FLUID")
 	.timer = &msm_timer,
 	.init_early = msm7x30_init_early,
 	.handle_irq = vic_handle_irq,
+	.fixup = msm7x30_fixup,
 MACHINE_END
 
 MACHINE_START(MSM8X55_SURF, "QCT MSM8X55 SURF")
@@ -6999,6 +7247,7 @@ MACHINE_START(MSM8X55_SURF, "QCT MSM8X55 SURF")
 	.timer = &msm_timer,
 	.init_early = msm7x30_init_early,
 	.handle_irq = vic_handle_irq,
+	.fixup = msm7x30_fixup,
 MACHINE_END
 
 MACHINE_START(MSM8X55_FFA, "QCT MSM8X55 FFA")
@@ -7010,6 +7259,7 @@ MACHINE_START(MSM8X55_FFA, "QCT MSM8X55 FFA")
 	.timer = &msm_timer,
 	.init_early = msm7x30_init_early,
 	.handle_irq = vic_handle_irq,
+	.fixup = msm7x30_fixup,
 MACHINE_END
 MACHINE_START(MSM8X55_SVLTE_SURF, "QCT MSM8X55 SVLTE SURF")
 	.boot_params = PHYS_OFFSET + 0x100,
@@ -7020,6 +7270,7 @@ MACHINE_START(MSM8X55_SVLTE_SURF, "QCT MSM8X55 SVLTE SURF")
 	.timer = &msm_timer,
 	.init_early = msm7x30_init_early,
 	.handle_irq = vic_handle_irq,
+	.fixup = msm7x30_fixup,
 MACHINE_END
 MACHINE_START(MSM8X55_SVLTE_FFA, "QCT MSM8X55 SVLTE FFA")
 	.boot_params = PHYS_OFFSET + 0x100,
@@ -7030,4 +7281,5 @@ MACHINE_START(MSM8X55_SVLTE_FFA, "QCT MSM8X55 SVLTE FFA")
 	.timer = &msm_timer,
 	.init_early = msm7x30_init_early,
 	.handle_irq = vic_handle_irq,
+	.fixup = msm7x30_fixup,
 MACHINE_END

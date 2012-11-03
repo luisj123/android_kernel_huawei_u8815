@@ -162,8 +162,12 @@ struct msm_ispif_params_list {
 
 struct msm_vpe_phy_info {
 	uint32_t sbuf_phy;
-	uint32_t y_phy;
-	uint32_t cbcr_phy;
+	uint32_t planar0_off;
+	uint32_t planar1_off;
+	uint32_t planar2_off;
+	uint32_t p0_phy;
+	uint32_t p1_phy;
+	uint32_t p2_phy;
 	uint8_t  output_id; /* VFE31_OUTPUT_MODE_PT/S/V */
 	uint32_t frame_id;
 };
@@ -195,11 +199,14 @@ struct msm_camera_csi2_params {
 	struct msm_camera_csiphy_params csiphy_params;
 };
 
+#ifndef CONFIG_MSM_CAMERA_V4L2
 #define VFE31_OUTPUT_MODE_PT (0x1 << 0)
 #define VFE31_OUTPUT_MODE_S (0x1 << 1)
 #define VFE31_OUTPUT_MODE_V (0x1 << 2)
 #define VFE31_OUTPUT_MODE_P (0x1 << 3)
 #define VFE31_OUTPUT_MODE_T (0x1 << 4)
+#define VFE31_OUTPUT_MODE_P_ALL_CHNLS (0x1 << 5)
+#endif
 
 #define CSI_EMBED_DATA 0x12
 #define CSI_YUV422_8  0x1E
@@ -214,8 +221,12 @@ struct msm_camera_csi2_params {
 
 struct msm_vfe_phy_info {
 	uint32_t sbuf_phy;
-	uint32_t y_phy;
-	uint32_t cbcr_phy;
+	uint32_t planar0_off;
+	uint32_t planar1_off;
+	uint32_t planar2_off;
+	uint32_t p0_phy;
+	uint32_t p1_phy;
+	uint32_t p2_phy;
 	uint8_t  output_id; /* VFE31_OUTPUT_MODE_PT/S/V */
 	uint32_t frame_id;
 };
@@ -246,8 +257,8 @@ struct video_crop_t{
 };
 
 struct msm_vpe_buf_info {
-	uint32_t y_phy;
-	uint32_t cbcr_phy;
+	uint32_t p0_phy;
+	uint32_t p1_phy;
 	struct   timespec ts;
 	uint32_t frame_id;
 	struct	 video_crop_t vpe_crop;
@@ -311,7 +322,7 @@ struct msm_mctl_pp_params {
 struct msm_camvpe_fn {
 	int (*vpe_reg)(struct msm_vpe_callback *);
 	int (*vpe_cfg_update) (void *);
-	void (*send_frame_to_vpe) (uint32_t y_phy, uint32_t cbcr_phy,
+	void (*send_frame_to_vpe) (uint32_t planar0_off, uint32_t planar1_off,
 		struct timespec *ts, int output_id);
 	int (*vpe_config)(struct msm_vpe_cfg_cmd *, void *);
 	void (*vpe_cfg_offset)(int frame_pack, uint32_t pyaddr,
@@ -444,6 +455,8 @@ struct msm_sync {
 	spinlock_t abort_pict_lock;
 	int snap_count;
 	int thumb_count;
+
+	uint32_t focus_state;
 };
 
 #define MSM_APPS_ID_V4L2 "msm_v4l2"
@@ -484,8 +497,6 @@ struct msm_pmem_region {
 	unsigned long len;
 	struct file *file;
 	struct msm_pmem_info info;
-	struct msm_mapped_buffer *msm_buffer;
-	int subsys_id;
 	struct ion_handle *handle;
 };
 
@@ -579,6 +590,7 @@ enum msm_camio_clk_type {
 	CAMIO_CSI0_PHY_CLK,
 	CAMIO_CSI1_PHY_CLK,
 	CAMIO_CSIPHY_TIMER_SRC_CLK,
+	CAMIO_IMEM_CLK,
 
 	CAMIO_MAX_CLK
 };

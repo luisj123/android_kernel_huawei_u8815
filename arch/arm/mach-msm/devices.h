@@ -25,6 +25,8 @@ void __init msm9615_device_init(void);
 void __init msm9615_map_io(void);
 void __init msm_map_msm9615_io(void);
 void __init msm9615_init_irq(void);
+void __init msm_rotator_update_bus_vectors(unsigned int xres,
+	unsigned int yres);
 
 extern struct platform_device asoc_msm_pcm;
 extern struct platform_device asoc_msm_dai0;
@@ -65,6 +67,7 @@ extern struct platform_device msm8960_device_csid1;
 extern struct platform_device msm8960_device_ispif;
 extern struct platform_device msm8960_device_vfe;
 extern struct platform_device msm8960_device_vpe;
+extern struct platform_device msm8960_device_cache_erp;
 
 extern struct platform_device apq8064_device_uart_gsbi1;
 extern struct platform_device apq8064_device_uart_gsbi3;
@@ -73,6 +76,7 @@ extern struct platform_device apq8064_device_qup_spi_gsbi5;
 extern struct platform_device apq8064_slim_ctrl;
 extern struct platform_device apq8064_device_ssbi_pmic1;
 extern struct platform_device apq8064_device_ssbi_pmic2;
+extern struct platform_device apq8064_device_cache_erp;
 
 extern struct platform_device msm9615_device_uart_gsbi4;
 extern struct platform_device msm9615_device_qup_i2c_gsbi5;
@@ -186,6 +190,7 @@ extern struct platform_device msm_cpudai_incall_record_tx;
 extern struct platform_device msm_pil_q6v3;
 extern struct platform_device msm_pil_modem;
 extern struct platform_device msm_pil_tzapps;
+extern struct platform_device msm_pil_vidc;
 extern struct platform_device msm_8960_q6_lpass;
 extern struct platform_device msm_8960_q6_mss_fw;
 extern struct platform_device msm_8960_q6_mss_sw;
@@ -265,3 +270,12 @@ extern struct platform_device msm_tpiu_device;
 extern struct platform_device msm_funnel_device;
 extern struct platform_device msm_etm_device;
 #endif
+
+extern struct platform_device msm8960_cpu_idle_device;
+
+extern struct platform_device msm8960_msm_gov_device;
+
+extern struct platform_device msm_device_csic0;
+extern struct platform_device msm_device_csic1;
+extern struct platform_device msm_device_vfe;
+extern struct platform_device msm_device_vpe;

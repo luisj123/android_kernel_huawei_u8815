@@ -33,6 +33,7 @@
 	|| defined(CONFIG_MMC_MSM_SDC3_SUPPORT)\
 	|| defined(CONFIG_MMC_MSM_SDC4_SUPPORT))
 
+#define MAX_SDCC_CONTROLLER 4
 static unsigned long vreg_sts, gpio_sts;
 
 struct sdcc_gpio {
@@ -204,7 +205,7 @@ static void gpio_sdc1_config(void)
 		gpio_sdc1_hw_det = 42;
 }
 
-static struct regulator *sdcc_vreg_data[ARRAY_SIZE(sdcc_cfg_data)];
+static struct regulator *sdcc_vreg_data[MAX_SDCC_CONTROLLER];
 static int msm_sdcc_setup_gpio(int dev_id, unsigned int enable)
 {
 	int rc = 0;
@@ -607,16 +608,12 @@ void __init msm7627a_init_mmc(void)
 #ifdef CONFIG_HUAWEI_KERNEL
     if (mmc_regulator_init(3, "smps3", 1800000))
         return;       
-    /*
-     * From the qualcomm patch, the CR is 00823327.
-     * Fix sd card resuming fail issue.
-     */
-    sdc3_plat_data.swfi_latency = msm7627a_power_collapse_latency(
-			MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT);
 #else
 	if (mmc_regulator_init(3, "emmc", 3000000))
-		return;
+        return;
 #endif	
+	sdc3_plat_data.swfi_latency = msm7627a_power_collapse_latency(
+			MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT);
 	msm_add_sdcc(3, &sdc3_plat_data);
 #endif
 	/* Micro-SD slot */
@@ -653,7 +650,7 @@ void __init msm7627a_init_mmc(void)
 	/* Not Used */
 #if (defined(CONFIG_MMC_MSM_SDC4_SUPPORT)\
 		&& !defined(CONFIG_MMC_MSM_SDC3_8_BIT_SUPPORT))
-	if (mmc_regulator_init(4, "mmc", 2850000))
+	if (mmc_regulator_init(4, "smps3", 1800000))
 		return;
 	msm_add_sdcc(4, &sdc4_plat_data);
 #endif

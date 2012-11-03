@@ -12,7 +12,7 @@
 */
 
 #include <media/v4l2-subdev.h>
-
+#include <mach/iommu_domains.h>
 #include "enc-subdev.h"
 #include "wfd-util.h"
 #include <media/msm/vcd_api.h>
@@ -24,6 +24,8 @@
 #define VID_ENC_MAX_ENCODER_CLIENTS 1
 #define MAX_NUM_CTRLS 20
 
+static long venc_fill_outbuf(struct v4l2_subdev *sd, void *arg);
+
 struct venc_inst {
 	struct video_client_ctx venc_client;
 	void *cbdata;
@@ -33,6 +35,9 @@ struct venc_inst {
 			struct mem_region *mregion);
 	u32 width;
 	u32 height;
+	int secure;
+	struct mem_region unqueued_op_bufs;
+	bool streaming;
 };
 
 struct venc {
@@ -72,7 +77,7 @@ static u32 venc_get_empty_client_index(void)
 	u32 i;
 	u32 found = false;
 
-	for (i = 0; i < VIDC_MAX_NUM_CLIENTS; i++) {
+	for (i = 0; i < VID_ENC_MAX_ENCODER_CLIENTS; i++) {
 		if (!venc_p.venc_clients[i].venc_client.vcd_handle) {
 			found = true;
 			break;
@@ -190,13 +195,47 @@ static void venc_cb(u32 event, u32 status, void *info, u32 size, void *handle,
 		}
 
 		vbuf->v4l2_buf.timestamp =
-			ns_to_timeval(frame_data->time_stamp);
+			ns_to_timeval(frame_data->time_stamp * NSEC_PER_USEC);
 
 		WFD_MSG_DBG("bytes used %d, ts: %d.%d, frame type is %d\n",
 				frame_data->data_len,
 				(int)vbuf->v4l2_buf.timestamp.tv_sec,
 				(int)vbuf->v4l2_buf.timestamp.tv_usec,
 				frame_data->frame);
+
+		/*
+		 * Output buffers are enc-subdev and vcd's problem, so
+		 * if buffer is cached, need to flush before giving to
+		 * client. So doing the dirty stuff in this little context
+		 */
+		{
+			unsigned long kvaddr, phys_addr;
+			s32 buffer_index = -1, ion_flags = 0;
+			struct ion_handle *ion_handle;
+			int pmem_fd;
+			struct file *filp;
+			bool rc;
+
+			rc = vidc_lookup_addr_table(client_ctx,
+					BUFFER_TYPE_OUTPUT, true,
+					(unsigned long *)&frame_data->
+					frm_clnt_data, &kvaddr, &phys_addr,
+					&pmem_fd, &filp, &buffer_index);
+
+			if (rc)
+				ion_flags = vidc_get_fd_info(client_ctx,
+					BUFFER_TYPE_OUTPUT, pmem_fd,
+					kvaddr, buffer_index, &ion_handle);
+			else
+				WFD_MSG_ERR("Got an output buffer that we "
+						"couldn't recognize!\n");
+
+			if (msm_ion_do_cache_op(client_ctx->user_ion_client,
+				ion_handle, &kvaddr, frame_data->data_len,
+				ION_IOC_CLEAN_INV_CACHES))
+				WFD_MSG_ERR("OP buffer flush failed\n");
+
+		}
 
 		inst->op_buffer_done(inst->cbdata, status, vbuf);
 		break;
@@ -209,9 +248,11 @@ static void venc_cb(u32 event, u32 status, void *info, u32 size, void *handle,
 		WFD_MSG_DBG("EVENT: not expected = %d\n", event);
 		venc_stop_done(client_ctx, status);
 		break;
-	case VCD_EVT_RESP_PAUSE:
 	case VCD_EVT_RESP_FLUSH_INPUT_DONE:
 	case VCD_EVT_RESP_FLUSH_OUTPUT_DONE:
+		venc_notify_client(client_ctx);
+		break;
+	case VCD_EVT_RESP_PAUSE:
 	case VCD_EVT_IND_OUTPUT_RECONFIG:
 		WFD_MSG_DBG("EVENT: not expected = %d\n", event);
 		break;
@@ -232,6 +273,7 @@ static long venc_open(struct v4l2_subdev *sd, void *arg)
 	struct venc_inst *inst;
 	struct video_client_ctx *client_ctx;
 	struct venc_msg_ops *vmops  =  arg;
+	int flags = 0;
 	mutex_lock(&venc_p.lock);
 	client_index = venc_get_empty_client_index();
 	if (client_index < 0) {
@@ -249,8 +291,14 @@ static long venc_open(struct v4l2_subdev *sd, void *arg)
 	init_waitqueue_head(&client_ctx->msg_wait);
 	inst->op_buffer_done = vmops->op_buffer_done;
 	inst->ip_buffer_done = vmops->ip_buffer_done;
+	INIT_LIST_HEAD(&inst->unqueued_op_bufs.list);
 	inst->cbdata = vmops->cbdata;
-
+	inst->secure = vmops->secure;
+	inst->streaming = false;
+	if (vmops->secure) {
+		WFD_MSG_ERR("OPENING SECURE SESSION\n");
+		flags |= VCD_CP_SESSION;
+	}
 	if (vcd_get_ion_status()) {
 		client_ctx->user_ion_client = vcd_get_ion_client();
 		if (!client_ctx->user_ion_client) {
@@ -260,9 +308,10 @@ static long venc_open(struct v4l2_subdev *sd, void *arg)
 	}
 
 	rc = vcd_open(venc_p.device_handle, false, venc_cb,
-					inst);
+				inst, flags);
 	if (rc) {
 		WFD_MSG_ERR("vcd_open failed, rc = %d\n", rc);
+		rc = -ENODEV;
 		goto no_free_client;
 	}
 	wait_for_completion(&client_ctx->event);
@@ -334,17 +383,27 @@ static long venc_set_buffer_req(struct v4l2_subdev *sd, void *arg)
 	struct vcd_buffer_requirement buf_req;
 	struct venc_inst *inst = sd->dev_priv;
 	struct video_client_ctx *client_ctx = &inst->venc_client;
+	int aligned_width, aligned_height;
 	if (!client_ctx) {
 		WFD_MSG_ERR("Invalid client context");
 		rc = -EINVAL;
 		goto err;
 	}
+	aligned_width = ALIGN(b->width, 16);
+	aligned_height = ALIGN(b->height, 16);
+
+	if (aligned_width != b->width) {
+		WFD_MSG_ERR("Width not 16 byte aligned\n");
+		rc = -EINVAL;
+		goto err;
+	}
+
 	buf_req.actual_count = b->count;
 	buf_req.min_count = b->count;
 	buf_req.max_count = b->count;
-	buf_req.sz = (((b->height * b->width) + 2047) & (~2047))
-		+ (((b->height * b->width * 1/2) + 2047) & (~2047));
-	buf_req.align = 0;
+	buf_req.sz = ALIGN(aligned_height * aligned_width, SZ_2K)
+		+ ALIGN(aligned_height * aligned_width * 1/2, SZ_2K);
+	buf_req.align = SZ_4K;
 	inst->width = b->width;
 	inst->height = b->height;
 	rc = vcd_set_buffer_requirements(client_ctx->vcd_handle,
@@ -362,11 +421,13 @@ static long venc_start(struct v4l2_subdev *sd)
 {
 	struct venc_inst *inst = sd->dev_priv;
 	struct video_client_ctx *client_ctx = &inst->venc_client;
+	struct mem_region *curr = NULL, *temp = NULL;
 	int rc;
 	if (!client_ctx) {
 		WFD_MSG_ERR("Client context is NULL");
 		return -EINVAL;
 	}
+
 	rc = vcd_encode_start(client_ctx->vcd_handle);
 	if (rc) {
 		WFD_MSG_ERR("vcd_encode_start failed, rc = %d\n", rc);
@@ -376,6 +437,15 @@ static long venc_start(struct v4l2_subdev *sd)
 	if (client_ctx->event_status)
 		WFD_MSG_ERR("callback for vcd_encode_start returned error: %u",
 				client_ctx->event_status);
+
+	inst->streaming = true;
+	/* Push any buffers that we have held back */
+	list_for_each_entry_safe(curr, temp,
+			&inst->unqueued_op_bufs.list, list) {
+		venc_fill_outbuf(sd, curr);
+		list_del(&curr->list);
+		kfree(curr);
+	}
 err:
 	return rc;
 }
@@ -384,6 +454,7 @@ static long venc_stop(struct v4l2_subdev *sd)
 {
 	struct venc_inst *inst = sd->dev_priv;
 	struct video_client_ctx *client_ctx = &inst->venc_client;
+	struct mem_region *curr = NULL, *temp = NULL;
 	int rc;
 	if (!client_ctx) {
 		WFD_MSG_ERR("Client context is NULL");
@@ -391,6 +462,15 @@ static long venc_stop(struct v4l2_subdev *sd)
 	}
 	rc = vcd_stop(client_ctx->vcd_handle);
 	wait_for_completion(&client_ctx->event);
+	inst->streaming = false;
+	/* Drop whatever frames we haven't queued */
+	list_for_each_entry_safe(curr, temp,
+			&inst->unqueued_op_bufs.list, list) {
+		inst->op_buffer_done(inst->cbdata, 0,
+				(struct vb2_buffer *)curr->cookie);
+		list_del(&curr->list);
+		kfree(curr);
+	}
 	return rc;
 }
 
@@ -699,7 +779,8 @@ err:
 }
 
 static long venc_set_h264_intra_period(struct video_client_ctx *client_ctx,
-		__s32 period) {
+		__s32 period)
+{
 	struct vcd_property_i_period vcd_property_i_period;
 	struct vcd_property_codec vcd_property_codec;
 	struct vcd_property_hdr vcd_property_hdr;
@@ -726,7 +807,7 @@ static long venc_set_h264_intra_period(struct video_client_ctx *client_ctx,
 	vcd_property_hdr.sz = sizeof(struct vcd_property_i_period);
 
 	vcd_property_i_period.p_frames = period - 1;
-	vcd_property_i_period.b_frames = 1;
+	vcd_property_i_period.b_frames = 0;
 
 	rc = vcd_set_property(client_ctx->vcd_handle,
 				&vcd_property_hdr, &vcd_property_i_period);
@@ -736,6 +817,47 @@ static long venc_set_h264_intra_period(struct video_client_ctx *client_ctx,
 		goto err;
 	}
 
+err:
+	return rc;
+}
+
+static long venc_get_h264_intra_period(struct video_client_ctx *client_ctx,
+		__s32 *period)
+{
+	struct vcd_property_i_period vcd_property_i_period;
+	struct vcd_property_codec vcd_property_codec;
+	struct vcd_property_hdr vcd_property_hdr;
+	int rc = 0;
+
+	vcd_property_hdr.prop_id = VCD_I_CODEC;
+	vcd_property_hdr.sz = sizeof(struct vcd_property_codec);
+
+	rc = vcd_get_property(client_ctx->vcd_handle,
+				&vcd_property_hdr, &vcd_property_codec);
+
+	if (rc < 0) {
+		WFD_MSG_ERR("Error getting codec property\n");
+		goto err;
+	}
+
+	if (vcd_property_codec.codec != VCD_CODEC_H264) {
+		rc = -ENOTSUPP;
+		WFD_MSG_ERR("Control not supported for non H264 codec\n");
+		goto err;
+	}
+
+	vcd_property_hdr.prop_id = VCD_I_INTRA_PERIOD;
+	vcd_property_hdr.sz = sizeof(struct vcd_property_i_period);
+
+	rc = vcd_get_property(client_ctx->vcd_handle,
+				&vcd_property_hdr, &vcd_property_i_period);
+
+	if (rc < 0) {
+		WFD_MSG_ERR("Error getting intra period\n");
+		goto err;
+	}
+
+	*period = vcd_property_i_period.p_frames + 1;
 err:
 	return rc;
 }
@@ -936,6 +1058,7 @@ static long venc_set_framerate(struct v4l2_subdev *sd,
 	struct v4l2_fract *frate = arg;
 	struct vcd_property_hdr vcd_property_hdr;
 	struct vcd_property_frame_rate vcd_frame_rate;
+	struct vcd_property_vop_timing_constant_delta vcd_delta;
 	int rc;
 	vcd_property_hdr.prop_id = VCD_I_FRAME_RATE;
 	vcd_property_hdr.sz =
@@ -945,26 +1068,390 @@ static long venc_set_framerate(struct v4l2_subdev *sd,
 	vcd_frame_rate.fps_numerator = frate->denominator;
 	rc = vcd_set_property(client_ctx->vcd_handle,
 					&vcd_property_hdr, &vcd_frame_rate);
-	if (rc)
+	if (rc) {
 		WFD_MSG_ERR("Failed to set frame rate, rc = %d\n", rc);
+		goto set_framerate_fail;
+	}
+
+	vcd_property_hdr.prop_id = VCD_I_VOP_TIMING_CONSTANT_DELTA;
+	vcd_property_hdr.sz = sizeof(vcd_delta);
+
+	vcd_delta.constant_delta = (frate->numerator * USEC_PER_SEC) /
+					frate->denominator;
+	rc = vcd_set_property(client_ctx->vcd_handle,
+					&vcd_property_hdr, &vcd_delta);
+
+	if (rc) {
+		WFD_MSG_ERR("Failed to set frame delta, rc = %d", rc);
+		goto set_framerate_fail;
+	}
+
+set_framerate_fail:
 	return rc;
 }
 
-static long venc_alloc_input_buffer(struct v4l2_subdev *sd, void *arg)
+static long venc_set_qp_value(struct video_client_ctx *client_ctx,
+		__s32 frametype, __s32 qp)
+{
+	struct vcd_property_hdr vcd_property_hdr;
+	struct vcd_property_session_qp vcd_property_session_qp;
+	int rc = 0;
+
+	if (!client_ctx) {
+		WFD_MSG_ERR("Invalid parameters\n");
+		return -EINVAL;
+	}
+
+	vcd_property_hdr.prop_id = VCD_I_SESSION_QP;
+	vcd_property_hdr.sz = sizeof(vcd_property_session_qp);
+
+	rc = vcd_get_property(client_ctx->vcd_handle, &vcd_property_hdr,
+			&vcd_property_session_qp);
+
+	if (rc) {
+		WFD_MSG_ERR("Failed to get session qp\n");
+		goto err;
+	}
+
+	switch (frametype) {
+	case V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP:
+		vcd_property_session_qp.i_frame_qp = qp;
+		break;
+	case V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP:
+		vcd_property_session_qp.p_frame_qp = qp;
+		break;
+	case V4L2_CID_MPEG_VIDEO_H264_B_FRAME_QP:
+		vcd_property_session_qp.b_frame_qp = qp;
+		break;
+	case V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_H263_B_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP:
+		rc = -ENOTSUPP;
+		goto err;
+	default:
+		rc = -EINVAL;
+		goto err;
+	}
+
+
+	rc = vcd_set_property(client_ctx->vcd_handle, &vcd_property_hdr,
+			&vcd_property_session_qp);
+
+	if (rc) {
+		WFD_MSG_ERR("Failed to set session qp\n");
+		goto err;
+	}
+err:
+	return rc;
+}
+
+static long venc_get_qp_value(struct video_client_ctx *client_ctx,
+		__s32 frametype, __s32 *qp)
+{
+	struct vcd_property_hdr vcd_property_hdr;
+	struct vcd_property_session_qp vcd_property_session_qp;
+	int rc = 0;
+
+	if (!client_ctx) {
+		WFD_MSG_ERR("Invalid parameters\n");
+		return -EINVAL;
+	}
+
+	vcd_property_hdr.prop_id = VCD_I_SESSION_QP;
+	vcd_property_hdr.sz = sizeof(vcd_property_session_qp);
+
+	rc = vcd_get_property(client_ctx->vcd_handle, &vcd_property_hdr,
+			&vcd_property_session_qp);
+
+	if (rc) {
+		WFD_MSG_ERR("Failed to get session qp\n");
+		goto err;
+	}
+
+	switch (frametype) {
+	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP:
+		*qp = vcd_property_session_qp.i_frame_qp;
+		break;
+	case V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP:
+		*qp = vcd_property_session_qp.p_frame_qp;
+		break;
+	case V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_H263_B_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_H264_B_FRAME_QP:
+		*qp = vcd_property_session_qp.b_frame_qp;
+		break;
+	default:
+		rc = -EINVAL;
+		goto err;
+	}
+
+err:
+	return rc;
+}
+
+static long venc_set_qp_range(struct video_client_ctx *client_ctx,
+		__s32 type, __s32 qp)
+{
+	struct vcd_property_hdr vcd_property_hdr;
+	struct vcd_property_qp_range vcd_property_qp_range;
+	int rc = 0;
+
+	if (!client_ctx) {
+		WFD_MSG_ERR("Invalid parameters\n");
+		return -EINVAL;
+	}
+
+	vcd_property_hdr.prop_id = VCD_I_QP_RANGE;
+	vcd_property_hdr.sz = sizeof(vcd_property_qp_range);
+
+	rc = vcd_get_property(client_ctx->vcd_handle, &vcd_property_hdr,
+			&vcd_property_qp_range);
+
+	if (rc) {
+		WFD_MSG_ERR("Failed to get qp range\n");
+		goto err;
+	}
+
+	switch (type) {
+	case V4L2_CID_MPEG_VIDEO_MPEG4_MIN_QP:
+	case V4L2_CID_MPEG_VIDEO_H263_MIN_QP:
+	case V4L2_CID_MPEG_VIDEO_H264_MIN_QP:
+		vcd_property_qp_range.min_qp = qp;
+		break;
+	case V4L2_CID_MPEG_VIDEO_MPEG4_MAX_QP:
+	case V4L2_CID_MPEG_VIDEO_H263_MAX_QP:
+	case V4L2_CID_MPEG_VIDEO_H264_MAX_QP:
+		vcd_property_qp_range.max_qp = qp;
+		break;
+	default:
+		rc = -EINVAL;
+		goto err;
+	}
+
+	rc = vcd_set_property(client_ctx->vcd_handle, &vcd_property_hdr,
+			&vcd_property_qp_range);
+
+	if (rc) {
+		WFD_MSG_ERR("Failed to set qp range\n");
+		goto err;
+	}
+err:
+	return rc;
+}
+
+static long venc_get_qp_range(struct video_client_ctx *client_ctx,
+		__s32 type, __s32 *qp)
+{
+	struct vcd_property_hdr vcd_property_hdr;
+	struct vcd_property_qp_range vcd_property_qp_range;
+	int rc = 0;
+
+	if (!client_ctx) {
+		WFD_MSG_ERR("Invalid parameters\n");
+		return -EINVAL;
+	}
+
+	vcd_property_hdr.prop_id = VCD_I_QP_RANGE;
+	vcd_property_hdr.sz = sizeof(vcd_property_qp_range);
+
+	rc = vcd_get_property(client_ctx->vcd_handle, &vcd_property_hdr,
+			&vcd_property_qp_range);
+
+	if (rc) {
+		WFD_MSG_ERR("Failed to get qp range\n");
+		goto err;
+	}
+
+	switch (type) {
+	case V4L2_CID_MPEG_VIDEO_MPEG4_MIN_QP:
+	case V4L2_CID_MPEG_VIDEO_H263_MIN_QP:
+	case V4L2_CID_MPEG_VIDEO_H264_MIN_QP:
+		*qp = vcd_property_qp_range.min_qp;
+		break;
+	case V4L2_CID_MPEG_VIDEO_MPEG4_MAX_QP:
+	case V4L2_CID_MPEG_VIDEO_H263_MAX_QP:
+	case V4L2_CID_MPEG_VIDEO_H264_MAX_QP:
+		*qp = vcd_property_qp_range.max_qp;
+		break;
+	default:
+		rc = -EINVAL;
+		goto err;
+	}
+
+	rc = vcd_set_property(client_ctx->vcd_handle, &vcd_property_hdr,
+			&vcd_property_qp_range);
+
+	if (rc) {
+		WFD_MSG_ERR("Failed to set qp range\n");
+		goto err;
+	}
+err:
+	return rc;
+}
+static long venc_set_max_perf_level(struct video_client_ctx *client_ctx,
+		__s32 value)
+{
+	int rc = 0;
+	struct vcd_property_hdr vcd_property_hdr;
+	struct vcd_property_perf_level perf;
+	int level = 0;
+
+	switch (value) {
+	case V4L2_CID_MPEG_QCOM_PERF_LEVEL_PERFORMANCE:
+		level = VCD_PERF_LEVEL2;
+		break;
+	case V4L2_CID_MPEG_QCOM_PERF_LEVEL_TURBO:
+		level = VCD_PERF_LEVEL_TURBO;
+		break;
+	default:
+		WFD_MSG_ERR("Unknown performance level: %d\n", value);
+		rc = -ENOTSUPP;
+		goto err_set_perf_level;
+	}
+
+	vcd_property_hdr.prop_id = VCD_REQ_PERF_LEVEL;
+	vcd_property_hdr.sz =
+		sizeof(struct vcd_property_perf_level);
+	perf.level = level;
+	rc = vcd_set_property(client_ctx->vcd_handle,
+				&vcd_property_hdr, &perf);
+err_set_perf_level:
+	return rc;
+}
+static long venc_set_header_mode(struct video_client_ctx *client_ctx,
+		__s32 mode)
+{
+	struct vcd_property_hdr vcd_property_hdr;
+	struct vcd_property_sps_pps_for_idr_enable sps_pps_for_idr_enable;
+	int rc = 0;
+
+	if (!client_ctx) {
+		WFD_MSG_ERR("Invalid parameters\n");
+		rc = -EINVAL;
+		goto err;
+	}
+
+	vcd_property_hdr.prop_id = VCD_I_ENABLE_SPS_PPS_FOR_IDR;
+	vcd_property_hdr.sz = sizeof(sps_pps_for_idr_enable);
+	switch (mode) {
+	case V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE:
+		sps_pps_for_idr_enable.sps_pps_for_idr_enable_flag = 0;
+		break;
+	case V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_I_FRAME:
+		sps_pps_for_idr_enable.sps_pps_for_idr_enable_flag = 1;
+		break;
+	case V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME:
+	default:
+		WFD_MSG_ERR("Video header mode %d not supported\n",
+				mode);
+		rc = -ENOTSUPP;
+		goto err;
+	}
+
+	rc =  vcd_set_property(client_ctx->vcd_handle, &vcd_property_hdr,
+			&sps_pps_for_idr_enable);
+	if (rc) {
+		WFD_MSG_ERR("Failed to set enable_sps_pps_for_idr\n");
+		goto err;
+	}
+err:
+	return rc;
+}
+
+static long venc_get_header_mode(struct video_client_ctx *client_ctx,
+		__s32 *mode)
+{
+	struct vcd_property_hdr vcd_property_hdr;
+	struct vcd_property_sps_pps_for_idr_enable sps_pps_for_idr_enable;
+	int rc = 0;
+
+	if (!client_ctx) {
+		WFD_MSG_ERR("Invalid parameters\n");
+		rc = -EINVAL;
+		goto err;
+	}
+
+	vcd_property_hdr.prop_id = VCD_I_ENABLE_SPS_PPS_FOR_IDR;
+	vcd_property_hdr.sz = sizeof(sps_pps_for_idr_enable);
+	rc =  vcd_get_property(client_ctx->vcd_handle, &vcd_property_hdr,
+			&sps_pps_for_idr_enable);
+	if (rc) {
+		WFD_MSG_ERR("Failed to get sps/pps for idr enable\n");
+		goto err;
+	}
+
+	*mode = sps_pps_for_idr_enable.sps_pps_for_idr_enable_flag ?
+		V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_I_FRAME :
+		V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE;
+err:
+	return rc;
+}
+
+static long venc_set_input_buffer(struct v4l2_subdev *sd, void *arg)
 {
 	struct mem_region *mregion = arg;
 	struct venc_inst *inst = sd->dev_priv;
+	unsigned long paddr, kvaddr, temp;
 	struct video_client_ctx *client_ctx = &inst->venc_client;
 	int rc = 0;
+
 	if (!client_ctx || !mregion) {
 		WFD_MSG_ERR("Invalid input\n");
-		return -EINVAL;
+		rc = -EINVAL;
+		goto ins_table_fail;
 	}
-	rc = vcd_allocate_buffer(client_ctx->vcd_handle,
-		VCD_BUFFER_INPUT, mregion->size,
-		&mregion->kvaddr, &mregion->paddr);
-	if (rc)
-		WFD_MSG_ERR("Failed to allocate input buffer\n");
+
+	kvaddr = (unsigned long)mregion->kvaddr;
+	paddr = (unsigned long)mregion->paddr;
+
+	if (!kvaddr || !paddr) {
+		WFD_MSG_ERR("Invalid addresses\n");
+		rc = -EINVAL;
+		goto ins_table_fail;
+	}
+
+	/*
+	 * Just a note: the third arg of vidc_insert_\
+	 * addr_table_kernel is supposed to be a userspace
+	 * address that is used as a key in the table. As
+	 * these bufs never leave the kernel, we need to have
+	 * an unique value to use as a key.  So re-using kernel
+	 * virtual addr for this purpose
+	 */
+	rc = vidc_insert_addr_table_kernel(client_ctx,
+		BUFFER_TYPE_INPUT, kvaddr, kvaddr,
+		paddr, 32, mregion->size);
+
+	if (rc == (u32)false) {
+		WFD_MSG_ERR("Failed to insert input buffer into table\n");
+		rc = -EFAULT;
+		goto ins_table_fail;
+	}
+
+	rc = vcd_set_buffer(client_ctx->vcd_handle,
+			VCD_BUFFER_INPUT, (u8 *)kvaddr,
+			mregion->size);
+
+	if (rc) {
+		WFD_MSG_ERR("Failed to set input buffer\n");
+		rc = -EFAULT;
+		goto set_input_buf_fail;
+	}
+
+
+	return rc;
+
+set_input_buf_fail:
+	vidc_delete_addr_table(client_ctx, BUFFER_TYPE_INPUT,
+			kvaddr, &temp);
+ins_table_fail:
 	return rc;
 }
 
@@ -1015,22 +1502,29 @@ static long venc_fill_outbuf(struct v4l2_subdev *sd, void *arg)
 	struct file *file;
 	s32 buffer_index = -1;
 
-	user_vaddr = mregion->cookie;
-	rc = vidc_lookup_addr_table(client_ctx, BUFFER_TYPE_OUTPUT,
-			true, &user_vaddr,
-			&kernel_vaddr, &phy_addr, &pmem_fd, &file,
-			&buffer_index);
-	if (!rc) {
-		WFD_MSG_ERR("Address lookup failed\n");
-		goto err;
-	}
-	vcd_frame.virtual = (u8 *) kernel_vaddr;
-	vcd_frame.frm_clnt_data = mregion->cookie;
-	vcd_frame.alloc_len = mregion->size;
+	if (inst->streaming) {
+		user_vaddr = mregion->cookie;
+		rc = vidc_lookup_addr_table(client_ctx, BUFFER_TYPE_OUTPUT,
+				true, &user_vaddr,
+				&kernel_vaddr, &phy_addr, &pmem_fd, &file,
+				&buffer_index);
+		if (!rc) {
+			WFD_MSG_ERR("Address lookup failed\n");
+			goto err;
+		}
+		vcd_frame.virtual = (u8 *) kernel_vaddr;
+		vcd_frame.frm_clnt_data = mregion->cookie;
+		vcd_frame.alloc_len = mregion->size;
 
-	rc = vcd_fill_output_buffer(client_ctx->vcd_handle,	&vcd_frame);
-	if (rc)
-		WFD_MSG_ERR("Failed to fill output buffer on encoder");
+		rc = vcd_fill_output_buffer(client_ctx->vcd_handle, &vcd_frame);
+		if (rc)
+			WFD_MSG_ERR("Failed to fill output buffer on encoder");
+	} else {
+		struct mem_region *temp = kzalloc(sizeof(*temp), GFP_KERNEL);
+		*temp = *mregion;
+		INIT_LIST_HEAD(&temp->list);
+		list_add_tail(&temp->list, &inst->unqueued_op_bufs.list);
+	}
 err:
 	return rc;
 }
@@ -1043,12 +1537,16 @@ static long venc_encode_frame(struct v4l2_subdev *sd, void *arg)
 	struct venc_buf_info *venc_buf = arg;
 	struct mem_region *mregion = venc_buf->mregion;
 	struct vcd_frame_data vcd_input_buffer = {0};
+	int64_t ts = 0;
+
+	ts = venc_buf->timestamp;
+	do_div(ts, NSEC_PER_USEC);
 
 	vcd_input_buffer.virtual = mregion->kvaddr;
 	vcd_input_buffer.frm_clnt_data = (u32)mregion;
 	vcd_input_buffer.ip_frm_tag = (u32)mregion;
 	vcd_input_buffer.data_len = mregion->size;
-	vcd_input_buffer.time_stamp = venc_buf->timestamp;
+	vcd_input_buffer.time_stamp = ts;
 	vcd_input_buffer.offset = 0;
 
 	rc = vcd_encode_frame(client_ctx->vcd_handle,
@@ -1069,6 +1567,7 @@ static long venc_alloc_recon_buffers(struct v4l2_subdev *sd, void *arg)
 	struct vcd_property_enc_recon_buffer *ctrl = NULL;
 	unsigned long phy_addr;
 	int i = 0;
+	int flags = 0;
 	u32 len;
 	control.width = inst->width;
 	control.height = inst->height;
@@ -1081,6 +1580,11 @@ static long venc_alloc_recon_buffers(struct v4l2_subdev *sd, void *arg)
 		WFD_MSG_ERR("Failed to get recon buf size\n");
 		goto err;
 	}
+	flags = ION_HEAP(ION_CP_MM_HEAP_ID);
+	if (inst->secure)
+		flags |= ION_SECURE;
+	else
+		flags |= ION_HEAP(ION_IOMMU_HEAP_ID);
 
 	if (vcd_get_ion_status()) {
 		for (i = 0; i < 4; ++i) {
@@ -1091,14 +1595,16 @@ static long venc_alloc_recon_buffers(struct v4l2_subdev *sd, void *arg)
 			ctrl->user_virtual_addr = (void *)i;
 			client_ctx->recon_buffer_ion_handle[i]
 				= ion_alloc(client_ctx->user_ion_client,
-			control.size, SZ_8K, (0x1<<ION_CP_MM_HEAP_ID));
+			control.size, SZ_8K, flags);
+
 			ctrl->kernel_virtual_addr = ion_map_kernel(
 				client_ctx->user_ion_client,
 				client_ctx->recon_buffer_ion_handle[i],	0);
 
-			rc = ion_phys(client_ctx->user_ion_client,
+			rc = ion_map_iommu(client_ctx->user_ion_client,
 				client_ctx->recon_buffer_ion_handle[i],
-				&phy_addr, &len);
+				VIDEO_DOMAIN, VIDEO_MAIN_POOL, SZ_4K,
+				0, &phy_addr, (unsigned long *)&len, 0, 0);
 			if (rc) {
 				WFD_MSG_ERR("Failed to allo recon buffers\n");
 				break;
@@ -1148,21 +1654,84 @@ static long venc_free_output_buffer(struct v4l2_subdev *sd, void *arg)
 					 (u8 *)kernel_vaddr);
 }
 
-static long venc_free_input_buffer(struct v4l2_subdev *sd, void *arg)
+static long venc_flush_buffers(struct v4l2_subdev *sd, void *arg)
 {
 	int rc = 0;
 	struct venc_inst *inst = sd->dev_priv;
 	struct video_client_ctx *client_ctx = &inst->venc_client;
+	if (!client_ctx) {
+		WFD_MSG_ERR("Invalid input\n");
+		return -EINVAL;
+	}
+	rc = vcd_flush(client_ctx->vcd_handle, VCD_FLUSH_INPUT);
+	if (rc) {
+		WFD_MSG_ERR("Failed to flush input buffers\n");
+		rc = -EIO;
+		goto flush_failed;
+	}
+	wait_for_completion(&client_ctx->event);
+	if (client_ctx->event_status) {
+		WFD_MSG_ERR("callback for vcd_flush input returned error: %u",
+				client_ctx->event_status);
+		rc = -EIO;
+		goto flush_failed;
+	}
+	rc = vcd_flush(client_ctx->vcd_handle, VCD_FLUSH_OUTPUT);
+	if (rc) {
+		WFD_MSG_ERR("Failed to flush output buffers\n");
+		rc = -EIO;
+		goto flush_failed;
+	}
+	wait_for_completion(&client_ctx->event);
+	if (client_ctx->event_status) {
+		WFD_MSG_ERR("callback for vcd_flush output returned error: %u",
+				client_ctx->event_status);
+		rc = -EIO;
+		goto flush_failed;
+	}
+
+flush_failed:
+	return rc;
+}
+
+static long venc_free_input_buffer(struct v4l2_subdev *sd, void *arg)
+{
+	int del_rc = 0, free_rc = 0;
+	struct venc_inst *inst = sd->dev_priv;
+	struct video_client_ctx *client_ctx = &inst->venc_client;
 	struct mem_region *mregion = arg;
+	unsigned long vidc_kvaddr;
+
 	if (!client_ctx || !mregion) {
 		WFD_MSG_ERR("Invalid input\n");
 		return -EINVAL;
 	}
-	rc = vcd_free_buffer(client_ctx->vcd_handle, VCD_BUFFER_INPUT,
-					 mregion->kvaddr);
-	if (rc)
-		WFD_MSG_ERR("Failed to free input buffer\n");
-	return rc;
+
+	del_rc = vidc_delete_addr_table(client_ctx, BUFFER_TYPE_INPUT,
+				(unsigned long)mregion->kvaddr,
+				&vidc_kvaddr);
+	/*
+	 * Even if something went wrong in when
+	 * deleting from table, call vcd_free_buf
+	 */
+	if (del_rc == (u32)false) {
+		WFD_MSG_ERR("Failed to delete buf from address table\n");
+		del_rc = -ENOKEY;
+	} else if ((u8 *)vidc_kvaddr != mregion->kvaddr) {
+		WFD_MSG_ERR("Failed to find expected buffer\n");
+		del_rc = -EINVAL;
+	} else
+		del_rc = 0;
+
+	free_rc = vcd_free_buffer(client_ctx->vcd_handle, VCD_BUFFER_INPUT,
+					 (u8 *)vidc_kvaddr);
+
+	if (free_rc) {
+		WFD_MSG_ERR("Failed to free buffer from encoder\n");
+		free_rc = -EINVAL;
+	}
+
+	return del_rc ? del_rc : free_rc;
 }
 
 static long venc_free_recon_buffers(struct v4l2_subdev *sd, void *arg)
@@ -1184,6 +1753,9 @@ static long venc_free_recon_buffers(struct v4l2_subdev *sd, void *arg)
 				WFD_MSG_ERR("Failed to free recon buffer\n");
 
 			if (client_ctx->recon_buffer_ion_handle[i]) {
+				ion_unmap_iommu(client_ctx->user_ion_client,
+					 client_ctx->recon_buffer_ion_handle[i],
+					 VIDEO_DOMAIN, VIDEO_MAIN_POOL);
 				ion_unmap_kernel(client_ctx->user_ion_client,
 					client_ctx->recon_buffer_ion_handle[i]);
 				ion_free(client_ctx->user_ion_client,
@@ -1220,6 +1792,31 @@ static long venc_set_property(struct v4l2_subdev *sd, void *arg)
 	case V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE:
 		rc = venc_request_frame(client_ctx, ctrl->value);
 		break;
+	case V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_H264_B_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_H263_B_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP:
+		rc = venc_set_qp_value(client_ctx, ctrl->id, ctrl->value);
+		break;
+	case V4L2_CID_MPEG_VIDEO_MPEG4_MIN_QP:
+	case V4L2_CID_MPEG_VIDEO_MPEG4_MAX_QP:
+	case V4L2_CID_MPEG_VIDEO_H263_MIN_QP:
+	case V4L2_CID_MPEG_VIDEO_H263_MAX_QP:
+	case V4L2_CID_MPEG_VIDEO_H264_MIN_QP:
+	case V4L2_CID_MPEG_VIDEO_H264_MAX_QP:
+		rc = venc_set_qp_range(client_ctx, ctrl->id, ctrl->value);
+		break;
+	case V4L2_CID_MPEG_VIDEO_HEADER_MODE:
+		rc = venc_set_header_mode(client_ctx, ctrl->value);
+		break;
+	case V4L2_CID_MPEG_QCOM_SET_PERF_LEVEL:
+		rc = venc_set_max_perf_level(client_ctx, ctrl->value);
+		break;
 	default:
 		WFD_MSG_ERR("Set property not suported: %d\n", ctrl->id);
 		rc = -ENOTSUPP;
@@ -1247,6 +1844,31 @@ static long venc_get_property(struct v4l2_subdev *sd, void *arg)
 		break;
 	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
 		rc = venc_get_codec_profile(client_ctx, ctrl->id, &ctrl->value);
+		break;
+	case V4L2_CID_MPEG_VIDEO_H264_I_PERIOD:
+		rc = venc_get_h264_intra_period(client_ctx, &ctrl->value);
+		break;
+	case V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_H264_B_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_H263_B_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP:
+	case V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP:
+		rc = venc_get_qp_value(client_ctx, ctrl->id, &ctrl->value);
+		break;
+	case V4L2_CID_MPEG_VIDEO_MPEG4_MIN_QP:
+	case V4L2_CID_MPEG_VIDEO_MPEG4_MAX_QP:
+	case V4L2_CID_MPEG_VIDEO_H263_MIN_QP:
+	case V4L2_CID_MPEG_VIDEO_H263_MAX_QP:
+	case V4L2_CID_MPEG_VIDEO_H264_MIN_QP:
+	case V4L2_CID_MPEG_VIDEO_H264_MAX_QP:
+		rc = venc_get_qp_range(client_ctx, ctrl->id, &ctrl->value);
+		break;
+	case V4L2_CID_MPEG_VIDEO_HEADER_MODE:
+		rc = venc_get_header_mode(client_ctx, &ctrl->value);
 		break;
 	default:
 		WFD_MSG_ERR("Get property not suported: %d\n", ctrl->id);
@@ -1298,8 +1920,8 @@ long venc_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
 	case SET_FRAMERATE:
 		rc = venc_set_framerate(sd, arg);
 		break;
-	case ALLOC_INPUT_BUFFER:
-		rc = venc_alloc_input_buffer(sd, arg);
+	case SET_INPUT_BUFFER:
+		rc = venc_set_input_buffer(sd, arg);
 		break;
 	case SET_OUTPUT_BUFFER:
 		rc = venc_set_output_buffer(sd, arg);
@@ -1315,6 +1937,9 @@ long venc_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
 		break;
 	case FREE_RECON_BUFFERS:
 		rc = venc_free_recon_buffers(sd, arg);
+		break;
+	case ENCODE_FLUSH:
+		rc = venc_flush_buffers(sd, arg);
 		break;
 	default:
 		rc = -1;

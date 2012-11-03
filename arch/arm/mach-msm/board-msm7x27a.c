@@ -45,6 +45,7 @@
 #include <mach/msm_battery.h>
 #include <linux/smsc911x.h>
 #include <linux/atmel_maxtouch.h>
+#include <linux/ion.h>
 #include "devices.h"
 #include "timer.h"
 #include "board-msm7x27a-regulator.h"
@@ -70,6 +71,12 @@ static ssize_t  buf_vkey_size=0;
 #ifdef CONFIG_HUAWEI_NFC_PN544
 #include <linux/nfc/pn544.h>
 #endif
+
+/*
+ * Reserve enough v4l2 space for a double buffered full screen
+ * res image (864x480x1.5x2)
+*/
+#define MSM_V4L2_VIDEO_OVERLAY_BUF_SIZE 1244160
 
 #define PMEM_KERNEL_EBI1_SIZE	0x3A000
 #define MSM_PMEM_AUDIO_SIZE	0x5B000
@@ -253,11 +260,19 @@ static struct msm_i2c_platform_data msm_gsbi1_qup_i2c_pdata = {
 #endif
 #define MSM7x25A_MSM_FB_SIZE	0xE1000
 #else
-#define MSM_FB_SIZE		0x195000
-#define MSM7x25A_MSM_FB_SIZE	0x96000
+#define MSM_FB_SIZE		0x32A000
+#define MSM7x25A_MSM_FB_SIZE	0x12C000
+#define MSM8x25_MSM_FB_SIZE	0x3FC000
+#endif
 
 #endif
 
+#ifdef CONFIG_ION_MSM
+#define MSM_ION_HEAP_NUM        4
+static struct platform_device ion_dev;
+static int msm_ion_camera_size;
+static int msm_ion_audio_size;
+static int msm_ion_sf_size;
 #endif
 
 static struct android_usb_platform_data android_usb_pdata = {
@@ -468,17 +483,17 @@ u32 msm7627a_power_collapse_latency(enum msm_pm_sleep_mode mode)
 {
 	switch (mode) {
 	case MSM_PM_SLEEP_MODE_POWER_COLLAPSE:
-		return msm7x27a_pm_data[MSM_PM_SLEEP_MODE_POWER_COLLAPSE].latency;
-		
+		return msm7x27a_pm_data
+		[MSM_PM_SLEEP_MODE_POWER_COLLAPSE].latency;
 	case MSM_PM_SLEEP_MODE_POWER_COLLAPSE_NO_XO_SHUTDOWN:
-		return msm7x27a_pm_data[MSM_PM_SLEEP_MODE_POWER_COLLAPSE_NO_XO_SHUTDOWN].latency;
-		
+		return msm7x27a_pm_data
+		[MSM_PM_SLEEP_MODE_POWER_COLLAPSE_NO_XO_SHUTDOWN].latency;
 	case MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT:
-		return msm7x27a_pm_data[MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT].latency;
-		
+		return msm7x27a_pm_data
+		[MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT].latency;
 	case MSM_PM_SLEEP_MODE_WAIT_FOR_INTERRUPT:
-		return msm7x27a_pm_data[MSM_PM_SLEEP_MODE_WAIT_FOR_INTERRUPT].latency;
-		
+		return msm7x27a_pm_data
+		[MSM_PM_SLEEP_MODE_WAIT_FOR_INTERRUPT].latency;
 	default:
 		return 0;
 	}
@@ -844,7 +859,14 @@ static struct resource msm_fb_resources[] = {
 	}
 };
 
-#define PANEL_NAME_MAX_LEN	30
+#ifdef CONFIG_MSM_V4L2_VIDEO_OVERLAY_DEVICE
+static struct resource msm_v4l2_video_overlay_resources[] = {
+	{
+		.flags = IORESOURCE_DMA,
+	}
+};
+#endif
+
 #define LCDC_TOSHIBA_FWVGA_PANEL_NAME	"lcdc_toshiba_fwvga_pt"
 #define MIPI_CMD_RENESAS_FWVGA_PANEL_NAME	"mipi_cmd_renesas_fwvga"
 
@@ -888,6 +910,15 @@ static struct platform_device msm_fb_device = {
 		.platform_data = &msm_fb_pdata,
 	}
 };
+
+#ifdef CONFIG_MSM_V4L2_VIDEO_OVERLAY_DEVICE
+static struct platform_device msm_v4l2_video_overlay_device = {
+	.name   = "msm_v4l2_overlay_pd",
+	.id     = 0,
+	.num_resources  = ARRAY_SIZE(msm_v4l2_video_overlay_resources),
+	.resource       = msm_v4l2_video_overlay_resources,
+};
+#endif
 
 #ifdef CONFIG_FB_MSM_MIPI_DSI
 static int mipi_renesas_set_bl(int level)
@@ -1266,7 +1297,9 @@ static struct platform_device *surf_ffa_devices[] __initdata = {
 #ifdef CONFIG_FB_MSM_MIPI_DSI
 	&mipi_dsi_renesas_panel_device,
 #endif
-
+#ifdef CONFIG_MSM_V4L2_VIDEO_OVERLAY_DEVICE
+	&msm_v4l2_video_overlay_device,
+#endif
 	&msm_kgsl_3d0,
 #if defined(CONFIG_BT) && defined(HUAWEI_BT_BLUEZ_VER30)
 	&msm_bt_power_device,
@@ -1292,6 +1325,8 @@ static struct platform_device *surf_ffa_devices[] __initdata = {
 #endif
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
 	&huawei_device_detect,
+#ifdef CONFIG_ION_MSM
+	&ion_dev,
 #endif
 };
 
@@ -1328,6 +1363,8 @@ static void __init msm_msm7x2x_allocate_memory_regions(void)
 
 	if (machine_is_msm7625a_surf() || machine_is_msm7625a_ffa())
 		fb_size = MSM7x25A_MSM_FB_SIZE;
+	else if (machine_is_msm7627a_evb())
+		fb_size = MSM8x25_MSM_FB_SIZE;
 	else
 		fb_size = MSM_FB_SIZE;
 
@@ -1338,7 +1375,75 @@ static void __init msm_msm7x2x_allocate_memory_regions(void)
 	pr_info("allocating %lu bytes at %p (%lx physical) for fb\n",
 		size, addr, __pa(addr));
 #endif /* CONFIG_FRAMEBUF_SELF_ADAPT */
+
+#ifdef CONFIG_MSM_V4L2_VIDEO_OVERLAY_DEVICE
+	fb_size = MSM_V4L2_VIDEO_OVERLAY_BUF_SIZE;
+	addr = alloc_bootmem_align(fb_size, 0x1000);
+	msm_v4l2_video_overlay_resources[0].start = __pa(addr);
+	msm_v4l2_video_overlay_resources[0].end =
+	msm_v4l2_video_overlay_resources[0].start + fb_size - 1;
+	pr_debug("allocating %lu bytes at %p (%lx physical) for v4l2\n",
+	fb_size, addr, __pa(addr));
+#endif
+
 }
+
+#ifdef CONFIG_ION_MSM
+#ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
+static struct ion_co_heap_pdata co_ion_pdata = {
+	.adjacent_mem_id = INVALID_HEAP_ID,
+	.align = PAGE_SIZE,
+};
+#endif
+
+/**
+ * These heaps are listed in the order they will be allocated.
+ * Don't swap the order unless you know what you are doing!
+ */
+static struct ion_platform_data ion_pdata = {
+	.nr = MSM_ION_HEAP_NUM,
+	.has_outer_cache = 1,
+	.heaps = {
+		{
+			.id	= ION_SYSTEM_HEAP_ID,
+			.type	= ION_HEAP_TYPE_SYSTEM,
+			.name	= ION_VMALLOC_HEAP_NAME,
+		},
+#ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
+		/* PMEM_ADSP = CAMERA */
+		{
+			.id	= ION_CAMERA_HEAP_ID,
+			.type	= ION_HEAP_TYPE_CARVEOUT,
+			.name	= ION_CAMERA_HEAP_NAME,
+			.memory_type = ION_EBI_TYPE,
+			.extra_data = (void *)&co_ion_pdata,
+		},
+		/* PMEM_AUDIO */
+		{
+			.id	= ION_AUDIO_HEAP_ID,
+			.type	= ION_HEAP_TYPE_CARVEOUT,
+			.name	= ION_AUDIO_HEAP_NAME,
+			.memory_type = ION_EBI_TYPE,
+			.extra_data = (void *)&co_ion_pdata,
+		},
+		/* PMEM_MDP = SF */
+		{
+			.id	= ION_SF_HEAP_ID,
+			.type	= ION_HEAP_TYPE_CARVEOUT,
+			.name	= ION_SF_HEAP_NAME,
+			.memory_type = ION_EBI_TYPE,
+			.extra_data = (void *)&co_ion_pdata,
+		},
+#endif
+	}
+};
+
+static struct platform_device ion_dev = {
+	.name = "ion-msm",
+	.id = 1,
+	.dev = { .platform_data = &ion_pdata },
+};
+#endif
 
 static struct memtype_reserve msm7x27a_reserve_table[] __initdata = {
 	[MEMTYPE_SMI] = {
@@ -1363,24 +1468,56 @@ static void __init size_pmem_devices(void)
 	}
 
 #ifdef CONFIG_ANDROID_PMEM
+#ifndef CONFIG_MSM_MULTIMEDIA_USE_ION
 	android_pmem_adsp_pdata.size = pmem_adsp_size;
 	android_pmem_pdata.size = pmem_mdp_size;
 	android_pmem_audio_pdata.size = pmem_audio_size;
 #endif
+#endif
+
+#ifdef CONFIG_ION_MSM
+	msm_ion_camera_size = pmem_adsp_size;
+	msm_ion_audio_size = (MSM_PMEM_AUDIO_SIZE + PMEM_KERNEL_EBI1_SIZE);
+	msm_ion_sf_size = pmem_mdp_size;
+#endif
 }
 
+#ifdef CONFIG_ANDROID_PMEM
+#ifndef CONFIG_MSM_MULTIMEDIA_USE_ION
 static void __init reserve_memory_for(struct android_pmem_platform_data *p)
 {
 	msm7x27a_reserve_table[p->memory_type].size += p->size;
 }
+#endif
+#endif
 
 static void __init reserve_pmem_memory(void)
 {
 #ifdef CONFIG_ANDROID_PMEM
+#ifndef CONFIG_MSM_MULTIMEDIA_USE_ION
 	reserve_memory_for(&android_pmem_adsp_pdata);
 	reserve_memory_for(&android_pmem_pdata);
 	reserve_memory_for(&android_pmem_audio_pdata);
 	msm7x27a_reserve_table[MEMTYPE_EBI1].size += pmem_kernel_ebi1_size;
+#endif
+#endif
+}
+
+static void __init size_ion_devices(void)
+{
+#ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
+	ion_pdata.heaps[1].size = msm_ion_camera_size;
+	ion_pdata.heaps[2].size = msm_ion_audio_size;
+	ion_pdata.heaps[3].size = msm_ion_sf_size;
+#endif
+}
+
+static void __init reserve_ion_memory(void)
+{
+#if defined(CONFIG_ION_MSM) && defined(CONFIG_MSM_MULTIMEDIA_USE_ION)
+	msm7x27a_reserve_table[MEMTYPE_EBI1].size += msm_ion_camera_size;
+	msm7x27a_reserve_table[MEMTYPE_EBI1].size += msm_ion_audio_size;
+	msm7x27a_reserve_table[MEMTYPE_EBI1].size += msm_ion_sf_size;
 #endif
 }
 
@@ -1388,6 +1525,8 @@ static void __init msm7x27a_calculate_reserve_sizes(void)
 {
 	size_pmem_devices();
 	reserve_pmem_memory();
+	size_ion_devices();
+	reserve_ion_memory();
 }
 
 static int msm7x27a_paddr_to_memtype(unsigned int paddr)

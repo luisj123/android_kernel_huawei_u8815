@@ -1032,18 +1032,15 @@ static unsigned int calculate_vdd_dig(struct acpu_level *tgt)
 	return max(tgt->l2_level->vdd_dig, pll_vdd_dig);
 }
 
+#define BOOST_UV 25000
+
+static unsigned boost_uv;
+static bool enable_boost;
+module_param_named(boost, enable_boost, bool, S_IRUGO | S_IWUSR);
+
 static unsigned int calculate_vdd_core(struct acpu_level *tgt)
 {
-	unsigned int pll_vdd_core;
-
-	if (tgt->speed.src != HFPLL)
-		pll_vdd_core = 0;
-	else if (tgt->speed.pll_l_val > HFPLL_LOW_VDD_PLL_L_MAX)
-		pll_vdd_core = HFPLL_NOMINAL_VDD;
-	else
-		pll_vdd_core = HFPLL_LOW_VDD;
-
-	return max(tgt->vdd_core, pll_vdd_core);
+	return tgt->vdd_core + (enable_boost ? boost_uv : 0);
 }
 
 /* Set the CPU's clock rate and adjust the L2 rate, if appropriate. */
@@ -1153,7 +1150,7 @@ static void __init hfpll_init(struct scalable *sc, struct core_speed *tgt_s)
 }
 
 /* Voltage regulator initialization. */
-static void __init regulator_init(void)
+static void __init regulator_init(int set_vdd)
 {
 	int cpu, ret;
 	struct scalable *sc;
@@ -1170,7 +1167,7 @@ static void __init regulator_init(void)
 		}
 
 		ret = regulator_set_voltage(sc->vreg[VREG_CORE].reg,
-					    sc->vreg[VREG_CORE].max_vdd,
+					    set_vdd,
 					    sc->vreg[VREG_CORE].max_vdd);
 		if (ret)
 			pr_err("regulator_set_voltage(%s) failed"
@@ -1224,7 +1221,7 @@ static void __init per_cpu_init(void *data)
 }
 
 /* Register with bus driver. */
-static void __init bus_init(void)
+static void __init bus_init(unsigned int init_bw)
 {
 	int ret;
 
@@ -1234,8 +1231,7 @@ static void __init bus_init(void)
 		BUG();
 	}
 
-	ret = msm_bus_scale_client_update_request(bus_perf_client,
-		(ARRAY_SIZE(bw_level_tbl)-1));
+	ret = msm_bus_scale_client_update_request(bus_perf_client, init_bw);
 	if (ret)
 		pr_err("initial bandwidth request failed (%d)\n", ret);
 }
@@ -1371,11 +1367,15 @@ static struct acpu_level * __init select_freq_plan(void)
 			pr_info("ACPU PVS: Nominal\n");
 			v1 = acpu_freq_tbl_8960_kraitv1_nom_fast;
 			v2 = acpu_freq_tbl_8960_kraitv2_nom;
+			boost_uv = BOOST_UV;
+			enable_boost = true;
 			break;
 		case 0x3:
 			pr_info("ACPU PVS: Fast\n");
 			v1 = acpu_freq_tbl_8960_kraitv1_nom_fast;
 			v2 = acpu_freq_tbl_8960_kraitv2_fast;
+			boost_uv = BOOST_UV;
+			enable_boost = true;
 			break;
 		default:
 			pr_warn("ACPU PVS: Unknown. Defaulting to slow.\n");
@@ -1435,11 +1435,13 @@ static struct acpuclk_data acpuclk_8960_data = {
 static int __init acpuclk_8960_init(struct acpuclk_soc_data *soc_data)
 {
 	struct acpu_level *max_acpu_level = select_freq_plan();
+
+	regulator_init(max_acpu_level->vdd_core);
+	bus_init(max_acpu_level->l2_level->bw_level);
+
 	init_clock_sources(&scalable[L2], &max_acpu_level->l2_level->speed);
 	on_each_cpu(per_cpu_init, max_acpu_level, true);
 
-	regulator_init();
-	bus_init();
 	cpufreq_table_init();
 
 	acpuclk_register(&acpuclk_8960_data);
