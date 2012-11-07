@@ -5068,6 +5068,7 @@ static inline int l2cap_move_channel_confirm(struct l2cap_conn *conn,
 {
 	struct l2cap_move_chan_cfm *cfm = (struct l2cap_move_chan_cfm *) data;
 	struct sock *sk;
+	struct l2cap_pinfo *pi;
 	u16 icid, result;
 
 	icid = le16_to_cpu(cfm->icid);
@@ -5127,6 +5128,7 @@ static inline int l2cap_move_channel_confirm_rsp(struct l2cap_conn *conn,
 	struct l2cap_move_chan_cfm_rsp *rsp =
 		(struct l2cap_move_chan_cfm_rsp *) data;
 	struct sock *sk;
+	struct l2cap_pinfo *pi;
 	u16 icid;
 
 	icid = le16_to_cpu(rsp->icid);

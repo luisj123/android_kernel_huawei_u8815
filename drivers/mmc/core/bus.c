@@ -261,10 +261,11 @@ int mmc_add_card(struct mmc_card *card)
 {
 	int ret;
 	const char *type;
+	const char *uhs_bus_speed_mode = "";
+
 #ifdef CONFIG_HUAWEI_KERNEL
 	mdelay(100);
 #endif
-	const char *uhs_bus_speed_mode = "";
 
 	dev_set_name(&card->dev, "%s:%04x", mmc_hostname(card->host), card->rca);
 

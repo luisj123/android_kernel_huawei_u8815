@@ -2363,6 +2363,7 @@ static int atmel_ts_probe(
 	
 	info_block.pobject_table = object_table;
 
+	/* Reading the whole object table block to memory directly doesn't work cause sizeof object_t
 	isn't necessarily the same on every compiler/platform due to alignment issues. Endianness
 	can also cause trouble. */
 	current_address = OBJECT_TABLE_START_ADDRESS;

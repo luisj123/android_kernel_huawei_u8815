@@ -396,7 +396,9 @@ static void msm_fb_remove_sysfs(struct platform_device *pdev)
 	sysfs_remove_group(&mfd->fbi->dev->kobj, &msm_fb_attr_group);
 }
 
+#ifndef CONFIG_HUAWEI_KERNEL
 static void bl_workqueue_handler(struct work_struct *work);
+#endif
 
 static int msm_fb_probe(struct platform_device *pdev)
 {
@@ -440,7 +442,9 @@ static int msm_fb_probe(struct platform_device *pdev)
 
 	mfd = (struct msm_fb_data_type *)platform_get_drvdata(pdev);
 
+#ifndef CONFIG_HUAWEI_KERNEL
 	INIT_DELAYED_WORK(&mfd->backlight_worker, bl_workqueue_handler);
+#endif
 
 	if (!mfd)
 		return -ENODEV;
@@ -1837,6 +1841,7 @@ static int msm_fb_release(struct fb_info *info, int user)
 
 DEFINE_SEMAPHORE(msm_fb_pan_sem);
 
+#ifndef CONFIG_HUAWEI_KERNEL
 static void bl_workqueue_handler(struct work_struct *work)
 {
 	struct msm_fb_data_type *mfd = container_of(to_delayed_work(work),
@@ -1852,6 +1857,7 @@ static void bl_workqueue_handler(struct work_struct *work)
 		up(&mfd->sem);
 	}
 }
+#endif
 
 static int msm_fb_pan_display(struct fb_var_screeninfo *var,
 			      struct fb_info *info)
@@ -3521,6 +3527,25 @@ static int msmfb_handle_pp_ioctl(struct msm_fb_data_type *mfd,
 		break;
 	}
 
+	return ret;
+}
+
+static int msmfb_handle_metadata_ioctl(struct msm_fb_data_type *mfd,
+				struct msmfb_metadata *metadata_ptr)
+{
+	int ret;
+	switch (metadata_ptr->op) {
+#ifdef CONFIG_FB_MSM_MDP40
+	case metadata_op_base_blend:
+		ret = mdp4_update_base_blend(mfd,
+						&metadata_ptr->data.blend_cfg);
+		break;
+#endif
+	default:
+		pr_warn("Unsupported request to MDP META IOCTL.\n");
+		ret = -EINVAL;
+		break;
+	}
 	return ret;
 }
 

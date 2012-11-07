@@ -1325,6 +1325,7 @@ static struct platform_device *surf_ffa_devices[] __initdata = {
 #endif
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
 	&huawei_device_detect,
+#endif
 #ifdef CONFIG_ION_MSM
 	&ion_dev,
 #endif
