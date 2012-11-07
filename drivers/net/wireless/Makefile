@@ -61,7 +61,6 @@ obj-$(CONFIG_MWIFIEX)	+= mwifiex/
 
 obj-$(CONFIG_BCM4329)	+= bcm4329/
 obj-$(CONFIG_BCM4330)	+= bcm4330/
-obj-$(CONFIG_HUAWEI_BCM4330) += bcm4330_hw/
 obj-$(CONFIG_BCMDHD)	+= bcmdhd/
 
 obj-$(CONFIG_LIBRA_SDIOIF)	+= libra/
