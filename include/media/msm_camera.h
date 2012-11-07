@@ -25,34 +25,13 @@
 #include <linux/time.h>
 #endif
 
+/*< DTS2011041700393 lijianzhao 20110417 begin */
+/* modify for 4125 baseline */
 #include <linux/slab.h>
+/* DTS2011041700393 lijianzhao 20110417 end >*/
 #ifdef __KERNEL__
 #include <linux/ion.h>
 #endif
-
-#define VFE_FRAME_NUM_MAX	0x00FFFFFF
-#define ZERO_OUT_FRAME		0xFF000000
-#define CLEAR_FOCUS_BIT		0x7FFFFFFF
-#define get_focus_bit(x) ({ \
-	(x & 0x80000000) >> 31; \
-})
-#define get_frame_num(x) ({ \
-	x & VFE_FRAME_NUM_MAX; \
-})
-#define get_focus_in_position(x) ({ \
-	(x & 00000001) << 31; \
-})
-#define increment_frame_num(x) ({ \
-	uint32_t num = get_frame_num(x); \
-	num = num + 1; \
-	(x & ZERO_OUT_FRAME) | num; \
-})
-#define decrement_frame_num(x) ({ \
-	uint32_t num = get_frame_num(x); \
-	num = num - 1; \
-	(x & ZERO_OUT_FRAME) | num; \
-})
-
 #define MSM_CAM_IOCTL_MAGIC 'm'
 
 #define MSM_CAM_IOCTL_GET_SENSOR_INFO \
@@ -213,13 +192,10 @@
 
 #define MSM_CAM_IOCTL_MCTL_DIVERT_DONE \
 	_IOR(MSM_CAM_IOCTL_MAGIC, 52, struct msm_cam_evt_divert_frame *)
-
-#define MCTL_CAM_IOCTL_SET_FOCUS \
-	_IOW(MSM_CAM_IOCTL_MAGIC, 53, uint32_t)
-
+/* < DTS2012052201247 tangying 20120522 begin */
 #define MSM_CAM_IOCTL_RESETCAMERA_FOR_ESD \
 	_IOR(MSM_CAM_IOCTL_MAGIC, 88, int *)
-
+/* DTS2012052201247 tangying 20120522 end > */
 struct msm_mctl_pp_cmd {
 	int32_t  id;
 	uint16_t length;
@@ -236,10 +212,14 @@ struct msm_mctl_post_proc_cmd {
 #define MSM_CAMERA_LED_HIGH 2
 #define MSM_CAMERA_LED_INIT 3
 #define MSM_CAMERA_LED_RELEASE 4
+/* < DTS2011072705129     xiangxu 20110728 begin */
 #define MSM_CAMERA_LED_TORCH 5
+/* DTS2011072705129     xiangxu 20110728 end >  */
+/* < DTS2012031301616 tangying 20120313 begin */
 #define MSM_CAMERA_LED_TORCH_LOW    6
 #define MSM_CAMERA_LED_TORCH_MIDDLE 7
 #define MSM_CAMERA_LED_TORCH_HIGH   8
+/* DTS2012031301616 tangying 20120313 end > */
 #define MSM_CAMERA_STROBE_FLASH_NONE 0
 #define MSM_CAMERA_STROBE_FLASH_XENON 1
 
@@ -363,7 +343,6 @@ struct msm_isp_event_ctrl {
 		struct msm_cam_evt_divert_frame div_frame;
 		struct msm_mctl_pp_event_info pp_event_info;
 	} isp_data;
-	uint32_t evt_id;
 };
 
 #define MSM_CAM_RESP_CTRL              0
@@ -377,7 +356,6 @@ struct msm_isp_event_ctrl {
 #define MSM_CAM_RESP_MAX               8
 
 #define MSM_CAM_APP_NOTIFY_EVENT  0
-#define MSM_CAM_APP_NOTIFY_ERROR_EVENT  1
 
 /* this one is used to send ctrl/status up to config thread */
 
@@ -456,11 +434,11 @@ struct msm_camera_cfg_cmd {
 #define CMD_AXI_CFG_ZSL 43
 #define CMD_AXI_CFG_SNAP_VPE 44
 #define CMD_AXI_CFG_SNAP_THUMB_VPE 45
-#define CMD_CONFIG_PING_ADDR 46
-#define CMD_CONFIG_PONG_ADDR 47
-#define CMD_CONFIG_FREE_BUF_ADDR 48
-#define CMD_AXI_CFG_ZSL_ALL_CHNLS 49
-#define CMD_AXI_CFG_VIDEO_ALL_CHNLS 50
+#define CMD_AXI_CFG_VIDEO_ALL_CHNLS  46
+#define CMD_AXI_CFG_ZSL_ALL_CHNLS  47
+#define CMD_CONFIG_PING_ADDR 48
+#define CMD_CONFIG_PONG_ADDR 49
+#define CMD_CONFIG_FREE_BUF_ADDR 50
 #define CMD_VFE_BUFFER_RELEASE 51
 
 #define CMD_AXI_CFG_PRIM		0xF1
@@ -533,9 +511,6 @@ struct msm_pmem_info {
 	uint32_t len;
 	uint32_t y_off;
 	uint32_t cbcr_off;
-	uint32_t planar0_off;
-	uint32_t planar1_off;
-	uint32_t planar2_off;
 	uint8_t active;
 };
 
@@ -559,9 +534,8 @@ struct outputCfg {
 #define OUTPUT_2_AND_CAMIF_TO_AXI_VIA_OUTPUT_1 6
 #define OUTPUT_1_2_AND_3 7
 #define OUTPUT_ALL_CHNLS 8
-#define OUTPUT_VIDEO_ALL_CHNLS 9
-#define OUTPUT_ZSL_ALL_CHNLS 10
-#define LAST_AXI_OUTPUT_MODE_ENUM = OUTPUT_ZSL_ALL_CHNLS
+#define OUTPUT_ZSL_ALL_CHNLS 9
+#define LAST_AXI_OUTPUT_MODE_ENUM  OUTPUT_ZSL_ALL_CHNLS
 
 #define OUTPUT_PRIM		0xF1
 #define OUTPUT_PRIM_ALL_CHNLS	0xF2
@@ -607,9 +581,6 @@ struct msm_frame {
 	uint32_t phy_offset;
 	uint32_t y_off;
 	uint32_t cbcr_off;
-	uint32_t planar0_off;
-	uint32_t planar1_off;
-	uint32_t planar2_off;
 	int fd;
 
 	void *cropinfo;
@@ -639,10 +610,10 @@ struct msm_st_crop {
 };
 
 struct msm_st_half {
-	uint32_t buf_p0_off;
-	uint32_t buf_p1_off;
-	uint32_t buf_p0_stride;
-	uint32_t buf_p1_stride;
+	uint32_t buf_y_off;
+	uint32_t buf_cbcr_off;
+	uint32_t buf_y_stride;
+	uint32_t buf_cbcr_stride;
 	uint32_t pix_x_off;
 	uint32_t pix_y_off;
 	struct msm_st_crop stCropInfo;
@@ -677,8 +648,6 @@ struct msm_stats_buf {
 	uint32_t status_bits;
 	unsigned long buffer;
 	int fd;
-	int length;
-	struct ion_handle *handle;
 	uint32_t frame_id;
 };
 #define MSM_V4L2_EXT_CAPTURE_MODE_DEFAULT 0
@@ -804,9 +773,14 @@ struct msm_snapshot_pp_status {
 #define CFG_GET_EEPROM_DATA		33
 #define CFG_SET_ACTUATOR_INFO		34
 #define CFG_GET_ACTUATOR_INFO		35
+/*< DTS2011072801699   songxiaoming 20110728 begin */
+/*lijuan add for AWB OTP*/
+/* DTS2011072801699   songxiaoming 20110728 end > */
 
+/* < DTS2011090701903 zhangyu 20110907 begin */
 #define CFG_SET_NR          37
 #define CFG_RESET           36
+/* DTS2011090701903 zhangyu 20110907 end > */ 
 #define CFG_MAX			38
 
 
@@ -1118,7 +1092,9 @@ struct sensor_cfg_data {
 	union {
 		int8_t effect;
 		uint8_t lens_shading;
+		/* < DTS2011090701903 zhangyu 20110907 begin */
 		uint8_t lut_index;
+		/* DTS2011090701903 zhangyu 20110907 end > */ 
 		uint16_t prevl_pf;
 		uint16_t prevp_pl;
 		uint16_t pictl_pf;
@@ -1170,10 +1146,6 @@ struct msm_actuator_get_info_t {
 	uint32_t f_pix_den;
 	uint32_t total_f_dist_num;
 	uint32_t total_f_dist_den;
-	uint32_t hor_view_angle_num;
-	uint32_t hor_view_angle_den;
-	uint32_t ver_view_angle_num;
-	uint32_t ver_view_angle_den;
 };
 
 struct msm_actuator_cfg_data {
