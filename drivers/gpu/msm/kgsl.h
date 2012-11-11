@@ -25,7 +25,7 @@
 #define KGSL_NAME "kgsl"
 
 /*< DTS2012042406822 hanfeng 20120428 begin*/
-/* Timestamp window used to detect rollovers */
+/* Timestamp window used to detect rollovers (half of integer range) */
 #define KGSL_TIMESTAMP_WINDOW 0x80000000
 /* DTS2012042406822 hanfeng 20120428 end > */
 
@@ -197,16 +197,24 @@ static inline uint8_t *kgsl_gpuaddr_to_vaddr(const struct kgsl_memdesc *memdesc,
 	return memdesc->hostptr + (gpuaddr - memdesc->gpuaddr);
 }
 
-static inline int timestamp_cmp(unsigned int new, unsigned int old)
+static inline int timestamp_cmp(unsigned int a, unsigned int b)
 {
-	int ts_diff = new - old;
+	/* check for equal */
+	if (a == b)
+	  return 0;
 
-	if (ts_diff == 0)
-		return 0;
-
-    /*< DTS2012042406822 hanfeng 20120428 begin*/
-	return ((ts_diff > 0) || (ts_diff < -KGSL_TIMESTAMP_WINDOW)) ? 1 : -1;
-    /* DTS2012042406822 hanfeng 20120428 end > */
+	/* check for greater-than for non-rollover case */
+	if ((a > b) && (a - b < KGSL_TIMESTAMP_WINDOW))
+	return 1;
+	
+	/* check for greater-than for rollover case
+	* note that <= is required to ensure that consistent
+	* results are returned for values whose difference is
+	* equal to the window size
+	*/
+	a += KGSL_TIMESTAMP_WINDOW;
+	b += KGSL_TIMESTAMP_WINDOW;
+	return ((a > b) && (a - b <= KGSL_TIMESTAMP_WINDOW)) ? 1 : -1;
 }
 
 static inline void
