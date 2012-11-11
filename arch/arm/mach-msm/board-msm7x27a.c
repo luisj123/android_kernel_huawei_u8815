@@ -253,18 +253,11 @@ static struct msm_i2c_platform_data msm_gsbi1_qup_i2c_pdata = {
 
 
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
-#ifndef CONFIG_HUAWEI_KERNEL
-#define MSM_FB_SIZE		0x260000
-#else
-#define MSM_FB_SIZE		0x600000
-#endif
+#define MSM_FB_SIZE		0x261000
 #define MSM7x25A_MSM_FB_SIZE	0xE1000
 #else
-#define MSM_FB_SIZE		0x32A000
-#define MSM7x25A_MSM_FB_SIZE	0x12C000
-#define MSM8x25_MSM_FB_SIZE	0x3FC000
-#endif
-
+#define MSM_FB_SIZE		0x196000
+#define MSM7x25A_MSM_FB_SIZE	0x96000
 #endif
 
 #ifdef CONFIG_ION_MSM
