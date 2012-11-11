@@ -266,24 +266,10 @@ static struct msm_i2c_platform_data msm_gsbi1_qup_i2c_pdata = {
 
 
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
-/*< DTS2012021602342 zhongjinrong 20120224 begin */
-/* < DTS2011082000924 fengwei 20110820 begin */
-/*because of supporting fwvga (resolution 480*854, bpp 24)
- *framebuffer size >= 480*854*24*3 bit
- */
-#ifndef CONFIG_HUAWEI_KERNEL
-#define MSM_FB_SIZE		0x260000
-#else
-/*< DTS2012033105116 lijianzhao 20120401 begin */
-/* increase three framebuffers to four */
-#define MSM_FB_SIZE		0x600000
-/* DTS2012033105116 lijianzhao 20120401 end >*/
-#endif
-/* DTS2011082000924 fengwei 20110820 end > */
-/* DTS2012021602342 zhongjinrong 20120224 end >*/
+#define MSM_FB_SIZE		0x261000
 #define MSM7x25A_MSM_FB_SIZE	0xE1000
 #else
-#define MSM_FB_SIZE		0x195000
+#define MSM_FB_SIZE		0x196000
 #define MSM7x25A_MSM_FB_SIZE	0x96000
 
 #endif
