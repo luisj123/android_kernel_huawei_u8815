@@ -152,6 +152,12 @@ void gen_pool_destroy(struct gen_pool *pool)
 	int bit;
 	size_t nbytes;
 
+/* <DTS2010092703937 hufeng 20100927 begin */
+    /** jiazhifeng kgsl SR Created By: Xiaofeng Ling (9/26/2010 8:02 AM) **/
+#ifdef CONFIG_HUAWEI_KERNEL
+    write_lock(&pool->lock);
+#endif
+/* DTS2010092703937 hufeng 20100927 end> */
 	while (!list_empty(&pool->chunks)) {
 		chunk = list_entry(pool->chunks.next, struct gen_pool_chunk,
 				   next_chunk);
@@ -168,6 +174,11 @@ void gen_pool_destroy(struct gen_pool *pool)
 		else
 			vfree(chunk);
 	}
+/* <DTS2010092703937 hufeng 20100927 begin */
+#ifdef CONFIG_HUAWEI_KERNEL
+    write_unlock(&pool->lock);
+#endif
+/* DTS2010092703937 hufeng 20100927 end> */
 	kfree(pool);
 }
 EXPORT_SYMBOL(gen_pool_destroy);
@@ -260,4 +271,3 @@ done:
 	read_unlock(&pool->lock);
 }
 EXPORT_SYMBOL(gen_pool_free);
-
