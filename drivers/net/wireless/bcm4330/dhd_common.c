@@ -175,7 +175,7 @@ const bcm_iovar_t dhd_iovars[] = {
 	{NULL, 0, 0, 0, 0 }
 };
 /*porting,WIFI Module,20111110 begin++ */
-#define HUAWEI_WIFI_LOAD_PATH "/data/misc/wifi/load/"
+#define HUAWEI_WIFI_LOAD_PATH "/system/etc/"
 
 struct dhd_cmn *
 dhd_common_init(osl_t *osh)
