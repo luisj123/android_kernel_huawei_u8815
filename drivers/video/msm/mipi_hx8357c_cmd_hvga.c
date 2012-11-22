@@ -222,7 +222,7 @@ static int __init mipi_cmd_hx8357c_hvga_init(void)
         /*< DTS2011110706222 qitongliang 20111201 begin */
         pinfo->clk_rate = 250000000;/* 60fps */
         /* DTS2011110706222 qitongliang 20111201 end >*/
-		pinfo->lcd.refx100 = 6000; /* adjust refx100 to prevent tearing */
+		pinfo->lcd.refx100 = 6500; /* adjust refx100 to prevent tearing */
 
 		pinfo->mipi.mode = DSI_CMD_MODE;
 		pinfo->mipi.dst_format = DSI_CMD_DST_FORMAT_RGB888;
