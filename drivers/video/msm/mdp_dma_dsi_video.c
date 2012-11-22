@@ -33,7 +33,7 @@
 static int first_pixel_start_x;
 static int first_pixel_start_y;
 
-static ssize_t vsync_show_event(struct device *dev,
+ssize_t mdp_dma_video_show_event(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
 	ssize_t ret = 0;
@@ -46,19 +46,10 @@ static ssize_t vsync_show_event(struct device *dev,
 
 	wait_for_completion(&vsync_cntrl.vsync_wait);
 	ret = snprintf(buf, PAGE_SIZE, "VSYNC=%llu",
-	ktime_to_ns(vsync_cntrl.vsync_time));
+			ktime_to_ns(vsync_cntrl.vsync_time));
 	buf[strlen(buf) + 1] = '\0';
 	return ret;
 }
-
-static DEVICE_ATTR(vsync_event, S_IRUGO, vsync_show_event, NULL);
-static struct attribute *vsync_fs_attrs[] = {
-	&dev_attr_vsync_event.attr,
-	NULL,
-};
-static struct attribute_group vsync_fs_attr_group = {
-	.attrs = vsync_fs_attrs,
-};
 
 int mdp_dsi_video_on(struct platform_device *pdev)
 {
