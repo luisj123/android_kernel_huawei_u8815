@@ -193,7 +193,7 @@ static int __init mipi_cmd_hx8369a_wvga_init(void)
 		
         pinfo->clk_rate = 300000000;
 		
-		pinfo->lcd.refx100 = 6000; /* adjust refx100 to prevent tearing */
+		pinfo->lcd.refx100 = 6500; /* adjust refx100 to prevent tearing */
 
 		pinfo->mipi.mode = DSI_CMD_MODE;
 		pinfo->mipi.dst_format = DSI_CMD_DST_FORMAT_RGB888;
