@@ -44,7 +44,6 @@
 #include <linux/sw_sync.h>
 #include <linux/file.h>
 
-
 #define MSM_FB_C
 #include "msm_fb.h"
 #include "mddihosti.h"
@@ -1050,7 +1049,7 @@ static int msm_fb_blank_sub(int blank_mode, struct fb_info *info,
 				}
 
 #endif
-//				mfd->panel_driver_on = mfd->op_enable;
+				mfd->panel_driver_on = mfd->op_enable;
 			}
 		}
 		break;
@@ -1655,9 +1654,6 @@ static int msm_fb_register(struct msm_fb_data_type *mfd)
 	fbi->screen_base = fbram;
 	fbi->fix.smem_start = (unsigned long)fbram_phys;
 
-#ifndef CONFIG_HUAWEI_KERNEL
-    memset(fbi->screen_base, 0x0, fix->smem_len);
-#endif
 	mfd->map_buffer = msm_subsystem_map_buffer(
 		fbi->fix.smem_start, fbi->fix.smem_len,
 		flags, subsys_id, 2);
@@ -2081,7 +2077,6 @@ static int msm_fb_pan_display_sub(struct fb_var_screeninfo *var,
 #ifdef CONFIG_HUAWEI_KERNEL
     static bool is_first_frame = TRUE;
 #endif
-	if ((!mfd->op_enable) || (!mfd->panel_power_on))
 	/*
 	 * If framebuffer is 2, io pen display is not allowed.
 	 */
@@ -3383,8 +3378,6 @@ static int msmfb_overlay_play(struct fb_info *info, unsigned long *argp)
 	add_timer(&mfd->msmfb_no_update_notify_timer);
 	mutex_unlock(&msm_fb_notify_update_sem);
 
-	ret = mdp4_overlay_play(info, &req);
-
 	if (info->node == 0 && !(mfd->cont_splash_done)) { /* primary */
 		mdp_set_dma_pan_info(info, NULL, TRUE);
 		if (msm_fb_blank_sub(FB_BLANK_UNBLANK, info, mfd->op_enable)) {
@@ -3969,7 +3962,6 @@ static int msmfb_display_commit(struct fb_info *info,
 	}
 	return ret;
 }
-
 static int msm_fb_ioctl(struct fb_info *info, unsigned int cmd,
 			unsigned long arg)
 {
@@ -4380,7 +4372,6 @@ static int msm_fb_ioctl(struct fb_info *info, unsigned int cmd,
 		if (ret)
 			return ret;
 		ret = msmfb_handle_metadata_ioctl(mfd, &mdp_metadata);
-
 	case MSMFB_DISPLAY_COMMIT:
 		ret = msmfb_display_commit(info, argp);
 		break;
