@@ -696,13 +696,8 @@ static struct kgsl_device_platform_data kgsl_3d0_pdata = {
 	.init_level = 0,
 	.num_levels = 3,
 	.set_grp_async = set_grp_xbar_async,
-	/*< DTS2012041906630 zhangxiangdang 20120423 begin */
-	/*merge qc patch to fix kgsl issue.*/
-	.idle_timeout = HZ,
-	.strtstp_sleepwake = true,
+	.idle_timeout = HZ/5,
 	.nap_allowed = false,
-	/*.idle_needed = false,*/
-	/* DTS2012041906630 zhangxiangdang 20120423 end > */
 	.clk_map = KGSL_CLK_CORE | KGSL_CLK_IFACE | KGSL_CLK_MEM,
 };
 
