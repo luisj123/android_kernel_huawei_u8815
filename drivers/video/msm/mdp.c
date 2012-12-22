@@ -1835,7 +1835,7 @@ irqreturn_t mdp_isr(int irq, void *ptr)
 	}
 
 	if (!mdp_interrupt)
-		goto out;
+		break;
 
 	/*Primary Vsync interrupt*/
 	if (mdp_interrupt & MDP_PRIM_RDPTR)
