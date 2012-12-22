@@ -1834,9 +1834,6 @@ irqreturn_t mdp_isr(int irq, void *ptr)
 		mdp_tv_underflow_cnt++;
 	}
 
-	if (!mdp_interrupt)
-		break;
-
 	/*Primary Vsync interrupt*/
 	if (mdp_interrupt & MDP_PRIM_RDPTR)
 		vsync_isr_handler();
