@@ -41,7 +41,6 @@
 #include <linux/leds.h>
 #include <linux/pm_runtime.h>
 
-
 #define MSM_FB_C
 #include "msm_fb.h"
 #include "mddihosti.h"
@@ -1574,9 +1573,6 @@ static int msm_fb_register(struct msm_fb_data_type *mfd)
 	fbi->screen_base = fbram;
 	fbi->fix.smem_start = (unsigned long)fbram_phys;
 
-#ifndef CONFIG_HUAWEI_KERNEL
-    memset(fbi->screen_base, 0x0, fix->smem_len);
-#endif
 	mfd->map_buffer = msm_subsystem_map_buffer(
 		fbi->fix.smem_start, fbi->fix.smem_len,
 		flags, subsys_id, 2);
@@ -1869,7 +1865,6 @@ static int msm_fb_pan_display(struct fb_var_screeninfo *var,
 #ifdef CONFIG_HUAWEI_KERNEL
     static bool is_first_frame = TRUE;
 #endif
-	if ((!mfd->op_enable) || (!mfd->panel_power_on))
 	/*
 	 * If framebuffer is 2, io pen display is not allowed.
 	 */
@@ -1962,7 +1957,7 @@ static int msm_fb_pan_display(struct fb_var_screeninfo *var,
 	mdp_dma_pan_update(info);
 	up(&msm_fb_pan_sem);
 
-#ifndef CONFIG_HUAWEI_KERNEL		
+#ifndef CONFIG_HUAWEI_KERNEL
 	if (unset_bl_level && !bl_updated)
 		schedule_delayed_work(&mfd->backlight_worker,
 				backlight_duration);
@@ -3136,28 +3131,13 @@ static int msmfb_overlay_play(struct fb_info *info, unsigned long *argp)
 	add_timer(&mfd->msmfb_no_update_notify_timer);
 	mutex_unlock(&msm_fb_notify_update_sem);
 
-	ret = mdp4_overlay_play(info, &req);
-
 	if (info->node == 0 && !(mfd->cont_splash_done)) { /* primary */
 		mdp_set_dma_pan_info(info, NULL, TRUE);
 		if (msm_fb_blank_sub(FB_BLANK_UNBLANK, info, mfd->op_enable)) {
 			pr_err("%s: can't turn on display!\n", __func__);
 			return -EINVAL;
-
-#ifndef CONFIG_HUAWEI_KERNEL		
-	if (unset_bl_level && !bl_updated) {
-		pdata = (struct msm_fb_panel_data *)mfd->pdev->
-			dev.platform_data;
-		if ((pdata) && (pdata->set_backlight)) {
-			down(&mfd->sem);
-			mfd->bl_level = unset_bl_level;
-			pdata->set_backlight(mfd);
-			bl_level_old = unset_bl_level;
-			up(&mfd->sem);
-			bl_updated = 1;
 		}
 	}
-#endif
 
 	ret = mdp4_overlay_play(info, &req);
 
