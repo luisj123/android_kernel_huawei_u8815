@@ -1,3 +1,4 @@
+/* < DTS2011082000924 fengwei 20110820 begin */
 /* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -12,7 +13,7 @@
 
 #include "msm_fb.h"
 #include "mipi_dsi.h"
-#include "hw_lcd_common.h"
+#include "hw_lcd_common.h"
 
 #define LCD_DEVICE_NAME "mipi_cmd_nt35560_fwvga"
 
@@ -110,14 +111,14 @@ static int mipi_nt35560_lcd_on(struct platform_device *pdev)
 		return -EINVAL; 
 
 	mipi_set_tx_power_mode(1);
-	mipi_dsi_cmds_tx(&nt35560_tx_buf, nt35560_sleep_out_cmds,
+	mipi_dsi_cmds_tx(mfd, &nt35560_tx_buf, nt35560_sleep_out_cmds,
 			ARRAY_SIZE(nt35560_sleep_out_cmds));
 	
-	mipi_dsi_cmds_tx(&nt35560_tx_buf, nt35560_lcd_init_cmds,
+	mipi_dsi_cmds_tx(mfd, &nt35560_tx_buf, nt35560_lcd_init_cmds,
 			ARRAY_SIZE(nt35560_lcd_init_cmds));
-	mipi_dsi_cmds_tx(&nt35560_tx_buf, nt35560_lcd_cabc_cmds,
+	mipi_dsi_cmds_tx(mfd, &nt35560_tx_buf, nt35560_lcd_cabc_cmds,
 			ARRAY_SIZE(nt35560_lcd_cabc_cmds));
-	mipi_dsi_cmds_tx(&nt35560_tx_buf, nt35560_display_on_cmds,
+	mipi_dsi_cmds_tx(mfd, &nt35560_tx_buf, nt35560_display_on_cmds,
 			ARRAY_SIZE(nt35560_display_on_cmds));
 	mipi_set_tx_power_mode(0);
 
@@ -136,9 +137,9 @@ static int mipi_nt35560_lcd_off(struct platform_device *pdev)
 	if (mfd->key != MFD_KEY)
 		return -EINVAL;
 
-	mipi_dsi_cmds_tx(&nt35560_tx_buf, nt35560_display_off_cmds,
+	mipi_dsi_cmds_tx(mfd, &nt35560_tx_buf, nt35560_display_off_cmds,
 			ARRAY_SIZE(nt35560_display_off_cmds));
-	mipi_dsi_cmds_tx(&nt35560_tx_buf, nt35560_sleep_in_cmds,
+	mipi_dsi_cmds_tx(mfd, &nt35560_tx_buf, nt35560_sleep_in_cmds,
 			ARRAY_SIZE(nt35560_sleep_in_cmds));
 	pr_info("leave mipi_nt35560_lcd_off \n");
 	return 0;
@@ -179,7 +180,9 @@ static int __init mipi_cmd_nt35560_fwvga_init(void)
 	int ret = 0;
 	struct msm_panel_info *pinfo = NULL;
 
+	/*< DTS2011122306018 fengwei 20111224 begin */
 	lcd_panel_hvga = get_lcd_panel_type();
+	/* DTS2011122306018 fengwei 20111224 end >*/
 	if(MIPI_NT35560_TOSHIBA_FWVGA != lcd_panel_hvga) 
 	{
 		return 0;
@@ -202,7 +205,7 @@ static int __init mipi_cmd_nt35560_fwvga_init(void)
 		pinfo->fb_num = 2;
 
 		pinfo->clk_rate = 499000000;
-		pinfo->lcd.refx100 = 6000; /* adjust refx100 to prevent tearing */
+		pinfo->lcd.refx100 = 6500; /* adjust refx100 to prevent tearing */
 
 		pinfo->mipi.mode = DSI_CMD_MODE;
 		pinfo->mipi.dst_format = DSI_CMD_DST_FORMAT_RGB888;
@@ -235,3 +238,4 @@ static int __init mipi_cmd_nt35560_fwvga_init(void)
 }
 
 module_init(mipi_cmd_nt35560_fwvga_init);
+/* DTS2011082000924 fengwei 20110820 end > */
