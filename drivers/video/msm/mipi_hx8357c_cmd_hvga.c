@@ -187,9 +187,8 @@ static int __init mipi_cmd_hx8357c_hvga_init(void)
 		pinfo->bl_max = 255;
 		pinfo->bl_min = 30;
 		pinfo->fb_num = 2;
-        pinfo->clk_rate = 250000000;/* 60fps */
-		pinfo->lcd.refx100 = 6000; /* adjust refx100 to prevent tearing */
-
+		pinfo->clk_rate = 250000000;/* 60fps */
+		pinfo->lcd.refx100 = 6500; /* adjust refx100 to prevent tearing */
 		pinfo->mipi.mode = DSI_CMD_MODE;
 		pinfo->mipi.dst_format = DSI_CMD_DST_FORMAT_RGB888;
 		pinfo->mipi.vc = 0;
