@@ -2189,7 +2189,7 @@ static int msm_fb_pan_display_sub(struct fb_var_screeninfo *var,
 	msm_fb_signal_timeline(mfd);
 	up(&msm_fb_pan_sem);
 
-#ifndef CONFIG_HUAWEI_KERNEL		
+#ifndef CONFIG_HUAWEI_KERNEL
 	if (unset_bl_level && !bl_updated)
 		schedule_delayed_work(&mfd->backlight_worker,
 				backlight_duration);
@@ -3390,21 +3390,8 @@ static int msmfb_overlay_play(struct fb_info *info, unsigned long *argp)
 		if (msm_fb_blank_sub(FB_BLANK_UNBLANK, info, mfd->op_enable)) {
 			pr_err("%s: can't turn on display!\n", __func__);
 			return -EINVAL;
-
-#ifndef CONFIG_HUAWEI_KERNEL		
-	if (unset_bl_level && !bl_updated) {
-		pdata = (struct msm_fb_panel_data *)mfd->pdev->
-			dev.platform_data;
-		if ((pdata) && (pdata->set_backlight)) {
-			down(&mfd->sem);
-			mfd->bl_level = unset_bl_level;
-			pdata->set_backlight(mfd);
-			bl_level_old = unset_bl_level;
-			up(&mfd->sem);
-			bl_updated = 1;
 		}
 	}
-#endif
 
 	ret = mdp4_overlay_play(info, &req);
 
