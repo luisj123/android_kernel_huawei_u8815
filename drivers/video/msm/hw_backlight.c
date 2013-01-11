@@ -321,7 +321,7 @@ static void pwm_backlight_resume( struct early_suspend *h)
 }
 /*add early suspend*/
 static struct early_suspend pwm_backlight_early_suspend = {
-	.level = EARLY_SUSPEND_LEVEL_DISABLE_FB - 10,
+	.level = EARLY_SUSPEND_LEVEL_BLANK_SCREEN - 1,
 	.suspend = pwm_backlight_suspend,
 	.resume = pwm_backlight_resume,
 };
