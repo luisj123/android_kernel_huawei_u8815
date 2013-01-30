@@ -1032,11 +1032,6 @@ enum nl80211_commands {
  *	(Re)Association Response frames when the driver (or firmware) replies to
  *	(Re)Association Request frames.
  *
- * @NL80211_ATTR_DEVICE_AP_SME: This u32 attribute may be listed for devices
- *	that have AP support to indicate that they have the AP SME integrated
- *	with support for the features listed in this attribute, see
- *	&enum nl80211_ap_sme_features.
- *
  * @NL80211_ATTR_MAX: highest attribute number currently defined
  * @__NL80211_ATTR_AFTER_LAST: internal use
  */
@@ -1246,8 +1241,6 @@ enum nl80211_attrs {
 
 	NL80211_ATTR_IE_PROBE_RESP,
 	NL80211_ATTR_IE_ASSOC_RESP,
-
-	NL80211_ATTR_DEVICE_AP_SME,
 
 	/* add attributes here, update the policy in nl80211.c */
 
@@ -2442,13 +2435,5 @@ enum nl80211_hidden_ssid {
 	NL80211_HIDDEN_SSID_ZERO_LEN,
 	NL80211_HIDDEN_SSID_ZERO_CONTENTS
 };
-
-/*
- * enum nl80211_ap_sme_features - device-integrated AP features
- * Reserved for future use, no bits are defined in
- * NL80211_ATTR_DEVICE_AP_SME yet.
-enum nl80211_ap_sme_features {
-};
- */
 
 #endif /* __LINUX_NL80211_H */
