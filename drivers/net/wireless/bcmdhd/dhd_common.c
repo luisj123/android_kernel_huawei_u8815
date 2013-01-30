@@ -61,13 +61,7 @@
 extern void htsf_update(struct dhd_info *dhd, void *data);
 #endif
 int dhd_msg_level = DHD_ERROR_VAL;
-/*porting,WIFI Module,20111110 begin++ */
-module_param(dhd_msg_level, int, 0644);
-MODULE_PARM_DESC(dhd_msg_level, "DHD dhd_msg_level");
 
-char devmode[MOD_PARAM_PATHLEN] = {0};
-module_param_string(devmode, devmode, MOD_PARAM_PATHLEN, 0);
-/*porting,WIFI Module,20111110 end-- */
 
 #include <wl_iw.h>
 
@@ -174,8 +168,6 @@ const bcm_iovar_t dhd_iovars[] = {
 	{"changemtu", IOV_CHANGEMTU, 0, IOVT_UINT32, 0 },
 	{NULL, 0, 0, 0, 0 }
 };
-/*porting,WIFI Module,20111110 begin++ */
-#define HUAWEI_WIFI_LOAD_PATH "/data/misc/wifi/load/"
 
 struct dhd_cmn *
 dhd_common_init(osl_t *osh)
@@ -196,27 +188,21 @@ dhd_common_init(osl_t *osh)
 	memset(cmn, 0, sizeof(dhd_cmn_t));
 	cmn->osh = osh;
 
-    if(strcmp(devmode,"ap") == 0)
-    {
-	strcpy(fw_path,  HUAWEI_WIFI_LOAD_PATH "firmware_apsta.bin");
-    }
-    else if(strcmp(devmode,"test") == 0)
-    {
-	strcpy(fw_path,  HUAWEI_WIFI_LOAD_PATH "firmware_test.bin");
-    }
-    else
-    {   
-	strcpy(fw_path,  HUAWEI_WIFI_LOAD_PATH "firmware.bin");
-    }
-
-    DHD_ERROR(("%s:fw_path = %s \n", __FUNCTION__,fw_path));
-	bcm_strncpy_s(nv_path, sizeof(nv_path), HUAWEI_WIFI_LOAD_PATH "nvram.txt", MOD_PARAM_PATHLEN-1);
+#ifdef CONFIG_BCMDHD_FW_PATH
+	bcm_strncpy_s(fw_path, sizeof(fw_path), CONFIG_BCMDHD_FW_PATH, MOD_PARAM_PATHLEN-1);
+#else /* CONFIG_BCMDHD_FW_PATH */
+	fw_path[0] = '\0';
+#endif /* CONFIG_BCMDHD_FW_PATH */
+#ifdef CONFIG_BCMDHD_NVRAM_PATH
+	bcm_strncpy_s(nv_path, sizeof(nv_path), CONFIG_BCMDHD_NVRAM_PATH, MOD_PARAM_PATHLEN-1);
+#else /* CONFIG_BCMDHD_NVRAM_PATH */
+	nv_path[0] = '\0';
+#endif /* CONFIG_BCMDHD_NVRAM_PATH */
 #ifdef SOFTAP
 	fw_path2[0] = '\0';
 #endif
 	return cmn;
 }
-/*porting,WIFI Module,20111110 end-- */
 
 void
 dhd_common_deinit(dhd_pub_t *dhd_pub, dhd_cmn_t *sa_cmn)

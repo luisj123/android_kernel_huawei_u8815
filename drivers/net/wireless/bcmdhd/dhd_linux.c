@@ -294,10 +294,8 @@ typedef struct dhd_info {
 /* Definitions to provide path to the firmware and nvram
  * example nvram_path[MOD_PARAM_PATHLEN]="/projects/wlan/nvram.txt"
  */
-/*porting,WIFI Module,20111110 begin++ */
-char firmware_path[MOD_PARAM_PATHLEN] = {0};
-char nvram_path[MOD_PARAM_PATHLEN] = {0};
-/*porting,WIFI Module,20111110 end-- */
+char firmware_path[MOD_PARAM_PATHLEN];
+char nvram_path[MOD_PARAM_PATHLEN];
 
 /* load firmware and/or nvram values from the filesystem */
 module_param_string(firmware_path, firmware_path, MOD_PARAM_PATHLEN, 0660);
@@ -314,18 +312,12 @@ struct semaphore dhd_registration_sem;
 #define DHD_REGISTRATION_TIMEOUT  12000  /* msec : allowed time to finished dhd registration */
 #endif /* (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 27)) */
 
-/*porting,WIFI Module,20111110 begin++ */
-char mac_param[MOD_PARAM_PATHLEN] = {0}; 
-module_param_string(mac_param, mac_param, MOD_PARAM_PATHLEN, 0644);
-/*porting,WIFI Module,20111110 end-- */
 /* Spawn a thread for system ioctls (set mac, set mcast) */
 uint dhd_sysioc = TRUE;
 module_param(dhd_sysioc, uint, 0);
 
 /* Error bits */
-/*porting,WIFI Module,20111110 begin++ */
-//module_param(dhd_msg_level, int, 0);
-/*porting,WIFI Module,20111110 end-- */
+module_param(dhd_msg_level, int, 0);
 
 /* Watchdog interval */
 uint dhd_watchdog_ms = 10;
@@ -2816,93 +2808,6 @@ fail:
 	return NULL;
 }
 
-/*porting,WIFI Module,20111110 begin++ */
-static int
-wmic_ether_aton(const char *orig, unsigned char *eth)
-{
-	const char *bufp;
-	int i;
-
-	i = 0;
-	for(bufp = orig; *bufp != '\0'; ++bufp) {
-		unsigned int val;
-		unsigned char c;
-
-		c = *bufp++;
-
-		if (c >= '0' && c <= '9') val = c - '0';
-		else if (c >= 'a' && c <= 'f') val = c - 'a' + 10;
-		else if (c >= 'A' && c <= 'F') val = c - 'A' + 10;
-		else {
-			printk("%s: MAC value is invalid\n", __FUNCTION__);
-			break;
-		}
-
-		val <<= 4;
-		c = *bufp++;
-		if (c >= '0' && c <= '9') val |= c - '0';
-		else if (c >= 'a' && c <= 'f') val |= c - 'a' + 10;
-		else if (c >= 'A' && c <= 'F') val |= c - 'A' + 10;
-		else {
-			printk("%s: MAC value is invalid\n", __FUNCTION__);
-			break;
-		}
-
-		eth[i] = (unsigned char) (val & 0377);
-		if(++i == ETHER_ADDR_LEN) {
-			/* That's it.  Any trailing junk? */
-			c = *bufp;
-			if ((c != '\0') && (c != 0x20) && (c != 0x0a) && (c != 0x0d)) {
-				printk("wmic_ether_aton end char is not correct [%c:0x%x]\n", c, c);
-				return 0;
-			}
-			return 1;
-		}
-		c = *bufp;
-		if (c != ':') {
-			printk("wmic_ether_aton: c[%c:0x%x] is not :\n", c,c);
-			break;
-		}
-	}
-	return 0;
-}
-
-void dhd_write_mac_address( dhd_info_t * dhd) 
-{
-
-	unsigned char mac_p[ETHER_ADDR_LEN];
-	struct ether_addr *mac_addr = NULL;
-
-	mac_addr = (struct ether_addr *)mac_p;
-
-	if (strlen(mac_param))
-	{
-		/* convert mac address */
-		DHD_TRACE(("%s: mac_param is %s\n", __FUNCTION__, mac_param));
-
-		if (!wmic_ether_aton(mac_param, (unsigned char *)mac_p)) {
-			DHD_ERROR(("%s: convert mac value fail\n", __FUNCTION__));
-			return ;
-		}
-
-		/* the converted mac address */
-		DHD_TRACE(("%s: converted mac value is %02x:%02x:%02x:%02x:%02x:%02x\n",
-			  __FUNCTION__,
-			  mac_p[0], mac_p[1], mac_p[2],
-			  mac_p[3], mac_p[4], mac_p[5] ));
-
-		/* Update MAC address into RAM */
-		//_dhd_set_mac_address(dhd, ifidx, mac_addr);
-		memcpy(dhd->pub.mac.octet, mac_addr, ETHER_ADDR_LEN);
-	}
-	else 
-	{
-		DHD_TRACE(("Warning %s: mac_param is NULL \n", __FUNCTION__));
-	}
-}
-/*porting,WIFI Module,20111110 end-- */
-
-
 int
 dhd_bus_start(dhd_pub_t *dhdp)
 {
@@ -3002,9 +2907,6 @@ dhd_bus_start(dhd_pub_t *dhdp)
 #ifdef READ_MACADDR
 	dhd_read_macaddr(dhd);
 #endif
-	/*porting,WIFI Module,20111110 begin++ */
-	dhd_write_mac_address(dhd);
-	/*porting,WIFI Module,20111110 end-- */
 
 	/* Bus is ready, do any protocol initialization */
 	if ((ret = dhd_prot_init(&dhd->pub)) < 0)
@@ -3105,8 +3007,6 @@ dhd_preinit_ioctls(dhd_pub_t *dhd)
 #endif /* GET_CUSTOM_MAC_ENABLE */
 	DHD_TRACE(("Enter %s\n", __FUNCTION__));
 	dhd->op_mode = 0;
-/*porting,WIFI Module,20111110 begin++ */
-#if 0    
 #ifdef GET_CUSTOM_MAC_ENABLE
 	ret = dhd_custom_get_mac_address(ea_addr.octet);
 	if (!ret) {
@@ -3133,46 +3033,6 @@ dhd_preinit_ioctls(dhd_pub_t *dhd)
 #ifdef GET_CUSTOM_MAC_ENABLE
 	}
 #endif /* GET_CUSTOM_MAC_ENABLE */
-#else
-	/* Get the device MAC address */	
-    memset(buf,0,sizeof(buf));
-    strcpy(buf, "cur_etheraddr");
-    if ((ret = dhd_wl_ioctl_cmd(dhd, WLC_GET_VAR, buf, sizeof(buf), FALSE, 0)) < 0) 
-    { 
-        DHD_ERROR(("%s: can't get MAC address , error=%d\n", __FUNCTION__, ret));   
-        return BCME_NOTUP;
-    }       
-    if ( dhd->mac.octet[0] || dhd->mac.octet[1] || dhd->mac.octet[2] ||      
-        dhd->mac.octet[3] || dhd->mac.octet[4] || dhd->mac.octet[5] ) 
-    {       
-        if (memcmp(dhd->mac.octet, buf, ETHER_ADDR_LEN) != 0) 
-        {        
-            /* Set the device MAC address */    
-            bcm_mkiovar("cur_etheraddr", (char *)dhd->mac.octet, ETHER_ADDR_LEN, buf, sizeof(buf));  
-            if ((ret = dhd_wl_ioctl_cmd(dhd, WLC_SET_VAR, buf, sizeof(buf), TRUE, 0)) < 0) 
-            {             
-                DHD_ERROR(("%s: can't set MAC address , error=%d\n", __FUNCTION__, ret)); 
-                return BCME_NOTUP;         
-            }        
-            DHD_ERROR(("%s: use MAC address in ram %02x:%02x:%02x:%02x:%02x:%02x\n",     
-                __FUNCTION__,         
-                dhd->mac.octet[0], dhd->mac.octet[1], dhd->mac.octet[2],      
-                dhd->mac.octet[3], dhd->mac.octet[4], dhd->mac.octet[5] )); 
-        } else {     
-            DHD_ERROR(("%s: same MAC address in ram and nvram %02x:%02x:%02x:%02x:%02x:%02x\n",      
-                __FUNCTION__,          
-                dhd->mac.octet[0], dhd->mac.octet[1], dhd->mac.octet[2],   
-                dhd->mac.octet[3], dhd->mac.octet[4], dhd->mac.octet[5] ));      
-        }  
-    } else {       
-        memcpy(dhd->mac.octet, buf, ETHER_ADDR_LEN); 
-        DHD_ERROR(("%s: use MAC address in nvram %02x:%02x:%02x:%02x:%02x:%02x\n",      
-            __FUNCTION__,    
-            dhd->mac.octet[0], dhd->mac.octet[1], dhd->mac.octet[2], 
-            dhd->mac.octet[3], dhd->mac.octet[4], dhd->mac.octet[5] )); 
-    }
-#endif
-/*porting,WIFI Module,20111110 end-- */
 
 #ifdef SET_RANDOM_MAC_SOFTAP
 	if ((!op_mode && strstr(fw_path, "_apsta") != NULL) || (op_mode == HOSTAPD_MASK)) {
@@ -3956,9 +3816,7 @@ dhd_free(dhd_pub_t *dhdp)
 static void __exit
 dhd_module_cleanup(void)
 {
-	/*porting,WIFI Module,20111110 begin++ */
-	DHD_ERROR(("%s: Enter\n", __FUNCTION__));
-	/*porting,WIFI Module,20111110 end-- */
+	DHD_TRACE(("%s: Enter\n", __FUNCTION__));
 
 	dhd_bus_unregister();
 
@@ -3969,9 +3827,6 @@ dhd_module_cleanup(void)
 
 	/* Call customer gpio to turn off power with WL_REG_ON signal */
 	dhd_customer_gpio_wlan_ctrl(WLAN_POWER_OFF);
-	/*porting,WIFI Module,20111110 begin++ */
-	DHD_ERROR(("%s: Exited\n", __FUNCTION__));
-	/*porting,WIFI Module,20111110 end-- */
 }
 
 static int __init
@@ -3979,9 +3834,8 @@ dhd_module_init(void)
 {
 	int error = 0;
 
-	/*porting,WIFI Module,20111110 begin++ */
-	DHD_ERROR(("%s: Enter\n", __FUNCTION__));
-	/*porting,WIFI Module,20111110 end-- */
+	DHD_TRACE(("%s: Enter\n", __FUNCTION__));
+
 	wl_android_init();
 
 #ifdef DHDTHREAD
